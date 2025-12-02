@@ -149,6 +149,7 @@ import com.shivaay20005.shivaaymusic.utils.rememberPreference
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -228,9 +229,8 @@ fun Lyrics(
 
             withContext(Dispatchers.IO) {
                 try {
-                    // TODO: Implementar consulta a BD cuando tengas el método correcto
-                    // val existingLyrics = database.query { lyricsDao().get(songId) }
-                    val existingLyrics: LyricsEntity? = null // Temporal
+                    // Query the database for existing lyrics
+                    val existingLyrics = database.lyrics(songId).first()
 
                     if (existingLyrics != null) {
                         // Actualizar cache y estado
