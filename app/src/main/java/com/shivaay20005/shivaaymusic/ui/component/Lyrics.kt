@@ -518,7 +518,7 @@ fun Lyrics(
                     }
                 } else Modifier
             )
-    )  {
+    ) {
         if (isFullscreen) {
             BackHandler(enabled = true) {
                 onNavigateBack?.invoke()

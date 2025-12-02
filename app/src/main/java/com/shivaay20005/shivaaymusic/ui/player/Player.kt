@@ -462,12 +462,16 @@ fun BottomSheetPlayer(
 
 
 
-    LaunchedEffect(playbackState) {
-        if (playbackState == STATE_READY) {
+    LaunchedEffect(playbackState, isPlaying) {
+        if (playbackState == STATE_READY || playbackState == Player.STATE_BUFFERING) {
             while (isActive) {
                 delay(100)
-                position = playerConnection.player.currentPosition
-                duration = playerConnection.player.duration
+                try {
+                    position = playerConnection.player.currentPosition
+                    duration = playerConnection.player.duration
+                } catch (e: Exception) {
+                    // Player might be released or in invalid state
+                }
             }
         }
     }

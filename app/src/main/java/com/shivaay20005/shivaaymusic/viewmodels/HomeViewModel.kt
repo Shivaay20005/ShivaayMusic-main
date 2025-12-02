@@ -84,43 +84,61 @@ class HomeViewModel @Inject constructor(
         }
 
         // Similar to artists
-        val artistRecommendations =
+        val artistRecommendations = try {
             database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
                 .filter { it.artist.isYouTubeArtist }
                 .shuffled().take(3)
                 .mapNotNull {
-                    val items = mutableListOf<YTItem>()
-                    YouTube.artist(it.id).onSuccess { page ->
-                        items += page.sections.getOrNull(page.sections.size - 2)?.items.orEmpty()
-                        items += page.sections.lastOrNull()?.items.orEmpty()
+                    try {
+                        val items = mutableListOf<YTItem>()
+                        YouTube.artist(it.id).onSuccess { page ->
+                            items += page.sections.getOrNull(page.sections.size - 2)?.items.orEmpty()
+                            items += page.sections.lastOrNull()?.items.orEmpty()
+                        }
+                        SimilarRecommendation(
+                            title = it,
+                            items = items
+                                .shuffled()
+                                .ifEmpty { return@mapNotNull null }
+                        )
+                    } catch (e: Exception) {
+                        reportException(e)
+                        null
                     }
-                    SimilarRecommendation(
-                        title = it,
-                        items = items
-                            .shuffled()
-                            .ifEmpty { return@mapNotNull null }
-                    )
                 }
+        } catch (e: Exception) {
+            reportException(e)
+            emptyList()
+        }
         // Similar to songs
-        val songRecommendations =
+        val songRecommendations = try {
             database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
                 .filter { it.album != null }
                 .shuffled().take(2)
                 .mapNotNull { song ->
-                    val endpoint =
-                        YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
-                            ?: return@mapNotNull null
-                    val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
-                    SimilarRecommendation(
-                        title = song,
-                        items = (page.songs.shuffled().take(8) +
-                                page.albums.shuffled().take(4) +
-                                page.artists.shuffled().take(4) +
-                                page.playlists.shuffled().take(4))
-                            .shuffled()
-                            .ifEmpty { return@mapNotNull null }
-                    )
+                    try {
+                        val endpoint =
+                            YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
+                                ?: return@mapNotNull null
+                        val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
+                        SimilarRecommendation(
+                            title = song,
+                            items = (page.songs.shuffled().take(8) +
+                                    page.albums.shuffled().take(4) +
+                                    page.artists.shuffled().take(4) +
+                                    page.playlists.shuffled().take(4))
+                                .shuffled()
+                                .ifEmpty { return@mapNotNull null }
+                        )
+                    } catch (e: Exception) {
+                        reportException(e)
+                        null
+                    }
                 }
+        } catch (e: Exception) {
+            reportException(e)
+            emptyList()
+        }
         similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
 
         YouTube.home().onSuccess { page ->
