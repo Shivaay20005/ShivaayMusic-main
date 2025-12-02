@@ -322,14 +322,14 @@ fun Queue(
                     val toAdjusted = if (safeTo == 0) 1 else safeTo
                     
                     if (!playerConnection.player.shuffleModeEnabled) {
-                        playerConnection.player.moveMediaItem(safeFrom, safeTo)
+                        playerConnection.player.moveMediaItem(safeFrom, toAdjusted)
                     } else {
                         playerConnection.player.setShuffleOrder(
                             DefaultShuffleOrder(
                                 queueWindows
                                     .map { it.firstPeriodIndex }
                                     .toMutableList()
-                                    .move(safeFrom, safeTo)
+                                    .move(safeFrom, toAdjusted)
                                     .toIntArray(),
                                 System.currentTimeMillis(),
                             ),

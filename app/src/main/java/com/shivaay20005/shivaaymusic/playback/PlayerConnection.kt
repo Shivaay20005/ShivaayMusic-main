@@ -207,7 +207,7 @@ class PlayerConnection(
             _volume.value = player.volume
 
             // Initialize like status
-            CoroutineScope(Dispatchers.IO).launch {
+            updateScope.launch(Dispatchers.IO) {
                 updateLikeStatusForCurrentSong()
             }
 

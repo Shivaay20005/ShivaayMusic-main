@@ -52,8 +52,4 @@ class NetworkConnectivityObserver(context: Context) {
             connectivityManager.unregisterNetworkCallback(callback)
         }
     }.distinctUntilChanged()
-
-    fun unregister() {
-        // Cleanup is handled by callbackFlow's awaitClose
-    }
 }
