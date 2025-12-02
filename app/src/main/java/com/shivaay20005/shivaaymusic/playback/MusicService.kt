@@ -91,7 +91,9 @@ import com.shivaay20005.shivaaymusic.extensions.metadata
 import com.shivaay20005.shivaaymusic.extensions.toMediaItem
 import com.shivaay20005.shivaaymusic.lyrics.LyricsHelper
 import com.shivaay20005.shivaaymusic.models.PersistQueue
+import com.shivaay20005.shivaaymusic.models.PersistPlayerState
 import com.shivaay20005.shivaaymusic.models.toMediaMetadata
+import com.shivaay20005.shivaaymusic.extensions.toQueue
 import com.shivaay20005.shivaaymusic.playback.queues.EmptyQueue
 import com.shivaay20005.shivaaymusic.playback.queues.ListQueue
 import com.shivaay20005.shivaaymusic.playback.queues.Queue
@@ -99,6 +101,7 @@ import com.shivaay20005.shivaaymusic.playback.queues.YouTubeQueue
 import com.shivaay20005.shivaaymusic.playback.queues.filterExplicit
 import com.shivaay20005.shivaaymusic.utils.CoilBitmapLoader
 import com.shivaay20005.shivaaymusic.utils.DiscordRPC
+import com.shivaay20005.shivaaymusic.utils.NetworkConnectivityObserver
 import com.shivaay20005.shivaaymusic.utils.YTPlayerUtils
 import com.shivaay20005.shivaaymusic.utils.dataStore
 import com.shivaay20005.shivaaymusic.utils.enumPreference
@@ -205,6 +208,10 @@ class MusicService :
 
     private var discordRpc: DiscordRPC? = null
 
+    lateinit var connectivityObserver: NetworkConnectivityObserver
+    val waitingForNetworkConnection = MutableStateFlow(false)
+    private val isNetworkConnected = MutableStateFlow(false)
+
     val automixItems = MutableStateFlow<List<MediaItem>>(emptyList())
 
     override fun onCreate() {
@@ -267,6 +274,23 @@ class MusicService :
         controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
 
         connectivityManager = getSystemService()!!
+
+        connectivityObserver = NetworkConnectivityObserver(this)
+
+        // Observe network connectivity
+        scope.launch {
+            connectivityObserver.networkStatus.collect { isConnected ->
+                isNetworkConnected.value = isConnected
+                if (isConnected && waitingForNetworkConnection.value) {
+                    // Retry playback when connection returns
+                    waitingForNetworkConnection.value = false
+                    if (player.currentMediaItem != null && player.playWhenReady) {
+                        player.prepare()
+                        player.play()
+                    }
+                }
+            }
+        }
 
         combine(playerVolume, normalizeFactor) { playerVolume, normalizeFactor ->
             playerVolume * normalizeFactor
@@ -358,14 +382,10 @@ class MusicService :
                     }
                 }
             }.onSuccess { queue ->
+                // Convert back to appropriate queue type
+                val restoredQueue = queue.toQueue()
                 playQueue(
-                    queue =
-                        ListQueue(
-                            title = queue.title,
-                            items = queue.items.map { it.toMediaItem() },
-                            startIndex = queue.mediaItemIndex,
-                            position = queue.position,
-                        ),
+                    queue = restoredQueue,
                     playWhenReady = false,
                 )
             }
@@ -377,6 +397,28 @@ class MusicService :
                 }
             }.onSuccess { queue ->
                 automixItems.value = queue.items.map { it.toMediaItem() }
+            }
+
+            // Restore player state
+            runCatching {
+                filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).inputStream().use { fis ->
+                    ObjectInputStream(fis).use { oos ->
+                        oos.readObject() as PersistPlayerState
+                    }
+                }
+            }.onSuccess { playerState ->
+                // Restore player configuration after queue loads
+                scope.launch {
+                    delay(1.seconds) // Wait for queue to load
+                    player.repeatMode = playerState.repeatMode
+                    player.shuffleModeEnabled = playerState.shuffleModeEnabled
+                    player.volume = playerState.volume
+
+                    // Restore position if still valid
+                    if (playerState.currentMediaItemIndex < player.mediaItemCount) {
+                        player.seekTo(playerState.currentMediaItemIndex, playerState.currentPosition)
+                    }
+                }
             }
         }
 
@@ -1086,5 +1128,6 @@ class MusicService :
         const val CHUNK_LENGTH = 512 * 1024L
         const val PERSISTENT_QUEUE_FILE = "persistent_queue.data"
         const val PERSISTENT_AUTOMIX_FILE = "persistent_automix.data"
+        const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"
     }
 }
