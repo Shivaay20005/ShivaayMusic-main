@@ -18,8 +18,8 @@ android {
         applicationId = "com.shivaay20005.shivaaymusic"
         minSdk = 24
         targetSdk = 35
-        versionCode = 119
-        versionName = "1.0.0"
+        versionCode = 120
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -34,7 +34,11 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         debug {
-            applicationIdSuffix = ".debug"
+            // Remove applicationIdSuffix so debug and release use same package name
+            // This ensures changes are visible when updating the app
+            isDebuggable = true
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
     signingConfigs {

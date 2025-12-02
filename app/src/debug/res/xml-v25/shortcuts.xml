@@ -8,7 +8,7 @@
         <intent
             android:action="com.shivaay20005.shivaaymusic.action.SEARCH"
             android:targetClass="com.shivaay20005.shivaaymusic.MainActivity"
-            android:targetPackage="com.shivaay20005.shivaaymusic.debug" />
+            android:targetPackage="com.shivaay20005.shivaaymusic" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -18,7 +18,7 @@
         <intent
             android:action="com.shivaay20005.shivaaymusic.action.EXPLORE"
             android:targetClass="com.shivaay20005.shivaaymusic.MainActivity"
-            android:targetPackage="com.shivaay20005.shivaaymusic.debug" />
+            android:targetPackage="com.shivaay20005.shivaaymusic" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -28,6 +28,6 @@
         <intent
             android:action="com.shivaay20005.shivaaymusic.action.LIBRARY"
             android:targetClass="com.shivaay20005.shivaaymusic.MainActivity"
-            android:targetPackage="com.shivaay20005.shivaaymusic.debug" />
+            android:targetPackage="com.shivaay20005.shivaaymusic" />
     </shortcut>
 </shortcuts>
