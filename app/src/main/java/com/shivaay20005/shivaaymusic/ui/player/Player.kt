@@ -469,8 +469,8 @@ fun BottomSheetPlayer(
                 try {
                     position = playerConnection.player.currentPosition
                     duration = playerConnection.player.duration
-                } catch (e: Exception) {
-                    // Player might be released or in invalid state
+                } catch (_: Exception) {
+                    // Player might be released or in invalid state - safe to ignore
                 }
             }
         }

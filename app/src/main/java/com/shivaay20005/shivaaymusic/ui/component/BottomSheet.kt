@@ -166,8 +166,9 @@ class BottomSheetState(
 
     val progress by derivedStateOf {
         val upper = animatable.upperBound ?: return@derivedStateOf 0f
-        val range = upper - collapsedBound
-        if (range.value == 0f) 0f else 1f - (upper - animatable.value) / range
+        val range = (upper - collapsedBound)
+        val rangeValue = range.value
+        if (rangeValue == 0f) 0f else 1f - (upper - animatable.value).value / rangeValue
     }
 
     fun collapse(animationSpec: AnimationSpec<Dp>) {
