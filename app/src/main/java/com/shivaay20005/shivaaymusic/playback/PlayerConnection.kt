@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -205,11 +206,39 @@ class PlayerConnection(
             _bufferedPosition.value = player.bufferedPosition
             _volume.value = player.volume
 
+            // Initialize like status
+            CoroutineScope(Dispatchers.IO).launch {
+                updateLikeStatusForCurrentSong()
+            }
+
             updateCanSkipPreviousAndNext()
             Log.d(TAG, "States initialized")
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing states", e)
             reportException(e)
+        }
+    }
+
+    private suspend fun updateLikeStatusForCurrentSong() {
+        try {
+            val currentSongId = player.currentMediaItem?.mediaId
+            if (currentSongId != null) {
+                val songWithInfo = database.song(currentSongId).first()
+                _isLiked.value = songWithInfo?.song?.liked ?: false
+                Log.d(TAG, "Like status updated for song $currentSongId: ${_isLiked.value}")
+            } else {
+                _isLiked.value = false
+                Log.d(TAG, "No current song, setting like status to false")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating like status for current song", e)
+            _isLiked.value = false
+        }
+    }
+
+    fun refreshLikeStatus() {
+        updateScope.launch(Dispatchers.IO) {
+            updateLikeStatusForCurrentSong()
         }
     }
 

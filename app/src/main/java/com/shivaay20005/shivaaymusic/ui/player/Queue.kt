@@ -299,7 +299,7 @@ fun Queue(
         val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
         val queueLength =
             remember(queueWindows) {
-                queueWindows.sumOf { it.mediaItem.metadata!!.duration }
+                queueWindows.sumOf { it.mediaItem.metadata?.duration ?: 0 }
             }
 
         val coroutineScope = rememberCoroutineScope()
@@ -316,19 +316,20 @@ fun Queue(
                     }
                 },
                 onDragEnd = { fromIndex, toIndex ->
-                    val to = if (toIndex == 0) 1 else toIndex
+                    // Safe index calculation to prevent crashes
+                    val safeFrom = (fromIndex - headerItems).coerceIn(0, mutableQueueWindows.lastIndex.coerceAtLeast(0))
+                    val safeTo = (toIndex - headerItems).coerceIn(0, mutableQueueWindows.lastIndex.coerceAtLeast(0))
+                    val toAdjusted = if (safeTo == 0) 1 else safeTo
+                    
                     if (!playerConnection.player.shuffleModeEnabled) {
-                        playerConnection.player.moveMediaItem(
-                            fromIndex - headerItems,
-                            to - headerItems
-                        )
+                        playerConnection.player.moveMediaItem(safeFrom, safeTo)
                     } else {
                         playerConnection.player.setShuffleOrder(
                             DefaultShuffleOrder(
                                 queueWindows
                                     .map { it.firstPeriodIndex }
                                     .toMutableList()
-                                    .move(fromIndex - headerItems, to - headerItems)
+                                    .move(safeFrom, safeTo)
                                     .toIntArray(),
                                 System.currentTimeMillis(),
                             ),
