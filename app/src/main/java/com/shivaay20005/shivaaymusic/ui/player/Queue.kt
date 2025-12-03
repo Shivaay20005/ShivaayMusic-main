@@ -802,7 +802,7 @@ fun Queue(
                             when (repeatMode) {
                                 Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
                                 Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                else -> throw IllegalStateException()
+                                else -> R.drawable.repeat // Safe fallback to prevent crash
                             },
                         ),
                     contentDescription = null,
