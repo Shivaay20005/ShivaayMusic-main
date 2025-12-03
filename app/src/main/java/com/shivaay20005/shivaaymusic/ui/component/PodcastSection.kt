@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -413,19 +414,6 @@ fun FeaturedPodcastCard(
         }
     }
 }
-
-/**
- * Offset modifier extension for decorative elements
- */
-@Composable
-private fun Modifier.offset(x: Int = 0, y: Int = 0) = this.then(
-    Modifier.padding(
-        start = if (x > 0) x.dp else 0.dp,
-        end = if (x < 0) (-x).dp else 0.dp,
-        top = if (y > 0) y.dp else 0.dp,
-        bottom = if (y < 0) (-y).dp else 0.dp
-    )
-)
 
 /**
  * ShivaayMusic Exclusive - Featured Podcasts Section

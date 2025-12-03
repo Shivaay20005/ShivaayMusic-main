@@ -216,8 +216,9 @@ object RecommendationEngine {
      */
     suspend fun getDiscoverRecommendations(limit: Int = 12): SmartRecommendation? {
         return try {
+            val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
             val queries = listOf(
-                "new music 2024",
+                "new music $currentYear",
                 "indie music discovery",
                 "underground artists",
                 "fresh releases",

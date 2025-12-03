@@ -105,7 +105,7 @@ class HomeViewModel @Inject constructor(
         val artistRecommendations =
             database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
                 .filter { it.artist.isYouTubeArtist }
-                .shuffled().take(4) // Increased from 3 to 4
+                .shuffled().take(4)
                 .mapNotNull {
                     val items = mutableListOf<YTItem>()
                     YouTube.artist(it.id).onSuccess { page ->
@@ -118,7 +118,7 @@ class HomeViewModel @Inject constructor(
                         title = it,
                         items = items
                             .shuffled()
-                            .take(12) // Limit total items
+                            .take(12)
                             .ifEmpty { return@mapNotNull null }
                     )
                 }
@@ -127,7 +127,7 @@ class HomeViewModel @Inject constructor(
         val songRecommendations =
             database.mostPlayedSongs(fromTimeStamp, limit = 15).first()
                 .filter { it.album != null }
-                .shuffled().take(3) // Increased from 2 to 3
+                .shuffled().take(3)
                 .mapNotNull { song ->
                     val endpoint =
                         YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
