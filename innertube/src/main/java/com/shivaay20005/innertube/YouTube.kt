@@ -125,7 +125,7 @@ object YouTube {
                             .plus(
                                 it.musicCardShelfRenderer.contents
                                     ?.mapNotNull { it.musicResponsiveListItemRenderer }
-                                    ?.mapNotNull(SearchSummaryPage.Companion::fromMusicResponsiveListItemRenderer)
+                                    ?.mapNotNull(SearchPage::toYTItem)
                                     .orEmpty()
                             )
                             .distinctBy { it.id }
@@ -136,7 +136,7 @@ object YouTube {
                         title = it.musicShelfRenderer?.title?.runs?.firstOrNull()?.text ?: "Other",
                         items = it.musicShelfRenderer?.contents?.getItems()
                             ?.mapNotNull {
-                                SearchSummaryPage.fromMusicResponsiveListItemRenderer(it)
+                                SearchPage.toYTItem(it)
                             }
                             ?.distinctBy { it.id }
                             ?.ifEmpty { null } ?: return@mapNotNull null
