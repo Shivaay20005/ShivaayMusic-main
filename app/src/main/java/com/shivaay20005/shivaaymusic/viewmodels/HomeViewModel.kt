@@ -17,6 +17,8 @@ import com.shivaay20005.shivaaymusic.db.entities.LocalItem
 import com.shivaay20005.shivaaymusic.db.entities.Playlist
 import com.shivaay20005.shivaaymusic.db.entities.Song
 import com.shivaay20005.shivaaymusic.models.SimilarRecommendation
+import com.shivaay20005.shivaaymusic.models.SmartRecommendation
+import com.shivaay20005.shivaaymusic.utils.RecommendationEngine
 import com.shivaay20005.shivaaymusic.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -43,6 +45,10 @@ class HomeViewModel @Inject constructor(
     val explorePage = MutableStateFlow<ExplorePage?>(null)
     val recentActivity = MutableStateFlow<List<YTItem>?>(null)
     val recentPlaylistsDb = MutableStateFlow<List<Playlist>?>(null)
+
+    // ShivaayMusic Exclusive - Smart Recommendations
+    val smartRecommendations = MutableStateFlow<List<SmartRecommendation>?>(null)
+    val forYouMix = MutableStateFlow<SmartRecommendation?>(null)
 
     val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
@@ -83,29 +89,45 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-        // Similar to artists
+        // ShivaayMusic Exclusive - Smart Recommendations Engine
+        try {
+            // Get "For You" mix first (highest priority)
+            forYouMix.value = RecommendationEngine.getMixedForYou(database)
+            
+            // Get all smart recommendations
+            val allRecs = RecommendationEngine.getAllSmartRecommendations(database)
+            smartRecommendations.value = allRecs
+        } catch (e: Exception) {
+            reportException(e)
+        }
+
+        // Similar to artists (enhanced with more variety)
         val artistRecommendations =
             database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
                 .filter { it.artist.isYouTubeArtist }
-                .shuffled().take(3)
+                .shuffled().take(4) // Increased from 3 to 4
                 .mapNotNull {
                     val items = mutableListOf<YTItem>()
                     YouTube.artist(it.id).onSuccess { page ->
-                        items += page.sections.getOrNull(page.sections.size - 2)?.items.orEmpty()
-                        items += page.sections.lastOrNull()?.items.orEmpty()
+                        // Get items from multiple sections for more variety
+                        page.sections.forEach { section ->
+                            items += section.items.shuffled().take(4)
+                        }
                     }
                     SimilarRecommendation(
                         title = it,
                         items = items
                             .shuffled()
+                            .take(12) // Limit total items
                             .ifEmpty { return@mapNotNull null }
                     )
                 }
-        // Similar to songs
+        
+        // Similar to songs (enhanced)
         val songRecommendations =
-            database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
+            database.mostPlayedSongs(fromTimeStamp, limit = 15).first()
                 .filter { it.album != null }
-                .shuffled().take(2)
+                .shuffled().take(3) // Increased from 2 to 3
                 .mapNotNull { song ->
                     val endpoint =
                         YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
@@ -113,11 +135,12 @@ class HomeViewModel @Inject constructor(
                     val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
                     SimilarRecommendation(
                         title = song,
-                        items = (page.songs.shuffled().take(8) +
+                        items = (page.songs.shuffled().take(10) +
                                 page.albums.shuffled().take(4) +
                                 page.artists.shuffled().take(4) +
                                 page.playlists.shuffled().take(4))
                             .shuffled()
+                            .take(15)
                             .ifEmpty { return@mapNotNull null }
                     )
                 }
@@ -153,7 +176,8 @@ class HomeViewModel @Inject constructor(
 
         allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
                 homePage.value?.sections?.flatMap { it.items }.orEmpty() +
-                explorePage.value?.newReleaseAlbums.orEmpty()
+                explorePage.value?.newReleaseAlbums.orEmpty() +
+                smartRecommendations.value?.flatMap { it.items }.orEmpty()
 
         isLoading.value = false
     }

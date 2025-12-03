@@ -26,6 +26,27 @@
     <string name="keep_listening">Keep listening</string>
     <string name="your_ytb_playlists">Your youtube account</string>
 
+    <!-- Podcasts -->
+    <string name="podcasts">Podcasts</string>
+    <string name="podcast_discover">Discover Podcasts</string>
+    <string name="podcast_trending">Trending Podcasts</string>
+    <string name="podcast_categories">Podcast Categories</string>
+    <string name="podcast_entertainment">Entertainment</string>
+    <string name="podcast_education">Education</string>
+    <string name="podcast_comedy">Comedy</string>
+    <string name="podcast_news">News</string>
+    <string name="podcast_technology">Technology</string>
+    <string name="podcast_business">Business</string>
+    <string name="podcast_sports">Sports</string>
+    <string name="podcast_health">Health &amp; Wellness</string>
+    <string name="podcast_stories">Stories</string>
+    <string name="podcast_motivation">Motivation</string>
+    <string name="podcast_hindi">Hindi Podcasts</string>
+    <string name="podcast_english">English Podcasts</string>
+    <string name="podcast_explore_all">Explore All Podcasts</string>
+    <string name="podcast_featured">Featured Podcasts</string>
+    <string name="podcast_listen_now">Listen Now</string>
+
     <!-- History -->
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>

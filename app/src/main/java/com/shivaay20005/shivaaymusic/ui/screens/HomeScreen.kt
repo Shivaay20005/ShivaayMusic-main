@@ -140,6 +140,10 @@ fun HomeScreen(
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
 
+    // ShivaayMusic Exclusive - Smart Recommendations
+    val smartRecommendations by viewModel.smartRecommendations.collectAsState()
+    val forYouMix by viewModel.forYouMix.collectAsState()
+
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
 

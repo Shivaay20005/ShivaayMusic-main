@@ -1,0 +1,508 @@
+package com.shivaay20005.shivaaymusic.ui.component
+
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.shivaay20005.shivaaymusic.R
+
+/**
+ * ShivaayMusic Exclusive - Podcast Categories
+ */
+data class PodcastCategory(
+    val nameResId: Int,
+    val emoji: String,
+    val searchQuery: String,
+    val gradientColors: List<Color>
+)
+
+val podcastCategories = listOf(
+    PodcastCategory(
+        R.string.podcast_entertainment,
+        "🎭",
+        "entertainment podcast hindi",
+        listOf(Color(0xFFFF6B6B), Color(0xFFFF8E53))
+    ),
+    PodcastCategory(
+        R.string.podcast_education,
+        "📚",
+        "education podcast learning",
+        listOf(Color(0xFF4ECDC4), Color(0xFF44A08D))
+    ),
+    PodcastCategory(
+        R.string.podcast_comedy,
+        "😂",
+        "comedy podcast funny",
+        listOf(Color(0xFFFFD93D), Color(0xFFFF6B6B))
+    ),
+    PodcastCategory(
+        R.string.podcast_motivation,
+        "💪",
+        "motivation podcast inspiration",
+        listOf(Color(0xFF667EEA), Color(0xFF764BA2))
+    ),
+    PodcastCategory(
+        R.string.podcast_technology,
+        "💻",
+        "technology podcast tech news",
+        listOf(Color(0xFF11998E), Color(0xFF38EF7D))
+    ),
+    PodcastCategory(
+        R.string.podcast_business,
+        "💼",
+        "business podcast entrepreneurship",
+        listOf(Color(0xFF3A1C71), Color(0xFFD76D77))
+    ),
+    PodcastCategory(
+        R.string.podcast_stories,
+        "📖",
+        "storytelling podcast stories hindi",
+        listOf(Color(0xFFFC466B), Color(0xFF3F5EFB))
+    ),
+    PodcastCategory(
+        R.string.podcast_health,
+        "🧘",
+        "health wellness podcast",
+        listOf(Color(0xFF00B4DB), Color(0xFF0083B0))
+    ),
+    PodcastCategory(
+        R.string.podcast_hindi,
+        "🇮🇳",
+        "hindi podcast india",
+        listOf(Color(0xFFFF9933), Color(0xFF138808))
+    ),
+    PodcastCategory(
+        R.string.podcast_news,
+        "📰",
+        "news podcast daily",
+        listOf(Color(0xFF434343), Color(0xFF000000))
+    ),
+)
+
+/**
+ * ShivaayMusic Exclusive - Podcast Section Header
+ */
+@Composable
+fun PodcastSectionHeader(
+    onExploreAllClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "podcastPulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "podcastScale"
+    )
+    
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF667EEA),
+                            Color(0xFF764BA2),
+                            Color(0xFFFC466B)
+                        )
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .scale(scale)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f))
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.podcast),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    Column {
+                        Text(
+                            text = stringResource(R.string.podcasts),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = stringResource(R.string.podcast_discover),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+                
+                Surface(
+                    onClick = onExploreAllClick,
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color.White.copy(alpha = 0.2f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.podcast_explore_all),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - Podcast Category Chip
+ */
+@Composable
+fun PodcastCategoryChip(
+    category: PodcastCategory,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier
+            .width(140.dp)
+            .height(100.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(category.gradientColors)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(12.dp)
+            ) {
+                Text(
+                    text = category.emoji,
+                    fontSize = 32.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(category.nameResId),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - Podcast Categories Row
+ */
+@Composable
+fun PodcastCategoriesSection(
+    onCategoryClick: (PodcastCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.podcast_categories),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(podcastCategories) { category ->
+                PodcastCategoryChip(
+                    category = category,
+                    onClick = { onCategoryClick(category) }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - Featured Podcast Card
+ */
+@Composable
+fun FeaturedPodcastCard(
+    title: String,
+    subtitle: String,
+    emoji: String,
+    gradientColors: List<Color>,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier
+            .width(280.dp)
+            .height(160.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(gradientColors)
+                )
+        ) {
+            // Decorative circles
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 30.dp, y = (-30).dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.1f))
+            )
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .align(Alignment.BottomStart)
+                    .offset(x = (-20).dp, y = 20.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.1f))
+            )
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color.White
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.play),
+                                contentDescription = null,
+                                tint = gradientColors[0],
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.podcast_listen_now),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = gradientColors[0]
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Text(
+                    text = emoji,
+                    fontSize = 48.sp
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Offset modifier extension for decorative elements
+ */
+@Composable
+private fun Modifier.offset(x: Int = 0, y: Int = 0) = this.then(
+    Modifier.padding(
+        start = if (x > 0) x.dp else 0.dp,
+        end = if (x < 0) (-x).dp else 0.dp,
+        top = if (y > 0) y.dp else 0.dp,
+        bottom = if (y < 0) (-y).dp else 0.dp
+    )
+)
+
+/**
+ * ShivaayMusic Exclusive - Featured Podcasts Section
+ */
+@Composable
+fun FeaturedPodcastsSection(
+    onPodcastClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val featuredPodcasts = listOf(
+        Triple("Trending Hindi Podcasts", "Best podcasts in Hindi", "🎙️") to 
+            (listOf(Color(0xFFFF6B6B), Color(0xFFFF8E53)) to "trending hindi podcast"),
+        Triple("Comedy Podcasts", "Laugh out loud shows", "😂") to 
+            (listOf(Color(0xFFFFD93D), Color(0xFFFF6B6B)) to "comedy podcast hindi funny"),
+        Triple("Business & Startup", "Entrepreneurship insights", "💼") to 
+            (listOf(Color(0xFF667EEA), Color(0xFF764BA2)) to "business startup podcast india"),
+        Triple("True Crime Stories", "Thrilling mysteries", "🔍") to 
+            (listOf(Color(0xFF434343), Color(0xFF000000)) to "true crime podcast hindi"),
+        Triple("Self Improvement", "Grow every day", "🌟") to 
+            (listOf(Color(0xFF11998E), Color(0xFF38EF7D)) to "self improvement podcast motivation"),
+    )
+    
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.podcast_featured),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(featuredPodcasts) { (info, details) ->
+                val (title, subtitle, emoji) = info
+                val (colors, query) = details
+                FeaturedPodcastCard(
+                    title = title,
+                    subtitle = subtitle,
+                    emoji = emoji,
+                    gradientColors = colors,
+                    onClick = { onPodcastClick(query) }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - Complete Podcast Section for Explore Screen
+ */
+@Composable
+fun PodcastSection(
+    onSearchPodcast: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Header with explore all button
+        PodcastSectionHeader(
+            onExploreAllClick = { onSearchPodcast("podcast hindi") }
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Featured Podcasts
+        FeaturedPodcastsSection(
+            onPodcastClick = onSearchPodcast
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Categories
+        PodcastCategoriesSection(
+            onCategoryClick = { category ->
+                onSearchPodcast(category.searchQuery)
+            }
+        )
+    }
+}
