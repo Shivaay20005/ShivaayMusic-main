@@ -18,8 +18,8 @@ android {
         applicationId = "com.shivaay20005.shivaaymusic"
         minSdk = 24
         targetSdk = 35
-        versionCode = 120
-        versionName = "1.0.1"
+        versionCode = 121
+        versionName = "1.0.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
