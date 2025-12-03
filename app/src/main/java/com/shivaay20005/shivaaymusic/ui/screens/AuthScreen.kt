@@ -69,6 +69,7 @@ import com.shivaay20005.shivaaymusic.utils.dataStore
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 import java.time.LocalDateTime
+import java.util.Locale
 
 @Composable
 fun AuthScreen(
@@ -119,7 +120,7 @@ fun AuthScreen(
         coroutineScope.launch {
             try {
                 val hashedPassword = hashPassword(password)
-                val user = database.loginUser(email.trim().lowercase(), hashedPassword)
+                val user = database.loginUser(email.trim().lowercase(Locale.ROOT), hashedPassword)
                 
                 if (user != null) {
                     // Update last login time
@@ -171,7 +172,7 @@ fun AuthScreen(
         coroutineScope.launch {
             try {
                 // Check if email already exists
-                val existingUser = database.getUserByEmail(email.trim().lowercase())
+                val existingUser = database.getUserByEmail(email.trim().lowercase(Locale.ROOT))
                 if (existingUser != null) {
                     Toast.makeText(context, context.getString(R.string.auth_error_email_exists), Toast.LENGTH_SHORT).show()
                     isLoading = false
@@ -181,7 +182,7 @@ fun AuthScreen(
                 val hashedPassword = hashPassword(password)
                 val newUser = UserEntity(
                     name = name.trim(),
-                    email = email.trim().lowercase(),
+                    email = email.trim().lowercase(Locale.ROOT),
                     password = hashedPassword,
                     phone = phone.trim()
                 )
@@ -193,7 +194,7 @@ fun AuthScreen(
                     settings[IsUserLoggedInKey] = true
                     settings[LoggedInUserIdKey] = userId
                     settings[LoggedInUserNameKey] = name.trim()
-                    settings[LoggedInUserEmailKey] = email.trim().lowercase()
+                    settings[LoggedInUserEmailKey] = email.trim().lowercase(Locale.ROOT)
                 }
                 
                 Toast.makeText(context, context.getString(R.string.auth_signup_success), Toast.LENGTH_SHORT).show()
