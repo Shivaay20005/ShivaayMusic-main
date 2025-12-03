@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shivaay20005.innertube.YouTube
 import com.shivaay20005.innertube.models.filterExplicit
+import com.shivaay20005.innertube.pages.SearchSummary
 import com.shivaay20005.innertube.pages.SearchSummaryPage
 import com.shivaay20005.shivaaymusic.constants.HideExplicitKey
 import com.shivaay20005.shivaaymusic.models.ItemsPage
@@ -42,15 +43,22 @@ constructor(
                         YouTube
                             .searchSummary(query)
                             .onSuccess {
-                                summaryPage =
-                                    it.filterExplicit(
-                                        context.dataStore.get(
-                                            HideExplicitKey,
-                                            false,
-                                        ),
-                                    )
+                                val filteredPage = it.filterExplicit(
+                                    context.dataStore.get(
+                                        HideExplicitKey,
+                                        false,
+                                    ),
+                                )
+                                // If summaries are empty, fall back to song search
+                                if (filteredPage.summaries.isEmpty()) {
+                                    loadAllTabFallback()
+                                } else {
+                                    summaryPage = filteredPage
+                                }
                             }.onFailure {
                                 reportException(it)
+                                // On failure, fall back to song search for "All" tab
+                                loadAllTabFallback()
                             }
                     }
                 } else {
@@ -77,6 +85,31 @@ constructor(
                 }
             }
         }
+    }
+
+    private suspend fun loadAllTabFallback() {
+        // Fall back to loading songs for "All" tab
+        YouTube
+            .search(query, YouTube.SearchFilter.FILTER_SONG)
+            .onSuccess { result ->
+                summaryPage = SearchSummaryPage(
+                    summaries = listOf(
+                        SearchSummary(
+                            title = "Songs",
+                            items = result.items
+                                .distinctBy { it.id }
+                                .filterExplicit(
+                                    context.dataStore.get(
+                                        HideExplicitKey,
+                                        false
+                                    )
+                                )
+                        )
+                    )
+                )
+            }.onFailure {
+                reportException(it)
+            }
     }
 
     fun loadMore() {
