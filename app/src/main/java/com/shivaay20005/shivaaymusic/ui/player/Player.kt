@@ -562,20 +562,24 @@ fun BottomSheetPlayer(
     BottomSheet(
         state = state,
         modifier = modifier,
-        brushBackgroundColor =
-            if (gradientColors.size >=
-                2 &&
-                state.value > changeBound
-            ) {
-                Brush.verticalGradient(gradientColors)
-            } else {
-                Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surfaceContainer,
-                        MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                )
-            },
+        background = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        if (gradientColors.size >= 2 && state.value > changeBound) {
+                            Brush.verticalGradient(gradientColors)
+                        } else {
+                            Brush.verticalGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.surfaceContainer,
+                                    MaterialTheme.colorScheme.surfaceContainer,
+                                ),
+                            )
+                        }
+                    )
+            )
+        },
         onDismiss = {
             playerConnection.service.clearAutomix()
             playerConnection.player.stop()
