@@ -63,7 +63,7 @@ fun MiniPlayer(
         modifier =
             modifier
                 .fillMaxWidth()
-
+                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .height(MiniPlayerHeight)
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
     ) {
