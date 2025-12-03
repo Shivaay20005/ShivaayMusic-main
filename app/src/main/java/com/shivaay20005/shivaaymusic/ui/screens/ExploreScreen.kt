@@ -80,7 +80,7 @@ fun ExploreScreen(
             // ShivaayMusic Exclusive - Mood Selector
             MoodSelectorCard(
                 onMoodSelected = { mood ->
-                    navController.navigate("search/${URLEncoder.encode(mood.searchQuery, "UTF-8")}")
+                    navController.navigate("search/${URLEncoder.encode(mood.searchQuery, Charsets.UTF_8.name())}")
                 },
             )
 

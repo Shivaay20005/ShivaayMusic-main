@@ -397,7 +397,7 @@ fun HomeScreen(
             item {
                 MoodSelectorCard(
                     onMoodSelected = { mood ->
-                        navController.navigate("search/${java.net.URLEncoder.encode(mood.searchQuery, "UTF-8")}")
+                        navController.navigate("search/${java.net.URLEncoder.encode(mood.searchQuery, Charsets.UTF_8.name())}")
                     },
                     modifier = Modifier.animateItem()
                 )
