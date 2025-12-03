@@ -26,6 +26,13 @@ sealed class Screens(
         route = "explore"
     )
 
+    data object Mood : Screens(
+        titleId = R.string.mood,
+        iconIdInactive = R.drawable.mood,
+        iconIdActive = R.drawable.mood_filled,
+        route = "mood_and_genres"
+    )
+
     data object Library : Screens(
         titleId = R.string.filter_library,
         iconIdInactive = R.drawable.library_music_outlined,
@@ -34,6 +41,6 @@ sealed class Screens(
     )
 
     companion object {
-        val MainScreens = listOf(Home, Explore, Library)
+        val MainScreens = listOf(Home, Explore, Mood, Library)
     }
 }

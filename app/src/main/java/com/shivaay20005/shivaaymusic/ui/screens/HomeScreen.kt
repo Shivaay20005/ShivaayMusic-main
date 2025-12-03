@@ -91,6 +91,7 @@ import com.shivaay20005.shivaaymusic.ui.component.ChipsRow
 import com.shivaay20005.shivaaymusic.ui.component.DailyQuoteCard
 import com.shivaay20005.shivaaymusic.ui.component.HideOnScrollFAB
 import com.shivaay20005.shivaaymusic.ui.component.LocalMenuState
+import com.shivaay20005.shivaaymusic.ui.component.MoodSelectorCard
 import com.shivaay20005.shivaaymusic.ui.component.NavigationTitle
 import com.shivaay20005.shivaaymusic.ui.component.ShivaaySpecialHeader
 import com.shivaay20005.shivaaymusic.ui.component.SongGridItem
@@ -388,6 +389,16 @@ fun HomeScreen(
             // ShivaayMusic Exclusive - Daily Quote Card
             item {
                 DailyQuoteCard(
+                    modifier = Modifier.animateItem()
+                )
+            }
+
+            // ShivaayMusic Exclusive - Mood Selector
+            item {
+                MoodSelectorCard(
+                    onMoodSelected = { mood ->
+                        navController.navigate("search/${java.net.URLEncoder.encode(mood.searchQuery, "UTF-8")}")
+                    },
                     modifier = Modifier.animateItem()
                 )
             }

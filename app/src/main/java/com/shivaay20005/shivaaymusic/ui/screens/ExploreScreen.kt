@@ -1,19 +1,26 @@
 package com.shivaay20005.shivaaymusic.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -21,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,10 +38,15 @@ import com.shivaay20005.shivaaymusic.LocalPlayerAwareWindowInsets
 import com.shivaay20005.shivaaymusic.LocalPlayerConnection
 import com.shivaay20005.shivaaymusic.R
 import com.shivaay20005.shivaaymusic.ui.component.LocalMenuState
+import com.shivaay20005.shivaaymusic.ui.component.MoodSelectorCard
 import com.shivaay20005.shivaaymusic.ui.component.NavigationTitle
+import com.shivaay20005.shivaaymusic.ui.component.YouTubeGridItem
+import com.shivaay20005.shivaaymusic.ui.component.shimmer.GridItemPlaceHolder
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.ShimmerHost
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.TextPlaceholder
+import com.shivaay20005.shivaaymusic.ui.menu.YouTubeAlbumMenu
 import com.shivaay20005.shivaaymusic.viewmodels.ExploreViewModel
+import java.net.URLEncoder
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -64,6 +77,13 @@ fun ExploreScreen(
                 ),
             )
 
+            // ShivaayMusic Exclusive - Mood Selector
+            MoodSelectorCard(
+                onMoodSelected = { mood ->
+                    navController.navigate("search/${URLEncoder.encode(mood.searchQuery, "UTF-8")}")
+                },
+            )
+
             explorePage?.moodAndGenres?.let { moodAndGenres ->
                 NavigationTitle(
                     title = stringResource(R.string.mood_and_genres),
@@ -90,13 +110,58 @@ fun ExploreScreen(
                         )
                     }
                 }
-                Spacer(
-                    Modifier.height(
-                        LocalPlayerAwareWindowInsets.current.asPaddingValues()
-                            .calculateBottomPadding()
-                    )
-                )
             }
+
+            // New Release Albums section
+            explorePage?.newReleaseAlbums?.takeIf { it.isNotEmpty() }?.let { newReleaseAlbums ->
+                NavigationTitle(
+                    title = stringResource(R.string.new_release_albums),
+                    onClick = {
+                        navController.navigate("new_release")
+                    },
+                )
+
+                LazyRow(
+                    contentPadding = WindowInsets.systemBars
+                        .only(WindowInsetsSides.Horizontal)
+                        .asPaddingValues(),
+                ) {
+                    items(
+                        items = newReleaseAlbums,
+                        key = { it.id }
+                    ) { album ->
+                        YouTubeGridItem(
+                            item = album,
+                            isActive = mediaMetadata?.album?.id == album.id,
+                            isPlaying = isPlaying,
+                            coroutineScope = coroutineScope,
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        navController.navigate("album/${album.id}")
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            YouTubeAlbumMenu(
+                                                albumItem = album,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                )
+                        )
+                    }
+                }
+            }
+
+            Spacer(
+                Modifier.height(
+                    LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                        .calculateBottomPadding()
+                )
+            )
 
             if (explorePage == null) {
                 ShimmerHost {
@@ -118,6 +183,19 @@ fun ExploreScreen(
                                             .width(200.dp),
                                 )
                             }
+                        }
+                    }
+                    // Shimmer for new releases
+                    TextPlaceholder(
+                        height = 36.dp,
+                        modifier =
+                            Modifier
+                                .padding(vertical = 12.dp, horizontal = 12.dp)
+                                .width(200.dp),
+                    )
+                    LazyRow {
+                        items(4) {
+                            GridItemPlaceHolder()
                         }
                     }
                 }

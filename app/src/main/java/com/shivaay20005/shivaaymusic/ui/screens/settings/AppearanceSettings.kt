@@ -504,6 +504,7 @@ fun AppearanceSettings(
                 when (it) {
                     NavigationTab.HOME -> stringResource(R.string.home)
                     NavigationTab.EXPLORE -> stringResource(R.string.explore)
+                    NavigationTab.MOOD -> stringResource(R.string.mood)
                     NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
                 }
             },
@@ -580,6 +581,7 @@ enum class DarkMode {
 enum class NavigationTab {
     HOME,
     EXPLORE,
+    MOOD,
     LIBRARY,
 }
 

@@ -428,6 +428,7 @@ class MainActivity : ComponentActivity() {
                             when (intent?.action) {
                                 ACTION_LIBRARY -> NavigationTab.LIBRARY
                                 ACTION_EXPLORE -> NavigationTab.EXPLORE
+                                ACTION_MOOD -> NavigationTab.MOOD
                                 else -> null
                             }
                         }
@@ -436,6 +437,7 @@ class MainActivity : ComponentActivity() {
                         listOf(
                             Screens.Home.route,
                             Screens.Explore.route,
+                            Screens.Mood.route,
                             Screens.Library.route,
                             "settings",
                         )
@@ -1328,6 +1330,7 @@ class MainActivity : ComponentActivity() {
                                 startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {
                                     NavigationTab.HOME -> Screens.Home
                                     NavigationTab.EXPLORE -> Screens.Explore
+                                    NavigationTab.MOOD -> Screens.Mood
                                     NavigationTab.LIBRARY -> Screens.Library
                                 }.route,
                                 enterTransition = {
@@ -1488,6 +1491,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val ACTION_SEARCH = "com.shivaay20005.shivaaymusic.action.SEARCH"
         const val ACTION_EXPLORE = "com.shivaay20005.shivaaymusic.action.EXPLORE"
+        const val ACTION_MOOD = "com.shivaay20005.shivaaymusic.action.MOOD"
         const val ACTION_LIBRARY = "com.shivaay20005.shivaaymusic.action.LIBRARY"
     }
 }
