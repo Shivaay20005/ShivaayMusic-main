@@ -21,6 +21,10 @@
 
 - [Overview](#overview)
 - [Main Features](#main-features)
+  - [User Authentication (NEW!)](#-user-authentication-new)
+  - [Core Functionality](#core-functionality)
+  - [Audio Enhancements](#audio-enhancements)
+  - [Customization and Integration](#customization-and-integration)
 - [Installation](#installation)
 - [Copyright & Ownership](#copyright--ownership)
 - [Support the Project](#support-the-project)
@@ -34,9 +38,10 @@
 
 ### Key Benefits
 
+- **🔐 User Authentication**: Secure login/signup system to track your personalized experience
 - **Ad-Free Experience**: Enjoy music without advertising interruptions
 - **Improved Performance**: Optimized for smooth playback and navigation
-- **Privacy Focus**: No data collection or tracking
+- **Privacy Focus**: User data stored securely on device with encrypted passwords
 - **Customizable Interface**: Personalize your music experience
 - **Offline Capabilities**: Download and play music without internet connection
 
@@ -45,6 +50,34 @@
 ---
 
 ## Main Features
+
+### 🔐 User Authentication (NEW!)
+<table>
+<tr>
+<th width="30%">Feature</th>
+<th width="70%">Description</th>
+</tr>
+<tr>
+<td><strong>📝 Sign Up</strong></td>
+<td>Create a new account with name, email, password, and phone number</td>
+</tr>
+<tr>
+<td><strong>🔑 Login</strong></td>
+<td>Secure login with email and password authentication</td>
+</tr>
+<tr>
+<td><strong>🔒 Secure Storage</strong></td>
+<td>Passwords are hashed using SHA-256 encryption for security</td>
+</tr>
+<tr>
+<td><strong>👤 User Profile</strong></td>
+<td>Track and manage user information locally on device</td>
+</tr>
+<tr>
+<td><strong>🌐 Multi-Language Auth</strong></td>
+<td>Authentication screens available in English and Hindi (हिंदी)</td>
+</tr>
+</table>
 
 ### Core Functionality
 <table>
