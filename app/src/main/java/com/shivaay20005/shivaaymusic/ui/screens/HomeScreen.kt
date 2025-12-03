@@ -88,9 +88,11 @@ import com.shivaay20005.shivaaymusic.playback.queues.YouTubeQueue
 import com.shivaay20005.shivaaymusic.ui.component.AlbumGridItem
 import com.shivaay20005.shivaaymusic.ui.component.ArtistGridItem
 import com.shivaay20005.shivaaymusic.ui.component.ChipsRow
+import com.shivaay20005.shivaaymusic.ui.component.DailyQuoteCard
 import com.shivaay20005.shivaaymusic.ui.component.HideOnScrollFAB
 import com.shivaay20005.shivaaymusic.ui.component.LocalMenuState
 import com.shivaay20005.shivaaymusic.ui.component.NavigationTitle
+import com.shivaay20005.shivaaymusic.ui.component.ShivaaySpecialHeader
 import com.shivaay20005.shivaaymusic.ui.component.SongGridItem
 import com.shivaay20005.shivaaymusic.ui.component.SongListItem
 import com.shivaay20005.shivaaymusic.ui.component.YouTubeGridItem
@@ -381,6 +383,13 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
+            }
+
+            // ShivaayMusic Exclusive - Daily Quote Card
+            item {
+                DailyQuoteCard(
+                    modifier = Modifier.animateItem()
+                )
             }
 
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->

@@ -281,6 +281,15 @@ fun AboutScreen(
             color = MaterialTheme.colorScheme.secondary
         )
 
+        Spacer(Modifier.height(4.dp))
+        
+        // ShivaayMusic Exclusive - Made with love badge
+        Text(
+            text = stringResource(R.string.made_with_love),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.tertiary
+        )
+
         Spacer(Modifier.height(8.dp))
 
         Card(

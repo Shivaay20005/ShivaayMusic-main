@@ -530,4 +530,21 @@
     <string name="good_afternoon">Good afternoon</string>
     <string name="good_evening">Good evening</string>
     <string name="what_do_you_want_to_listen">What do you want to listen to?</string>
+    
+    <!-- ShivaayMusic Exclusive Features -->
+    <string name="shivaay_special">Shivaay Special ✨</string>
+    <string name="daily_music_quote">Daily Music Quote</string>
+    <string name="powered_by_shivaay">Powered by ShivaayMusic</string>
+    <string name="music_heals">Music heals the soul 🎵</string>
+    <string name="made_with_love">Made with ❤️ in India</string>
+    
+    <!-- Motivational Music Quotes -->
+    <string name="quote_1">\"Music is the soundtrack of your life.\" - Dick Clark</string>
+    <string name="quote_2">\"Where words fail, music speaks.\" - Hans Christian Andersen</string>
+    <string name="quote_3">\"Music gives a soul to the universe.\" - Plato</string>
+    <string name="quote_4">\"One good thing about music, when it hits you, you feel no pain.\" - Bob Marley</string>
+    <string name="quote_5">\"Music is the divine way to tell beautiful things to the heart.\" - Pablo Casals</string>
+    <string name="quote_6">\"Life is like a beautiful melody, only the lyrics are messed up.\" - Hans Christian Andersen</string>
+    <string name="quote_7">\"Music expresses that which cannot be said.\" - Victor Hugo</string>
+    <string name="quote_8">\"Without music, life would be a mistake.\" - Friedrich Nietzsche</string>
 </resources>
