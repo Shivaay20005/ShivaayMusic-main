@@ -152,6 +152,7 @@ import com.shivaay20005.shivaaymusic.constants.DarkModeKey
 import com.shivaay20005.shivaaymusic.constants.DefaultOpenTabKey
 import com.shivaay20005.shivaaymusic.constants.DisableScreenshotKey
 import com.shivaay20005.shivaaymusic.constants.DynamicThemeKey
+import com.shivaay20005.shivaaymusic.constants.IsUserLoggedInKey
 import com.shivaay20005.shivaaymusic.constants.MiniPlayerHeight
 import com.shivaay20005.shivaaymusic.constants.NavigationBarAnimationSpec
 import com.shivaay20005.shivaaymusic.constants.NavigationBarHeight
@@ -182,6 +183,7 @@ import com.shivaay20005.shivaaymusic.ui.component.rememberBottomSheetState
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.ShimmerTheme
 import com.shivaay20005.shivaaymusic.ui.menu.YouTubeSongMenu
 import com.shivaay20005.shivaaymusic.ui.player.BottomSheetPlayer
+import com.shivaay20005.shivaaymusic.ui.screens.AuthScreen
 import com.shivaay20005.shivaaymusic.ui.screens.Screens
 import com.shivaay20005.shivaaymusic.ui.screens.navigationBuilder
 import com.shivaay20005.shivaaymusic.ui.screens.search.LocalSearchScreen
@@ -386,6 +388,20 @@ class MainActivity : ComponentActivity() {
                 pureBlack = pureBlack,
                 themeColor = themeColor,
             ) {
+                // Check user login state
+                var isUserLoggedIn by rememberPreference(IsUserLoggedInKey, defaultValue = false)
+                
+                CompositionLocalProvider(
+                    LocalDatabase provides database,
+                ) {
+                    if (!isUserLoggedIn) {
+                        // Show Auth Screen when not logged in
+                        AuthScreen(
+                            onLoginSuccess = {
+                                isUserLoggedIn = true
+                            }
+                        )
+                    } else {
                 BoxWithConstraints(
                     modifier =
                         Modifier
@@ -1408,6 +1424,8 @@ class MainActivity : ComponentActivity() {
                             }
                             openSearchImmediately = false
                         }
+                    }
+                }
                     }
                 }
             }

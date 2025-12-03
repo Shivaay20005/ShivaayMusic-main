@@ -8,6 +8,12 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
+// User Authentication Keys
+val IsUserLoggedInKey = booleanPreferencesKey("isUserLoggedIn")
+val LoggedInUserIdKey = longPreferencesKey("loggedInUserId")
+val LoggedInUserNameKey = stringPreferencesKey("loggedInUserName")
+val LoggedInUserEmailKey = stringPreferencesKey("loggedInUserEmail")
+
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")

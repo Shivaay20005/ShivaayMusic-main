@@ -547,4 +547,31 @@
     <string name="quote_6">\"Life is like a beautiful melody, only the lyrics are messed up.\" - Hans Christian Andersen</string>
     <string name="quote_7">\"Music expresses that which cannot be said.\" - Victor Hugo</string>
     <string name="quote_8">\"Without music, life would be a mistake.\" - Friedrich Nietzsche</string>
+    
+    <!-- Authentication Strings -->
+    <string name="auth_welcome">Welcome to ShivaayMusic</string>
+    <string name="auth_welcome_back">Welcome Back!</string>
+    <string name="auth_login_to_continue">Login to continue listening</string>
+    <string name="auth_signup_to_start">Sign up to start your music journey</string>
+    <string name="auth_name">Full Name</string>
+    <string name="auth_email">Email Address</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_confirm_password">Confirm Password</string>
+    <string name="auth_phone">Phone Number (Optional)</string>
+    <string name="auth_login">Login</string>
+    <string name="auth_signup">Sign Up</string>
+    <string name="auth_no_account">Don\'t have an account?</string>
+    <string name="auth_have_account">Already have an account?</string>
+    <string name="auth_login_success">Login successful! Welcome back</string>
+    <string name="auth_signup_success">Account created successfully! Welcome</string>
+    <string name="auth_error_empty_fields">Please fill in all required fields</string>
+    <string name="auth_error_invalid_email">Please enter a valid email address</string>
+    <string name="auth_error_password_mismatch">Passwords do not match</string>
+    <string name="auth_error_password_short">Password must be at least 6 characters</string>
+    <string name="auth_error_invalid_credentials">Invalid email or password</string>
+    <string name="auth_error_email_exists">An account with this email already exists</string>
+    <string name="auth_error_user_not_found">No account found with this email</string>
+    <string name="auth_logout">Logout</string>
+    <string name="auth_logout_confirm">Are you sure you want to logout?</string>
+    <string name="auth_logged_in_as">Logged in as</string>
 </resources>

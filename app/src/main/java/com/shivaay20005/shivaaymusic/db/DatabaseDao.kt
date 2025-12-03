@@ -42,6 +42,7 @@ import com.shivaay20005.shivaaymusic.db.entities.SongAlbumMap
 import com.shivaay20005.shivaaymusic.db.entities.SongArtistMap
 import com.shivaay20005.shivaaymusic.db.entities.SongEntity
 import com.shivaay20005.shivaaymusic.db.entities.SongWithStats
+import com.shivaay20005.shivaaymusic.db.entities.UserEntity
 import com.shivaay20005.shivaaymusic.extensions.reversed
 import com.shivaay20005.shivaaymusic.extensions.toSQLiteQuery
 import com.shivaay20005.shivaaymusic.models.MediaMetadata
@@ -1325,4 +1326,23 @@ interface DatabaseDao {
     fun checkpoint() {
         raw("PRAGMA wal_checkpoint(FULL)".toSQLiteQuery())
     }
+
+    // User Authentication Methods
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertUser(user: UserEntity): Long
+
+    @Query("SELECT * FROM user WHERE email = :email LIMIT 1")
+    suspend fun getUserByEmail(email: String): UserEntity?
+
+    @Query("SELECT * FROM user WHERE id = :id LIMIT 1")
+    suspend fun getUserById(id: Long): UserEntity?
+
+    @Query("SELECT * FROM user WHERE email = :email AND password = :password LIMIT 1")
+    suspend fun loginUser(email: String, password: String): UserEntity?
+
+    @Update
+    suspend fun updateUser(user: UserEntity)
+
+    @Query("SELECT * FROM user ORDER BY createdAt DESC")
+    fun getAllUsers(): Flow<List<UserEntity>>
 }

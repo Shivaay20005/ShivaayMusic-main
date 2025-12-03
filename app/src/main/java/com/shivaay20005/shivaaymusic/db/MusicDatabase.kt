@@ -34,6 +34,7 @@ import com.shivaay20005.shivaaymusic.db.entities.SongArtistMap
 import com.shivaay20005.shivaaymusic.db.entities.SongEntity
 import com.shivaay20005.shivaaymusic.db.entities.SortedSongAlbumMap
 import com.shivaay20005.shivaaymusic.db.entities.SortedSongArtistMap
+import com.shivaay20005.shivaaymusic.db.entities.UserEntity
 import com.shivaay20005.shivaaymusic.extensions.toSQLiteQuery
 import java.time.Instant
 import java.time.LocalDateTime
@@ -81,14 +82,15 @@ class MusicDatabase(
         Event::class,
         RelatedSongMap::class,
         SetVideoIdEntity::class,
-        PlayCountEntity::class
+        PlayCountEntity::class,
+        UserEntity::class
     ],
     views = [
         SortedSongArtistMap::class,
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 19,
+    version = 20,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -108,6 +110,7 @@ class MusicDatabase(
         AutoMigration(from = 16, to = 17, spec = Migration16To17::class),
         AutoMigration(from = 17, to = 18),
         AutoMigration(from = 18, to = 19),
+        AutoMigration(from = 19, to = 20),
     ],
 )
 @TypeConverters(Converters::class)

@@ -496,5 +496,31 @@
     <string name="text_color">पाठ का रंग</string>
     <string name="secondary_text_color">द्वितीयक पाठ रंग</string>
     <string name="background_color">पृष्ठभूमि का रंग</string>
+    
+    <!-- Authentication Strings (Hindi) -->
+    <string name="auth_welcome">ShivaayMusic में आपका स्वागत है</string>
+    <string name="auth_welcome_back">वापसी पर स्वागत है!</string>
+    <string name="auth_login_to_continue">सुनना जारी रखने के लिए लॉगिन करें</string>
+    <string name="auth_signup_to_start">अपनी संगीत यात्रा शुरू करने के लिए साइन अप करें</string>
+    <string name="auth_name">पूरा नाम</string>
+    <string name="auth_email">ईमेल पता</string>
+    <string name="auth_password">पासवर्ड</string>
+    <string name="auth_confirm_password">पासवर्ड की पुष्टि करें</string>
+    <string name="auth_phone">फ़ोन नंबर (वैकल्पिक)</string>
+    <string name="auth_login">लॉग इन करें</string>
+    <string name="auth_signup">साइन अप करें</string>
+    <string name="auth_no_account">कोई खाता नहीं है?</string>
+    <string name="auth_have_account">पहले से एक खाता है?</string>
+    <string name="auth_login_success">लॉगिन सफल! वापसी पर स्वागत है</string>
+    <string name="auth_signup_success">खाता सफलतापूर्वक बनाया गया! स्वागत है</string>
+    <string name="auth_error_empty_fields">कृपया सभी आवश्यक फ़ील्ड भरें</string>
+    <string name="auth_error_invalid_email">कृपया एक वैध ईमेल पता दर्ज करें</string>
+    <string name="auth_error_password_mismatch">पासवर्ड मेल नहीं खाते</string>
+    <string name="auth_error_password_short">पासवर्ड कम से कम 6 अक्षर का होना चाहिए</string>
+    <string name="auth_error_invalid_credentials">अमान्य ईमेल या पासवर्ड</string>
+    <string name="auth_error_email_exists">इस ईमेल से पहले से एक खाता मौजूद है</string>
+    <string name="auth_error_user_not_found">इस ईमेल से कोई खाता नहीं मिला</string>
+    <string name="auth_logout">लॉग आउट</string>
+    <string name="auth_logout_confirm">क्या आप वाकई लॉगआउट करना चाहते हैं?</string>
+    <string name="auth_logged_in_as">के रूप में लॉग इन</string>
 </resources>
-
