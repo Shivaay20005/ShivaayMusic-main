@@ -80,6 +80,9 @@ import com.shivaay20005.shivaaymusic.LocalPlayerAwareWindowInsets
 import com.shivaay20005.shivaaymusic.R
 import com.shivaay20005.shivaaymusic.constants.AccountNameKey
 import com.shivaay20005.shivaaymusic.constants.InnerTubeCookieKey
+import com.shivaay20005.shivaaymusic.constants.IsUserLoggedInKey
+import com.shivaay20005.shivaaymusic.constants.LoggedInUserEmailKey
+import com.shivaay20005.shivaaymusic.constants.LoggedInUserNameKey
 import com.shivaay20005.shivaaymusic.ui.component.ChangelogButton
 import com.shivaay20005.shivaaymusic.ui.component.IconButton
 import com.shivaay20005.shivaaymusic.ui.component.PreferenceEntry
@@ -729,6 +732,78 @@ fun SettingsScreen(
                     fontWeight = FontWeight.SemiBold
                 )
             }
+        }
+
+        // User Profile Card - Show logged in user details
+        val loggedInUserName by rememberPreference(LoggedInUserNameKey, "")
+        val loggedInUserEmail by rememberPreference(LoggedInUserEmailKey, "")
+        
+        if (loggedInUserName.isNotEmpty() || loggedInUserEmail.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // User avatar icon
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (loggedInUserName.isNotEmpty()) 
+                                loggedInUserName.first().uppercase() 
+                            else "U",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.size(16.dp))
+                    
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        if (loggedInUserName.isNotEmpty()) {
+                            Text(
+                                text = loggedInUserName,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        if (loggedInUserEmail.isNotEmpty()) {
+                            Text(
+                                text = loggedInUserEmail,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    
+                    Icon(
+                        painter = painterResource(R.drawable.verified),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         // Extension to safely convert String to Uri
