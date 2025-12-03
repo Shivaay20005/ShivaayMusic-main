@@ -165,8 +165,11 @@ object RecommendationEngine {
             
             val items = mutableListOf<YTItem>()
             YouTube.searchSummary(query).onSuccess { page ->
-                items += page.songs.take(8)
-                items += page.albums.take(4)
+                // Extract items from all summaries
+                page.summaries.forEach { summary ->
+                    items += summary.items.filterIsInstance<SongItem>().take(4)
+                    items += summary.items.filterIsInstance<AlbumItem>().take(2)
+                }
             }
             
             if (items.isEmpty()) return null
@@ -229,8 +232,11 @@ object RecommendationEngine {
             val randomQuery = queries.random()
             
             YouTube.searchSummary(randomQuery).onSuccess { page ->
-                items += page.songs.take(8)
-                items += page.albums.take(4)
+                // Extract items from all summaries
+                page.summaries.forEach { summary ->
+                    items += summary.items.filterIsInstance<SongItem>().take(4)
+                    items += summary.items.filterIsInstance<AlbumItem>().take(2)
+                }
             }
             
             if (items.isEmpty()) return null
@@ -257,8 +263,11 @@ object RecommendationEngine {
             val items = mutableListOf<YTItem>()
             
             YouTube.searchSummary(query).onSuccess { page ->
-                items += page.songs.take(10)
-                items += page.albums.take(4)
+                // Extract items from all summaries
+                page.summaries.forEach { summary ->
+                    items += summary.items.filterIsInstance<SongItem>().take(5)
+                    items += summary.items.filterIsInstance<AlbumItem>().take(2)
+                }
             }
             
             if (items.isEmpty()) return null
