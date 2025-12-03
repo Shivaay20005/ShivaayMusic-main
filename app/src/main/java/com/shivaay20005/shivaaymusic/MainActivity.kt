@@ -831,10 +831,7 @@ class MainActivity : ComponentActivity() {
                                                                     .align(Alignment.TopEnd)
                                                                     .size(10.dp)
                                                                     .clip(CircleShape)
-                                                                    .background(
-                                                                        color = MaterialTheme.colorScheme.primary,
-                                                                        shape = CircleShape
-                                                                    )
+                                                                    .background(color = MaterialTheme.colorScheme.primary)
                                                                     .border(
                                                                         width = 1.dp,
                                                                         color = MaterialTheme.colorScheme.background,

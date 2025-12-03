@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TWENTY_FOUR_HOURS_MILLIS = 24 * 60 * 60 * 1000L
+
 @HiltViewModel
 class NewReleaseViewModel
 @Inject
@@ -92,7 +94,7 @@ constructor(
 
             // If there are albums and enough time has passed since last check
             val hasNewReleases = _newReleaseAlbums.value.isNotEmpty() &&
-                    (currentTime - lastCheckTime) > (24 * 60 * 60 * 1000) // 24 hours
+                    (currentTime - lastCheckTime) > TWENTY_FOUR_HOURS_MILLIS
 
             _hasNewReleases.value = hasNewReleases
 
