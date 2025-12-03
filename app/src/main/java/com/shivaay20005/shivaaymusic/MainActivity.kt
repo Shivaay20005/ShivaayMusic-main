@@ -39,6 +39,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -138,6 +139,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
@@ -201,6 +203,7 @@ import com.shivaay20005.shivaaymusic.utils.get
 import com.shivaay20005.shivaaymusic.utils.rememberEnumPreference
 import com.shivaay20005.shivaaymusic.utils.rememberPreference
 import com.shivaay20005.shivaaymusic.utils.reportException
+import com.shivaay20005.shivaaymusic.viewmodels.NewReleaseViewModel
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -733,6 +736,13 @@ class MainActivity : ComponentActivity() {
                                                         model = imageUrl,
                                                         contentDescription = null,
                                                         contentScale = ContentScale.FillBounds,
+                                                        onError = { error ->
+                                                            // Log the error without crashing the app
+                                                            Log.w(
+                                                                "PlayerBackground",
+                                                                "Error loading background image: ${error.result.throwable.message}"
+                                                            )
+                                                        },
                                                         modifier = Modifier
                                                             .matchParentSize()
                                                             .blur(35.dp)
@@ -784,28 +794,56 @@ class MainActivity : ComponentActivity() {
                                                     verticalAlignment = Alignment.CenterVertically
                                                 ) {
                                                     val context = LocalContext.current
+                                                    val viewModel: NewReleaseViewModel = hiltViewModel()
+                                                    val hasNewReleases by viewModel.hasNewReleases.collectAsState()
 
-                                                    // Notification icon for new releases
-                                                    IconButton(
-                                                        onClick = {
-                                                            try {
-                                                                navController.navigate("new_release")
-                                                            } catch (e: Exception) {
-                                                                logErrorToDownloads(context, e)
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    R.string.navigation_error,
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            }
-                                                        }
+                                                    // Notification icon for new releases with badge
+                                                    Box(
+                                                        modifier = Modifier.size(48.dp)
                                                     ) {
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.notification_on),
-                                                            contentDescription = stringResource(R.string.new_release_albums),
-                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        )
+                                                        IconButton(
+                                                            onClick = {
+                                                                try {
+                                                                    // Mark as seen when navigating
+                                                                    viewModel.markNewReleasesAsSeen()
+                                                                    navController.navigate("new_release")
+                                                                } catch (e: Exception) {
+                                                                    logErrorToDownloads(context, e)
+                                                                    Toast.makeText(
+                                                                        context,
+                                                                        R.string.navigation_error,
+                                                                        Toast.LENGTH_SHORT
+                                                                    ).show()
+                                                                }
+                                                            }
+                                                        ) {
+                                                            Icon(
+                                                                painter = painterResource(R.drawable.notification_on),
+                                                                contentDescription = stringResource(R.string.new_release_albums),
+                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+
+                                                        // Badge for new releases
+                                                        if (hasNewReleases) {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .align(Alignment.TopEnd)
+                                                                    .size(10.dp)
+                                                                    .clip(CircleShape)
+                                                                    .background(
+                                                                        color = MaterialTheme.colorScheme.primary,
+                                                                        shape = CircleShape
+                                                                    )
+                                                                    .border(
+                                                                        width = 1.dp,
+                                                                        color = MaterialTheme.colorScheme.background,
+                                                                        shape = CircleShape
+                                                                    )
+                                                            )
+                                                        }
                                                     }
+
                                                     IconButton(
                                                         onClick = { onActiveChange(true) }
                                                     ) {
