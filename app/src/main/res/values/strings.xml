@@ -47,6 +47,18 @@
     <string name="podcast_featured">Featured Podcasts</string>
     <string name="podcast_listen_now">Listen Now</string>
 
+    <!-- YouTube Videos -->
+    <string name="youtube_videos">YouTube Videos</string>
+    <string name="youtube_videos_discover">Watch without ads</string>
+    <string name="youtube_trending">Trending Videos</string>
+    <string name="youtube_music_videos">Music Videos</string>
+    <string name="youtube_gaming">Gaming</string>
+    <string name="youtube_vlogs">Vlogs</string>
+    <string name="youtube_tech_reviews">Tech Reviews</string>
+    <string name="youtube_comedy">Comedy</string>
+    <string name="youtube_watch_now">Watch Now</string>
+    <string name="youtube_explore_all">Explore Videos</string>
+
     <!-- History -->
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
