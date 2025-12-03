@@ -1,5 +1,6 @@
 package com.shivaay20005.shivaaymusic.ui.component
 
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,8 +50,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shivaay20005.shivaaymusic.R
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -141,9 +141,14 @@ fun SongNoteCard(
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 
-                val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                val formattedDate = remember(note.createdAt) {
+                    val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.getDefault())
+                    Instant.ofEpochMilli(note.createdAt)
+                        .atZone(ZoneId.systemDefault())
+                        .format(formatter)
+                }
                 Text(
-                    text = dateFormat.format(Date(note.createdAt)),
+                    text = formattedDate,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 )
@@ -352,9 +357,14 @@ fun MusicMemoryTimelineItem(
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 
-                val dateFormat = SimpleDateFormat("MMM dd, yyyy 'at' HH:mm", Locale.getDefault())
+                val formattedDate = remember(note.createdAt) {
+                    val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm", Locale.getDefault())
+                    Instant.ofEpochMilli(note.createdAt)
+                        .atZone(ZoneId.systemDefault())
+                        .format(formatter)
+                }
                 Text(
-                    text = dateFormat.format(Date(note.createdAt)),
+                    text = formattedDate,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 )

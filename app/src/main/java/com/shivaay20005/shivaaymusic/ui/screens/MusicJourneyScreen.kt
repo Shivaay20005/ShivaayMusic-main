@@ -85,11 +85,12 @@ fun MusicJourneyScreen(
         songs.flatMap { it.artists }.distinctBy { it.id }.size 
     }
     
-    // Sample data - in real implementation, this would come from database
-    val currentStreak = remember { 5 } // Would be calculated from listening history
-    val longestStreak = remember { 12 }
-    val todayListeningMinutes = remember { 45 }
-    val weeklyMinutes = remember { listOf(30, 45, 60, 20, 55, 90, 75) }
+    // TODO: Replace sample data with actual data from database/repository
+    // These values should be calculated from listening history stored in the database
+    val currentStreak = remember { 5 } // Calculate from daily listening events
+    val longestStreak = remember { 12 } // Track max streak in preferences/database
+    val todayListeningMinutes = remember { 45 } // Sum of today's play durations
+    val weeklyMinutes = remember { listOf(30, 45, 60, 20, 55, 90, 75) } // Last 7 days aggregation
     
     // Calculate achievements
     val achievements = remember(totalSongsPlayed, currentStreak) {
