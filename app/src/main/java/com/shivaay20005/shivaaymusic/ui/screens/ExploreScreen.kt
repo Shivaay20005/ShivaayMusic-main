@@ -42,6 +42,7 @@ import com.shivaay20005.shivaaymusic.ui.component.MoodSelectorCard
 import com.shivaay20005.shivaaymusic.ui.component.NavigationTitle
 import com.shivaay20005.shivaaymusic.ui.component.PodcastSection
 import com.shivaay20005.shivaaymusic.ui.component.YouTubeGridItem
+import com.shivaay20005.shivaaymusic.ui.component.YouTubeVideoSection
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.GridItemPlaceHolder
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.ShimmerHost
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.TextPlaceholder
@@ -162,6 +163,15 @@ fun ExploreScreen(
             // ShivaayMusic Exclusive - Podcast Section
             PodcastSection(
                 onSearchPodcast = { query ->
+                    navController.navigate("search/${URLEncoder.encode(query, Charsets.UTF_8.name())}")
+                }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ShivaayMusic Exclusive - YouTube Video Section
+            YouTubeVideoSection(
+                onSearchVideo = { query ->
                     navController.navigate("search/${URLEncoder.encode(query, Charsets.UTF_8.name())}")
                 }
             )

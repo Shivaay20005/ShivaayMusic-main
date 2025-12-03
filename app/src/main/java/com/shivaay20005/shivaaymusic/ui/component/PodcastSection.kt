@@ -230,6 +230,55 @@ fun PodcastSectionHeader(
 }
 
 /**
+ * ShivaayMusic Exclusive - YouTube Video Categories
+ */
+data class YouTubeVideoCategory(
+    val nameResId: Int,
+    val emoji: String,
+    val searchQuery: String,
+    val gradientColors: List<Color>
+)
+
+val youtubeVideoCategories = listOf(
+    YouTubeVideoCategory(
+        R.string.youtube_trending,
+        "🔥",
+        "trending videos india",
+        listOf(Color(0xFFFF0000), Color(0xFFCC0000))
+    ),
+    YouTubeVideoCategory(
+        R.string.youtube_music_videos,
+        "🎵",
+        "music video hindi latest",
+        listOf(Color(0xFF9B59B6), Color(0xFF8E44AD))
+    ),
+    YouTubeVideoCategory(
+        R.string.youtube_gaming,
+        "🎮",
+        "gaming videos hindi",
+        listOf(Color(0xFF2ECC71), Color(0xFF27AE60))
+    ),
+    YouTubeVideoCategory(
+        R.string.youtube_vlogs,
+        "📹",
+        "vlogs hindi india",
+        listOf(Color(0xFF3498DB), Color(0xFF2980B9))
+    ),
+    YouTubeVideoCategory(
+        R.string.youtube_tech_reviews,
+        "📱",
+        "tech review hindi",
+        listOf(Color(0xFF1ABC9C), Color(0xFF16A085))
+    ),
+    YouTubeVideoCategory(
+        R.string.youtube_comedy,
+        "🤣",
+        "comedy videos hindi funny",
+        listOf(Color(0xFFF39C12), Color(0xFFE67E22))
+    ),
+)
+
+/**
  * ShivaayMusic Exclusive - Podcast Category Chip
  */
 @Composable
@@ -240,11 +289,11 @@ fun PodcastCategoryChip(
 ) {
     Card(
         modifier = modifier
-            .width(140.dp)
-            .height(100.dp)
+            .width(160.dp)
+            .height(120.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(
             modifier = Modifier
@@ -257,17 +306,17 @@ fun PodcastCategoryChip(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(16.dp)
             ) {
                 Text(
                     text = category.emoji,
-                    fontSize = 32.sp
+                    fontSize = 40.sp
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = stringResource(category.nameResId),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
                     color = Color.White,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
@@ -309,7 +358,7 @@ fun PodcastCategoriesSection(
 }
 
 /**
- * ShivaayMusic Exclusive - Featured Podcast Card
+ * ShivaayMusic Exclusive - Featured Podcast Card (Enhanced)
  */
 @Composable
 fun FeaturedPodcastCard(
@@ -322,11 +371,11 @@ fun FeaturedPodcastCard(
 ) {
     Card(
         modifier = modifier
-            .width(280.dp)
-            .height(160.dp)
+            .width(320.dp)
+            .height(180.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
     ) {
         Box(
             modifier = Modifier
@@ -335,28 +384,36 @@ fun FeaturedPodcastCard(
                     brush = Brush.linearGradient(gradientColors)
                 )
         ) {
-            // Decorative circles
+            // Decorative circles - larger and more prominent
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(120.dp)
                     .align(Alignment.TopEnd)
-                    .offset(x = 30.dp, y = (-30).dp)
+                    .offset(x = 40.dp, y = (-40).dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.15f))
+            )
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .align(Alignment.BottomStart)
+                    .offset(x = (-30).dp, y = 30.dp)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.1f))
             )
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .align(Alignment.BottomStart)
-                    .offset(x = (-20).dp, y = 20.dp)
+                    .size(40.dp)
+                    .align(Alignment.CenterStart)
+                    .offset(x = 20.dp, y = (-20).dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.1f))
+                    .background(Color.White.copy(alpha = 0.08f))
             )
             
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(20.dp),
+                    .padding(24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(
@@ -364,51 +421,52 @@ fun FeaturedPodcastCard(
                 ) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
                         color = Color.White,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White.copy(alpha = 0.85f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = Color.White
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.White,
+                        shadowElevation = 4.dp
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.play),
                                 contentDescription = null,
                                 tint = gradientColors[0],
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(20.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = stringResource(R.string.podcast_listen_now),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
                                 color = gradientColors[0]
                             )
                         }
                     }
                 }
                 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 
                 Text(
                     text = emoji,
-                    fontSize = 48.sp
+                    fontSize = 64.sp
                 )
             }
         }
@@ -460,6 +518,205 @@ fun FeaturedPodcastsSection(
                 )
             }
         }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - YouTube Video Section Header
+ */
+@Composable
+fun YouTubeVideoSectionHeader(
+    onExploreAllClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "youtubePulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "youtubeScale"
+    )
+    
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFF0000),
+                            Color(0xFFCC0000),
+                            Color(0xFF990000)
+                        )
+                    )
+                )
+                .padding(24.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .scale(scale)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.2f))
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.play),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    Column {
+                        Text(
+                            text = stringResource(R.string.youtube_videos),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = stringResource(R.string.youtube_videos_discover),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
+                    }
+                }
+                
+                Surface(
+                    onClick = onExploreAllClick,
+                    shape = RoundedCornerShape(24.dp),
+                    color = Color.White.copy(alpha = 0.25f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.youtube_explore_all),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - YouTube Video Category Chip
+ */
+@Composable
+fun YouTubeVideoCategoryChip(
+    category: YouTubeVideoCategory,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier
+            .width(160.dp)
+            .height(120.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(category.gradientColors)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = category.emoji,
+                    fontSize = 40.sp
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = stringResource(category.nameResId),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - YouTube Video Categories Section
+ */
+@Composable
+fun YouTubeVideoCategoriesSection(
+    onCategoryClick: (YouTubeVideoCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            items(youtubeVideoCategories) { category ->
+                YouTubeVideoCategoryChip(
+                    category = category,
+                    onClick = { onCategoryClick(category) }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * ShivaayMusic Exclusive - YouTube Video Section
+ */
+@Composable
+fun YouTubeVideoSection(
+    onSearchVideo: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Header with explore all button
+        YouTubeVideoSectionHeader(
+            onExploreAllClick = { onSearchVideo("trending videos india") }
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Video Categories
+        YouTubeVideoCategoriesSection(
+            onCategoryClick = { category ->
+                onSearchVideo(category.searchQuery)
+            }
+        )
     }
 }
 
