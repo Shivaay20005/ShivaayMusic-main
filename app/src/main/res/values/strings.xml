@@ -574,4 +574,90 @@
     <string name="auth_logout">Logout</string>
     <string name="auth_logout_confirm">Are you sure you want to logout?</string>
     <string name="auth_logged_in_as">Logged in as</string>
+    
+    <!-- ShivaayMusic Exclusive - Mood Selector Feature -->
+    <string name="mood_how_feeling">How are you feeling?</string>
+    <string name="mood_tap_to_discover">Tap your mood to discover perfect music</string>
+    <string name="mood_happy">Happy</string>
+    <string name="mood_sad">Sad</string>
+    <string name="mood_relaxed">Relaxed</string>
+    <string name="mood_energetic">Energetic</string>
+    <string name="mood_romantic">Romantic</string>
+    <string name="mood_sleepy">Sleepy</string>
+    <string name="mood_party">Party</string>
+    <string name="mood_focused">Focused</string>
+    <string name="mood_music_for">Music for your mood</string>
+    
+    <!-- ShivaayMusic Exclusive - Listening Streak Feature -->
+    <string name="streak_current">Current Streak</string>
+    <string name="streak_days">days</string>
+    <string name="streak_best">Best</string>
+    <string name="streak_daily_goal">Daily Goal</string>
+    <string name="streak_minutes">min</string>
+    <string name="streak_minutes_left">min left</string>
+    <string name="streak_goal_reached">Goal Reached!</string>
+    <string name="weekly_summary">Weekly Summary</string>
+    <string name="weekly_total">Total: %1$dh %2$dm this week</string>
+    
+    <!-- ShivaayMusic Exclusive - Song Notes Feature -->
+    <string name="song_note_your_memory">Your Memory</string>
+    <string name="song_note_add_memory">Add a Memory</string>
+    <string name="song_note_tap_to_add">Tap to attach a memory to this song</string>
+    <string name="song_note_dialog_title">Add Your Memory</string>
+    <string name="song_note_mood_label">How does this song make you feel?</string>
+    <string name="song_note_placeholder">Your note</string>
+    <string name="song_note_hint">Write your memory or feeling about this song...</string>
+    <string name="music_memories">Music Memories</string>
+    <string name="music_memories_empty">No memories yet. Add notes to your favorite songs!</string>
+    
+    <!-- ShivaayMusic Exclusive - Smart Sleep Timer -->
+    <string name="smart_sleep_timer">Smart Sleep Timer</string>
+    <string name="smart_sleep_tap_to_set">Tap to set a sleep timer</string>
+    <string name="smart_sleep_fade">Gradual Volume Fade</string>
+    <string name="smart_sleep_fade_duration">Fade duration: %1$d min</string>
+    <string name="remaining">remaining</string>
+    
+    <!-- ShivaayMusic Exclusive - Focus Mode -->
+    <string name="focus_mode">Focus Mode</string>
+    <string name="focus_mode_active">Active - Notifications paused</string>
+    <string name="focus_mode_description">Block notifications while listening</string>
+    
+    <!-- ShivaayMusic Exclusive - Voice Command -->
+    <string name="voice_command_title">Voice Commands</string>
+    <string name="voice_command_description">Say "Hey Shivaay, play happy songs" to control music with your voice!</string>
+    <string name="voice_command_try">Try it now →</string>
+    
+    <!-- ShivaayMusic Exclusive - Music Journey -->
+    <string name="music_journey">Your Music Journey</string>
+    <string name="music_journey_first_song">Your First Song</string>
+    <string name="music_journey_most_played">Most Played</string>
+    <string name="music_journey_total_hours">Total Hours</string>
+    <string name="music_journey_unique_artists">Unique Artists</string>
+    
+    <!-- ShivaayMusic Exclusive - Listening Achievements -->
+    <string name="achievements">Achievements</string>
+    <string name="achievement_first_song">First Beat</string>
+    <string name="achievement_first_song_desc">Play your first song</string>
+    <string name="achievement_10_songs">Music Lover</string>
+    <string name="achievement_10_songs_desc">Play 10 songs</string>
+    <string name="achievement_100_songs">Melody Master</string>
+    <string name="achievement_100_songs_desc">Play 100 songs</string>
+    <string name="achievement_1000_songs">Audio Legend</string>
+    <string name="achievement_1000_songs_desc">Play 1000 songs</string>
+    <string name="achievement_streak_7">Week Warrior</string>
+    <string name="achievement_streak_7_desc">7 day listening streak</string>
+    <string name="achievement_streak_30">Monthly Master</string>
+    <string name="achievement_streak_30_desc">30 day listening streak</string>
+    
+    <!-- ShivaayMusic Exclusive - Personalized Greetings -->
+    <string name="greeting_morning_music">Start your day with music ☀️</string>
+    <string name="greeting_afternoon_vibes">Afternoon vibes 🎵</string>
+    <string name="greeting_evening_beats">Evening beats 🌆</string>
+    <string name="greeting_night_tunes">Night tunes 🌙</string>
+    
+    <!-- ShivaayMusic Exclusive - Quick Actions -->
+    <string name="quick_play_liked">Play Liked Songs</string>
+    <string name="quick_play_recent">Play Recent</string>
+    <string name="quick_discover">Discover New</string>
+    <string name="quick_mood_mix">Mood Mix</string>
 </resources>

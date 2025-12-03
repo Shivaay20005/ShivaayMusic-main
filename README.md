@@ -135,6 +135,50 @@
 </tr>
 </table>
 
+### ✨ ShivaayMusic Exclusive Features (NEW!)
+<table>
+<tr>
+<th width="30%">Feature</th>
+<th width="70%">Description</th>
+</tr>
+<tr>
+<td><strong>😊 Mood-Based Music</strong></td>
+<td>Select your mood (Happy, Sad, Relaxed, Energetic, etc.) and discover perfect music recommendations</td>
+</tr>
+<tr>
+<td><strong>🔥 Listening Streaks</strong></td>
+<td>Track your daily listening streaks with goals, achievements, and weekly summaries</td>
+</tr>
+<tr>
+<td><strong>📝 Song Notes/Memories</strong></td>
+<td>Attach personal notes and memories to your favorite songs - remember why a song is special</td>
+</tr>
+<tr>
+<td><strong>🌙 Smart Sleep Timer</strong></td>
+<td>Enhanced sleep timer with gradual volume fade-out for peaceful sleep</td>
+</tr>
+<tr>
+<td><strong>🎧 Focus Mode</strong></td>
+<td>Block notifications while listening for distraction-free music experience</td>
+</tr>
+<tr>
+<td><strong>🏆 Music Achievements</strong></td>
+<td>Earn badges like "First Beat", "Music Lover", "Melody Master" based on your listening habits</td>
+</tr>
+<tr>
+<td><strong>📊 Music Journey</strong></td>
+<td>Visual timeline of your music journey with stats, achievements, and memories</td>
+</tr>
+<tr>
+<td><strong>💬 Daily Music Quotes</strong></td>
+<td>Inspirational music quotes that change daily to motivate you</td>
+</tr>
+<tr>
+<td><strong>📈 Weekly Summary</strong></td>
+<td>Visual bar chart showing your listening patterns throughout the week</td>
+</tr>
+</table>
+
 ### Customization and Integration
 <table>
 <tr>

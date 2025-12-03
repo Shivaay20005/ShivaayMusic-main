@@ -523,4 +523,90 @@
     <string name="auth_logout">लॉग आउट</string>
     <string name="auth_logout_confirm">क्या आप वाकई लॉगआउट करना चाहते हैं?</string>
     <string name="auth_logged_in_as">के रूप में लॉग इन</string>
+    
+    <!-- ShivaayMusic Exclusive - Mood Selector Feature (Hindi) -->
+    <string name="mood_how_feeling">आप कैसा महसूस कर रहे हैं?</string>
+    <string name="mood_tap_to_discover">अपने मूड के अनुसार संगीत खोजने के लिए टैप करें</string>
+    <string name="mood_happy">खुश</string>
+    <string name="mood_sad">उदास</string>
+    <string name="mood_relaxed">आराम</string>
+    <string name="mood_energetic">ऊर्जावान</string>
+    <string name="mood_romantic">रोमांटिक</string>
+    <string name="mood_sleepy">नींद</string>
+    <string name="mood_party">पार्टी</string>
+    <string name="mood_focused">केंद्रित</string>
+    <string name="mood_music_for">आपके मूड के लिए संगीत</string>
+    
+    <!-- ShivaayMusic Exclusive - Listening Streak Feature (Hindi) -->
+    <string name="streak_current">वर्तमान स्ट्रीक</string>
+    <string name="streak_days">दिन</string>
+    <string name="streak_best">सर्वश्रेष्ठ</string>
+    <string name="streak_daily_goal">दैनिक लक्ष्य</string>
+    <string name="streak_minutes">मिनट</string>
+    <string name="streak_minutes_left">मिनट बाकी</string>
+    <string name="streak_goal_reached">लक्ष्य पूरा!</string>
+    <string name="weekly_summary">साप्ताहिक सारांश</string>
+    <string name="weekly_total">कुल: %1$d घंटे %2$d मिनट इस सप्ताह</string>
+    
+    <!-- ShivaayMusic Exclusive - Song Notes Feature (Hindi) -->
+    <string name="song_note_your_memory">आपकी यादें</string>
+    <string name="song_note_add_memory">एक याद जोड़ें</string>
+    <string name="song_note_tap_to_add">इस गाने से जुड़ी याद जोड़ने के लिए टैप करें</string>
+    <string name="song_note_dialog_title">अपनी याद जोड़ें</string>
+    <string name="song_note_mood_label">यह गाना आपको कैसा महसूस कराता है?</string>
+    <string name="song_note_placeholder">आपका नोट</string>
+    <string name="song_note_hint">इस गाने के बारे में अपनी याद या भावना लिखें...</string>
+    <string name="music_memories">संगीत की यादें</string>
+    <string name="music_memories_empty">अभी कोई यादें नहीं। अपने पसंदीदा गानों में नोट्स जोड़ें!</string>
+    
+    <!-- ShivaayMusic Exclusive - Smart Sleep Timer (Hindi) -->
+    <string name="smart_sleep_timer">स्मार्ट स्लीप टाइमर</string>
+    <string name="smart_sleep_tap_to_set">स्लीप टाइमर सेट करने के लिए टैप करें</string>
+    <string name="smart_sleep_fade">धीरे-धीरे वॉल्यूम कम करें</string>
+    <string name="smart_sleep_fade_duration">फेड अवधि: %1$d मिनट</string>
+    <string name="remaining">शेष</string>
+    
+    <!-- ShivaayMusic Exclusive - Focus Mode (Hindi) -->
+    <string name="focus_mode">फोकस मोड</string>
+    <string name="focus_mode_active">सक्रिय - नोटिफिकेशन रुके</string>
+    <string name="focus_mode_description">सुनते समय नोटिफिकेशन ब्लॉक करें</string>
+    
+    <!-- ShivaayMusic Exclusive - Voice Command (Hindi) -->
+    <string name="voice_command_title">वॉइस कमांड</string>
+    <string name="voice_command_description">"हे शिवाय, खुशी के गाने बजाओ" बोलें!</string>
+    <string name="voice_command_try">अभी आज़माएं →</string>
+    
+    <!-- ShivaayMusic Exclusive - Music Journey (Hindi) -->
+    <string name="music_journey">आपकी संगीत यात्रा</string>
+    <string name="music_journey_first_song">आपका पहला गाना</string>
+    <string name="music_journey_most_played">सबसे ज्यादा बजाया</string>
+    <string name="music_journey_total_hours">कुल घंटे</string>
+    <string name="music_journey_unique_artists">अनूठे कलाकार</string>
+    
+    <!-- ShivaayMusic Exclusive - Listening Achievements (Hindi) -->
+    <string name="achievements">उपलब्धियां</string>
+    <string name="achievement_first_song">पहली धुन</string>
+    <string name="achievement_first_song_desc">अपना पहला गाना बजाएं</string>
+    <string name="achievement_10_songs">संगीत प्रेमी</string>
+    <string name="achievement_10_songs_desc">10 गाने बजाएं</string>
+    <string name="achievement_100_songs">मेलोडी मास्टर</string>
+    <string name="achievement_100_songs_desc">100 गाने बजाएं</string>
+    <string name="achievement_1000_songs">ऑडियो लीजेंड</string>
+    <string name="achievement_1000_songs_desc">1000 गाने बजाएं</string>
+    <string name="achievement_streak_7">सप्ताह योद्धा</string>
+    <string name="achievement_streak_7_desc">7 दिन की लिसनिंग स्ट्रीक</string>
+    <string name="achievement_streak_30">मासिक मास्टर</string>
+    <string name="achievement_streak_30_desc">30 दिन की लिसनिंग स्ट्रीक</string>
+    
+    <!-- ShivaayMusic Exclusive - Personalized Greetings (Hindi) -->
+    <string name="greeting_morning_music">संगीत के साथ दिन की शुरुआत करें ☀️</string>
+    <string name="greeting_afternoon_vibes">दोपहर की धुनें 🎵</string>
+    <string name="greeting_evening_beats">शाम की बीट्स 🌆</string>
+    <string name="greeting_night_tunes">रात की धुनें 🌙</string>
+    
+    <!-- ShivaayMusic Exclusive - Quick Actions (Hindi) -->
+    <string name="quick_play_liked">पसंदीदा गाने बजाएं</string>
+    <string name="quick_play_recent">हाल का बजाएं</string>
+    <string name="quick_discover">नया खोजें</string>
+    <string name="quick_mood_mix">मूड मिक्स</string>
 </resources>
