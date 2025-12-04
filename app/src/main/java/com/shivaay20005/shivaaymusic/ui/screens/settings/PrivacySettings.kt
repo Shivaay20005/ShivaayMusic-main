@@ -64,7 +64,7 @@ fun PrivacySettings(
     )
     val (disableScreenshot, onDisableScreenshotChange) = rememberPreference(
         key = DisableScreenshotKey,
-        defaultValue = false
+        defaultValue = true
     )
 
     var showClearListenHistoryDialog by remember { mutableStateOf(false) }

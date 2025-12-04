@@ -845,11 +845,12 @@ fun SettingsScreen(
             icon = { Icon(painterResource(R.drawable.security), null) },
             onClick = { navController.navigate("settings/privacy") },
         )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.backup_restore)) },
-            icon = { Icon(painterResource(R.drawable.restore), null) },
-            onClick = { navController.navigate("settings/backup_restore") },
-        )
+        // Backup and Restore - Hidden as per user request
+        // PreferenceEntry(
+        //     title = { Text(stringResource(R.string.backup_restore)) },
+        //     icon = { Icon(painterResource(R.drawable.restore), null) },
+        //     onClick = { navController.navigate("settings/backup_restore") },
+        // )
         PreferenceEntry(
             title = { Text(stringResource(R.string.about)) },
             icon = { Icon(painterResource(R.drawable.info), null) },

@@ -224,6 +224,7 @@ import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -786,22 +787,43 @@ class MainActivity : ComponentActivity() {
 
                                         TopAppBar(
                                             title = {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.fillMaxWidth()
-                                                ) {
-                                                    Image(
-                                                        painter = painterResource(R.drawable.shivaaymusic),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(27.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                Column {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        modifier = Modifier.fillMaxWidth()
+                                                    ) {
+                                                        Image(
+                                                            painter = painterResource(R.drawable.shivaaymusic),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(27.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Text(
+                                                            text = stringResource(R.string.app_name),
+                                                            style = MaterialTheme.typography.titleLarge,
+                                                            fontWeight = FontWeight.Bold,
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis
+                                                        )
+                                                    }
+                                                    // Time-based greeting message
+                                                    val currentHour = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
+                                                    val greetingResId = when (currentHour) {
+                                                        in 5..11 -> R.string.good_morning
+                                                        in 12..16 -> R.string.good_afternoon
+                                                        in 17..20 -> R.string.good_evening
+                                                        else -> R.string.good_night
+                                                    }
+                                                    val greetingEmoji = when (currentHour) {
+                                                        in 5..11 -> "🌅"
+                                                        in 12..16 -> "☀️"
+                                                        in 17..20 -> "🌆"
+                                                        else -> "🌙"
+                                                    }
                                                     Text(
-                                                        text = stringResource(R.string.app_name),
-                                                        style = MaterialTheme.typography.titleLarge,
-                                                        fontWeight = FontWeight.Bold,
-                                                        maxLines = 1,
-                                                        overflow = TextOverflow.Ellipsis
+                                                        text = "$greetingEmoji ${stringResource(greetingResId)}",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
                                                 }
                                             },

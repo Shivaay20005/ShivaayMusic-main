@@ -53,14 +53,26 @@ fun DailyQuoteCard(
     modifier: Modifier = Modifier,
 ) {
     val quotes = listOf(
-        R.string.quote_1,
-        R.string.quote_2,
-        R.string.quote_3,
-        R.string.quote_4,
-        R.string.quote_5,
-        R.string.quote_6,
-        R.string.quote_7,
-        R.string.quote_8,
+        R.string.quote_1, R.string.quote_2, R.string.quote_3, R.string.quote_4, R.string.quote_5,
+        R.string.quote_6, R.string.quote_7, R.string.quote_8, R.string.quote_9, R.string.quote_10,
+        R.string.quote_11, R.string.quote_12, R.string.quote_13, R.string.quote_14, R.string.quote_15,
+        R.string.quote_16, R.string.quote_17, R.string.quote_18, R.string.quote_19, R.string.quote_20,
+        R.string.quote_21, R.string.quote_22, R.string.quote_23, R.string.quote_24, R.string.quote_25,
+        R.string.quote_26, R.string.quote_27, R.string.quote_28, R.string.quote_29, R.string.quote_30,
+        R.string.quote_31, R.string.quote_32, R.string.quote_33, R.string.quote_34, R.string.quote_35,
+        R.string.quote_36, R.string.quote_37, R.string.quote_38, R.string.quote_39, R.string.quote_40,
+        R.string.quote_41, R.string.quote_42, R.string.quote_43, R.string.quote_44, R.string.quote_45,
+        R.string.quote_46, R.string.quote_47, R.string.quote_48, R.string.quote_49, R.string.quote_50,
+        R.string.quote_51, R.string.quote_52, R.string.quote_53, R.string.quote_54, R.string.quote_55,
+        R.string.quote_56, R.string.quote_57, R.string.quote_58, R.string.quote_59, R.string.quote_60,
+        R.string.quote_61, R.string.quote_62, R.string.quote_63, R.string.quote_64, R.string.quote_65,
+        R.string.quote_66, R.string.quote_67, R.string.quote_68, R.string.quote_69, R.string.quote_70,
+        R.string.quote_71, R.string.quote_72, R.string.quote_73, R.string.quote_74, R.string.quote_75,
+        R.string.quote_76, R.string.quote_77, R.string.quote_78, R.string.quote_79, R.string.quote_80,
+        R.string.quote_81, R.string.quote_82, R.string.quote_83, R.string.quote_84, R.string.quote_85,
+        R.string.quote_86, R.string.quote_87, R.string.quote_88, R.string.quote_89, R.string.quote_90,
+        R.string.quote_91, R.string.quote_92, R.string.quote_93, R.string.quote_94, R.string.quote_95,
+        R.string.quote_96, R.string.quote_97, R.string.quote_98, R.string.quote_99, R.string.quote_100,
     )
     
     // Get quote based on day of year so it changes daily
@@ -229,4 +241,39 @@ fun ShivaaySpecialHeader(
             fontSize = 20.sp,
         )
     }
+}
+
+/**
+ * ShivaayMusic Exclusive - Time-based Greeting Message
+ * Shows Good Morning/Afternoon/Evening/Night based on current time
+ */
+@Composable
+fun GreetingMessage(
+    modifier: Modifier = Modifier,
+) {
+    val currentHour = remember {
+        Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    }
+    
+    val greetingResId = when (currentHour) {
+        in 5..11 -> R.string.good_morning
+        in 12..16 -> R.string.good_afternoon
+        in 17..20 -> R.string.good_evening
+        else -> R.string.good_night
+    }
+    
+    val greetingEmoji = when (currentHour) {
+        in 5..11 -> "🌅"
+        in 12..16 -> "☀️"
+        in 17..20 -> "🌆"
+        else -> "🌙"
+    }
+    
+    Text(
+        text = "$greetingEmoji ${stringResource(greetingResId)}",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+    )
 }

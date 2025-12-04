@@ -70,11 +70,11 @@ fun ContentSettings(
 
     val (contentLanguage, onContentLanguageChange) = rememberPreference(
         key = PreferenceKeys.ContentLanguageKey,
-        defaultValue = "system"
+        defaultValue = "hi"
     )
     val (contentCountry, onContentCountryChange) = rememberPreference(
         key = PreferenceKeys.ContentCountryKey,
-        defaultValue = "system"
+        defaultValue = "IN"
     )
     val (hideExplicit, onHideExplicitChange) = rememberPreference(
         key = PreferenceKeys.HideExplicitKey,
