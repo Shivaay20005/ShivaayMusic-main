@@ -58,7 +58,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -723,7 +722,7 @@ fun SettingsScreen(
                         painter = painterResource(R.drawable.source_icon),
                         contentDescription = "ShivaayMusic Logo",
                         modifier = Modifier.size(80.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        contentScale = ContentScale.Fit
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))

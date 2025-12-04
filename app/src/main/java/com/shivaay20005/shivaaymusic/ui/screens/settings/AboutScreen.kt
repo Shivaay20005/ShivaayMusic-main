@@ -45,9 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -201,7 +199,7 @@ fun AboutScreen(
                 modifier = Modifier
                     .matchParentSize()
                     .clickable { },
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                contentScale = ContentScale.Fit
             )
 
             // Shimmer effect overlay only for the image
