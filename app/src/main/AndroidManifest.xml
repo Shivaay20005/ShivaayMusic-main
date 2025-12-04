@@ -141,6 +141,37 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <!-- DeepLinkActivity for handling shivaaymusic.app deep links -->
+        <activity
+            android:name=".DeepLinkActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.NoDisplay">
+
+            <!-- App Link for https://shivaaymusic.app/play -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="shivaaymusic.app"
+                    android:pathPrefix="/play" />
+            </intent-filter>
+
+            <!-- Custom scheme: shivaaymusic:// -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="shivaaymusic" />
+            </intent-filter>
+        </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
