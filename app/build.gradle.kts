@@ -123,7 +123,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.blurry)
     implementation(libs.material.ripple)
-    implementation(libs.room.runtime.android)
     implementation(libs.material.kolor)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
