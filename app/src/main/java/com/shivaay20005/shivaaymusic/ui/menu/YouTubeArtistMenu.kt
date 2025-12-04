@@ -147,11 +147,12 @@ fun YouTubeArtistMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.shareArtist(
-                        context = context,
-                        channelId = artist.id,
-                        name = artist.title
-                    )
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, artist.shareLink)
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
                     onDismiss()
                 }
                 .padding(12.dp),
