@@ -360,11 +360,12 @@ fun AlbumMenu(
             title = R.string.share,
         ) {
             onDismiss()
-            com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.shareAlbum(
-                context = context,
-                browseId = album.album.id,
-                title = album.album.title
-            )
+            val intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/browse/${album.album.id}")
+            }
+            context.startActivity(Intent.createChooser(intent, null))
         }
     }
 }

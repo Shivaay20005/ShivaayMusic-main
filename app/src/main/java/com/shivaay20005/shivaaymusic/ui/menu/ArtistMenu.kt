@@ -125,11 +125,12 @@ fun ArtistMenu(
                 title = R.string.share,
             ) {
                 onDismiss()
-                com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.shareArtist(
-                    context = context,
-                    channelId = artist.id,
-                    name = artist.artist.name
-                )
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/channel/${artist.id}")
+                }
+                context.startActivity(Intent.createChooser(intent, null))
             }
         }
     }

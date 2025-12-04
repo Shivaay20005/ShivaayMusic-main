@@ -403,11 +403,12 @@ fun PlaylistMenu(
                 icon = R.drawable.share,
                 title = R.string.share
             ) {
-                com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.sharePlaylist(
-                    context = context,
-                    playlistId = browseId,
-                    title = playlist.playlist.name
-                )
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/playlist?list=$browseId")
+                }
+                context.startActivity(Intent.createChooser(intent, null))
                 onDismiss()
             }
         }

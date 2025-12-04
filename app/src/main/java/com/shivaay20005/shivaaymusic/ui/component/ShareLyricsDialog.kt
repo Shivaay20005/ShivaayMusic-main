@@ -193,7 +193,7 @@ fun ShareLyricsDialog(
                         Button(
                             onClick = {
                                 val songLink = mediaMetadata?.id?.let { id ->
-                                    com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.generateVideoShareLink(id)
+                                    "https://music.youtube.com/watch?v=$id"
                                 } ?: ""
                                 val shareIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
