@@ -676,10 +676,7 @@
     <string name="quote_100">\"Music is the soundtrack of our dreams.\" - Unknown</string>
     
     <!-- Greeting Messages -->
-    <string name="good_morning">Good Morning</string>
-    <string name="good_afternoon">Good Afternoon</string>
-    <string name="good_evening">Good Evening</string>
-    <string name="good_night">Good Night</string>
+    <string name="good_night">Good night</string>
     
     <!-- Authentication Strings -->
     <string name="auth_welcome">Welcome to ShivaayMusic</string>
