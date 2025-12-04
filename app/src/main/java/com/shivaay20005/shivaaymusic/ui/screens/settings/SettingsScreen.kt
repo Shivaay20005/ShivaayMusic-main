@@ -796,7 +796,7 @@ fun SettingsScreen(
                     }
                     
                     Icon(
-                        painter = painterResource(R.drawable.verified),
+                        painter = painterResource(R.drawable.verified_user),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)

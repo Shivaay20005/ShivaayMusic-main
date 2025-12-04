@@ -1,341 +1,376 @@
-# ShivaayMusic
-
-<!-- <div align="center">
-  <img src="https://github.com/shivaay20005/shivaaymusic-main/blob/master/fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Banner de shivaaymusic" width="100%"/> -->
-  <div align="center">
-  <img src="https://files.catbox.moe/yf0lkq.jpg" alt="ShivaayMusic Banner" width="100%"/>
-  <img src="https://files.catbox.moe/hxs3kl.jpg" alt="ShivaayMusic Banner" width="100%"/>
-  
-  ### Advanced YouTube Music Client with Material Design 3 for Android
-  
-  [![Latest Version](https://img.shields.io/github/v/release/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=0D1117&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/releases)
-  [![License](https://img.shields.io/github/license/shivaay20005/shivaaymusic?style=flat-square&logo=gnu&color=2B3137&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/blob/main/LICENSE)
-  [![Translation Status](https://badges.crowdin.net/shivaaymusic/localized.svg)](https://crowdin.com/project/shivaaymusic)
-  [![Android](https://img.shields.io/badge/Platform-Android%206.0+-3DDC84.svg?style=flat-square&logo=android&logoColor=white&labelColor=161B22)](https://www.android.com)
-  [![Stars](https://img.shields.io/github/stars/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=yellow&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/stargazers)
-  [![Forks](https://img.shields.io/github/forks/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=blue&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/network/members)
-</div>
-
-[![English](https://img.shields.io/badge/readme.md-english-blue?style=for-the-badge)](README.en.md)
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Main Features](#main-features)
-  - [User Authentication (NEW!)](#-user-authentication-new)
-  - [Core Functionality](#core-functionality)
-  - [Audio Enhancements](#audio-enhancements)
-  - [Customization and Integration](#customization-and-integration)
-- [Installation](#installation)
-- [Copyright & Ownership](#copyright--ownership)
-- [Support the Project](#support-the-project)
-- [License](#license)
-
----
-
-## Overview
-
-**shivaaymusic** is an YouTube Music client specifically designed for Android devices. It offers a superior user experience with a modern interface that implements Material Design 3, providing advanced functionalities for exploring, playing, and managing music content without the limitations of the official app.
-
-### Key Benefits
-
-- **🔐 User Authentication**: Secure login/signup system to track your personalized experience
-- **Ad-Free Experience**: Enjoy music without advertising interruptions
-- **Improved Performance**: Optimized for smooth playback and navigation
-- **Privacy Focus**: User data stored securely on device with encrypted passwords
-- **Customizable Interface**: Personalize your music experience
-- **Offline Capabilities**: Download and play music without internet connection
-
-> **Note**: shivaaymusic is an independent project and is not affiliated, sponsored, or endorsed by YouTube or Google.
-
----
-
-## Main Features
-
-### 🔐 User Authentication (NEW!)
-<table>
-<tr>
-<th width="30%">Feature</th>
-<th width="70%">Description</th>
-</tr>
-<tr>
-<td><strong>📝 Sign Up</strong></td>
-<td>Create a new account with name, email, password, and phone number</td>
-</tr>
-<tr>
-<td><strong>🔑 Login</strong></td>
-<td>Secure login with email and password authentication</td>
-</tr>
-<tr>
-<td><strong>🔒 Secure Storage</strong></td>
-<td>Passwords are hashed using SHA-256 encryption for security</td>
-</tr>
-<tr>
-<td><strong>👤 User Profile</strong></td>
-<td>Track and manage user information locally on device</td>
-</tr>
-<tr>
-<td><strong>🌐 Multi-Language Auth</strong></td>
-<td>Authentication screens available in English and Hindi (हिंदी)</td>
-</tr>
-</table>
-
-### Core Functionality
-<table>
-<tr>
-<th width="30%">Feature</th>
-<th width="70%">Description</th>
-</tr>
-<tr>
-<td><strong>🎵 Ad-Free Playback</strong></td>
-<td>Enjoy music without advertising interruptions</td>
-</tr>
-<tr>
-<td><strong>🔄 Background Playback</strong></td>
-<td>Continue listening while using other applications</td>
-</tr>
-<tr>
-<td><strong>🔍 Advanced Search</strong></td>
-<td>Quickly find songs, videos, albums, and playlists</td>
-</tr>
-<tr>
-<td><strong>👤 Account Integration</strong></td>
-<td>Sign in to synchronize preferences and collections</td>
-</tr>
-<tr>
-<td><strong>📚 Library Management</strong></td>
-<td>Completely organize and manage your music collection</td>
-</tr>
-<tr>
-<td><strong>📱 Offline Mode</strong></td>
-<td>Download content to listen without connection</td>
-</tr>
-</table>
-
-### Audio Enhancements
-<table>
-<tr>
-<th width="30%">Feature</th>
-<th width="70%">Description</th>
-</tr>
-<tr>
-<td><strong>🎤 Synchronized Lyrics</strong></td>
-<td>View song lyrics perfectly synchronized</td>
-</tr>
-<tr>
-<td><strong>⚡ Smart Silence Skipping</strong></td>
-<td>Automatically skip silent audio segments</td>
-</tr>
-<tr>
-<td><strong>🔊 Volume Normalization</strong></td>
-<td>Balances sound levels between different tracks</td>
-</tr>
-<tr>
-<td><strong>🎛️ Tempo and Tone Control</strong></td>
-<td>Adjust playback speed and tone according to preferences</td>
-</tr>
-</table>
-
-### ✨ ShivaayMusic Exclusive Features (NEW!)
-<table>
-<tr>
-<th width="30%">Feature</th>
-<th width="70%">Description</th>
-</tr>
-<tr>
-<td><strong>😊 Mood-Based Music</strong></td>
-<td>Select your mood (Happy, Sad, Relaxed, Energetic, etc.) and discover perfect music recommendations</td>
-</tr>
-<tr>
-<td><strong>🔥 Listening Streaks</strong></td>
-<td>Track your daily listening streaks with goals, achievements, and weekly summaries</td>
-</tr>
-<tr>
-<td><strong>📝 Song Notes/Memories</strong></td>
-<td>Attach personal notes and memories to your favorite songs - remember why a song is special</td>
-</tr>
-<tr>
-<td><strong>🌙 Smart Sleep Timer</strong></td>
-<td>Enhanced sleep timer with gradual volume fade-out for peaceful sleep</td>
-</tr>
-<tr>
-<td><strong>🎧 Focus Mode</strong></td>
-<td>Block notifications while listening for distraction-free music experience</td>
-</tr>
-<tr>
-<td><strong>🏆 Music Achievements</strong></td>
-<td>Earn badges like "First Beat", "Music Lover", "Melody Master" based on your listening habits</td>
-</tr>
-<tr>
-<td><strong>📊 Music Journey</strong></td>
-<td>Visual timeline of your music journey with stats, achievements, and memories</td>
-</tr>
-<tr>
-<td><strong>💬 Daily Music Quotes</strong></td>
-<td>Inspirational music quotes that change daily to motivate you</td>
-</tr>
-<tr>
-<td><strong>📈 Weekly Summary</strong></td>
-<td>Visual bar chart showing your listening patterns throughout the week</td>
-</tr>
-</table>
-
-### Customization and Integration
-<table>
-<tr>
-<th width="30%">Feature</th>
-<th width="70%">Description</th>
-</tr>
-<tr>
-<td><strong>🎨 Dynamic Themes</strong></td>
-<td>The interface adapts to album cover colors</td>
-</tr>
-<tr>
-<td><strong>🌐 Multi-Language Support</strong></td>
-<td>Available in numerous languages for global users</td>
-</tr>
-<tr>
-<td><strong>🚗 Android Auto Compatible</strong></td>
-<td>Integration with vehicle infotainment systems</td>
-</tr>
-<tr>
-<td><strong>🎯 Material Design 3</strong></td>
-<td>Design aligned with Google's latest design guidelines</td>
-</tr>
-<tr>
-<td><strong>🖼️ Cover Export</strong></td>
-<td>Save album covers in high resolution</td>
-</tr>
-</table>
-
----
-
-## Installation
-
-### System Requirements
-
-| Component | Minimum Requirement |
-|:---------|:-------------------|
-| Operating System | Android 6.0 (Marshmallow) or higher |
-| Storage Space | 10 MB available |
-| Network | Internet connection for streaming |
-| RAM | 2 GB recommended |
-
-### Installation Methods
-
-#### Option 1: GitHub Releases (Recommended)
-
-1. Go to the [Releases](https://github.com/shivaay20005/shivaaymusic/releases) section on GitHub
-2. Download the APK file of the latest stable version
-3. Enable "Install from unknown sources" in your device's security settings
-4. Open the downloaded APK file to complete installation
-
-#### Option 2: Official Website
-
-1. Visit the [shivaaymusic official website](https://shivaaymusic.netlify.app/)
-2. Select the Android download option
-3. Follow the provided installation instructions
-
-#### Option 3: F-Droid
-
 <div align="center">
   
-[![F-Droid](https://img.shields.io/badge/F--Droid-1976D2?style=for-the-badge&logo=f-droid&logoColor=white)](https://f-droid.org/es/packages/com.shivaay20005.shivaaymusic/)
+# 🎵 ShivaayMusic
+
+<img src="https://files.catbox.moe/yf0lkq.jpg" alt="ShivaayMusic Banner" width="100%"/>
+<img src="https://files.catbox.moe/hxs3kl.jpg" alt="ShivaayMusic Banner" width="100%"/>
+
+### 🎧 Advanced YouTube Music Client with Material Design 3 for Android
+### 🎧 Android के लिए Material Design 3 के साथ एडवांस्ड YouTube Music क्लाइंट
+
+[![Latest Version](https://img.shields.io/github/v/release/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=0D1117&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/releases)
+[![License](https://img.shields.io/github/license/shivaay20005/shivaaymusic?style=flat-square&logo=gnu&color=2B3137&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/blob/main/LICENSE)
+[![Translation Status](https://badges.crowdin.net/shivaaymusic/localized.svg)](https://crowdin.com/project/shivaaymusic)
+[![Android](https://img.shields.io/badge/Platform-Android%207.0+-3DDC84.svg?style=flat-square&logo=android&logoColor=white&labelColor=161B22)](https://www.android.com)
+[![Stars](https://img.shields.io/github/stars/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=yellow&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/stargazers)
+[![Forks](https://img.shields.io/github/forks/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=blue&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/network/members)
+
+**Current Version / वर्तमान संस्करण: v1.0.2 (Build 120)**
 
 </div>
 
-#### Option 4: OpenApk
+---
+
+## 📋 Quick Links / त्वरित लिंक
+
+| English | हिंदी |
+|---------|-------|
+| [Overview](#-overview) | [अवलोकन](#-अवलोकन-overview-in-hindi) |
+| [All Features](#-all-features--सभी-सुविधाएं) | [सभी सुविधाएं](#-all-features--सभी-सुविधाएं) |
+| [Installation](#-installation--इंस्टॉलेशन) | [इंस्टॉलेशन](#-installation--इंस्टॉलेशन) |
+| [Changelog](#-changelog--परिवर्तन-लॉग) | [परिवर्तन लॉग](#-changelog--परिवर्तन-लॉग) |
+| [Support](#-support-the-project--प्रोजेक्ट-का-समर्थन-करें) | [समर्थन](#-support-the-project--प्रोजेक्ट-का-समर्थन-करें) |
+
+---
+
+## 🌟 Overview
+
+**ShivaayMusic** is a premium YouTube Music client specifically designed for Android devices. It offers a superior user experience with a modern interface that implements Material Design 3, providing advanced functionalities for exploring, playing, and managing music content without the limitations of the official app.
+
+### ✨ Why Choose ShivaayMusic?
+
+| Benefit | Description |
+|---------|-------------|
+| 🚫 **Ad-Free Experience** | Enjoy music without any advertising interruptions |
+| 🔐 **User Authentication** | Secure login/signup system with encrypted passwords |
+| 🎨 **Beautiful Design** | Material Design 3 with dynamic themes |
+| 📱 **Offline Mode** | Download and play music without internet |
+| 🎯 **Exclusive Features** | Mood-based music, streaks, achievements & more |
+| 🔒 **Privacy Focused** | All data stored securely on your device |
+
+---
+
+## 🌟 अवलोकन (Overview in Hindi)
+
+**ShivaayMusic** Android उपकरणों के लिए विशेष रूप से डिज़ाइन किया गया एक प्रीमियम YouTube Music क्लाइंट है। यह Material Design 3 के साथ एक आधुनिक इंटरफ़ेस प्रदान करता है, जो आधिकारिक ऐप की सीमाओं के बिना संगीत सामग्री का पता लगाने, बजाने और प्रबंधित करने के लिए उन्नत कार्यक्षमता प्रदान करता है।
+
+### ✨ ShivaayMusic क्यों चुनें?
+
+| लाभ | विवरण |
+|-----|-------|
+| 🚫 **विज्ञापन-मुक्त अनुभव** | बिना किसी विज्ञापन के संगीत का आनंद लें |
+| 🔐 **यूज़र प्रमाणीकरण** | एन्क्रिप्टेड पासवर्ड के साथ सुरक्षित लॉगिन/साइनअप |
+| 🎨 **सुंदर डिज़ाइन** | डायनामिक थीम के साथ Material Design 3 |
+| 📱 **ऑफ़लाइन मोड** | इंटरनेट के बिना संगीत डाउनलोड करें और बजाएं |
+| 🎯 **एक्सक्लूसिव फ़ीचर्स** | मूड-आधारित संगीत, स्ट्रीक्स, अचीवमेंट्स और भी बहुत कुछ |
+| 🔒 **प्राइवेसी केंद्रित** | सभी डेटा आपके डिवाइस पर सुरक्षित रूप से संग्रहीत |
+
+> **नोट**: ShivaayMusic एक स्वतंत्र प्रोजेक्ट है और YouTube या Google से संबद्ध, प्रायोजित या समर्थित नहीं है।
+
+---
+
+## 🎯 ALL FEATURES / सभी सुविधाएं
+
+### 🔐 User Authentication / यूज़र प्रमाणीकरण
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 📝 **Sign Up** | Create account with name, email, password, phone | **साइन अप** | नाम, ईमेल, पासवर्ड, फोन के साथ अकाउंट बनाएं |
+| 🔑 **Login** | Secure email & password authentication | **लॉगिन** | सुरक्षित ईमेल और पासवर्ड प्रमाणीकरण |
+| 🔒 **SHA-256 Encryption** | Passwords are securely hashed | **SHA-256 एन्क्रिप्शन** | पासवर्ड सुरक्षित रूप से हैश किए जाते हैं |
+| 👤 **User Profile** | Manage your profile information | **यूज़र प्रोफ़ाइल** | अपनी प्रोफ़ाइल जानकारी प्रबंधित करें |
+| 🌐 **Multi-Language Auth** | Available in English & Hindi | **बहुभाषी प्रमाणीकरण** | अंग्रेज़ी और हिंदी में उपलब्ध |
+
+---
+
+### 🎵 Core Music Features / मुख्य संगीत सुविधाएं
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🎵 **Ad-Free Playback** | No ads while playing music | **विज्ञापन-मुक्त प्लेबैक** | संगीत बजाते समय कोई विज्ञापन नहीं |
+| 🔄 **Background Playback** | Listen while using other apps | **बैकग्राउंड प्लेबैक** | अन्य ऐप्स का उपयोग करते हुए सुनें |
+| 🔍 **Advanced Search** | Find songs, albums, artists, playlists | **एडवांस्ड सर्च** | गाने, एल्बम, कलाकार, प्लेलिस्ट खोजें |
+| 📚 **Library Management** | Organize your music collection | **लाइब्रेरी प्रबंधन** | अपने संगीत संग्रह को व्यवस्थित करें |
+| 📱 **Offline Downloads** | Download for offline listening | **ऑफ़लाइन डाउनलोड** | ऑफ़लाइन सुनने के लिए डाउनलोड करें |
+| 📜 **Queue Management** | Full control over playback queue | **क्यू प्रबंधन** | प्लेबैक क्यू पर पूर्ण नियंत्रण |
+| 🔀 **Shuffle & Repeat** | Various playback modes | **शफ़ल और रिपीट** | विभिन्न प्लेबैक मोड |
+| ▶️ **Mini Player** | Compact player for quick access | **मिनी प्लेयर** | त्वरित पहुंच के लिए कॉम्पैक्ट प्लेयर |
+
+---
+
+### 🎤 Audio Enhancements / ऑडियो सुधार
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🎤 **Synchronized Lyrics** | Real-time lyrics display | **सिंक्रोनाइज़्ड लिरिक्स** | रियल-टाइम गीत प्रदर्शन |
+| ⚡ **Silence Skipping** | Auto-skip silent parts | **साइलेंस स्किपिंग** | मौन भागों को ऑटो-स्किप |
+| 🔊 **Volume Normalization** | Balanced audio levels | **वॉल्यूम नॉर्मलाइज़ेशन** | संतुलित ऑडियो स्तर |
+| 🎛️ **Tempo Control** | Adjust playback speed | **टेम्पो कंट्रोल** | प्लेबैक गति समायोजित करें |
+| 🎚️ **Pitch Control** | Change audio pitch | **पिच कंट्रोल** | ऑडियो पिच बदलें |
+| 📤 **Lyrics Export** | Share lyrics with friends | **लिरिक्स एक्सपोर्ट** | दोस्तों के साथ गीत साझा करें |
+
+---
+
+### ✨ ShivaayMusic EXCLUSIVE Features / एक्सक्लूसिव सुविधाएं
+
+These features are **UNIQUE** to ShivaayMusic and not available in other music apps!
+
+ये सुविधाएं **ShivaayMusic के लिए अद्वितीय** हैं और अन्य संगीत ऐप्स में उपलब्ध नहीं हैं!
+
+#### 😊 Mood-Based Music / मूड-आधारित संगीत
+
+| Mood | Description | मूड | विवरण |
+|------|-------------|-----|-------|
+| 😊 **Happy** | Upbeat, cheerful songs | **खुश** | उत्साहित, प्रसन्न गाने |
+| 😢 **Sad** | Emotional, soulful music | **उदास** | भावनात्मक, आत्मीय संगीत |
+| 😌 **Relaxed** | Calm, peaceful tunes | **आराम** | शांत, सुकून भरी धुन |
+| 🔥 **Energetic** | High-energy workout music | **ऊर्जावान** | उच्च-ऊर्जा वर्कआउट संगीत |
+| 💖 **Romantic** | Love songs | **रोमांटिक** | प्यार के गाने |
+| 🌙 **Sleepy** | Sleep-inducing ambient | **नींद** | नींद-प्रेरक एम्बिएंट |
+| 🎉 **Party** | Dance & party hits | **पार्टी** | डांस और पार्टी हिट्स |
+| 🤔 **Focused** | Concentration music | **केंद्रित** | एकाग्रता संगीत |
+
+---
+
+#### 🔥 Listening Streaks & Achievements / सुनने की स्ट्रीक्स और उपलब्धियां
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🔥 **Daily Streaks** | Track consecutive listening days | **दैनिक स्ट्रीक्स** | लगातार सुनने के दिनों को ट्रैक करें |
+| 🎯 **Daily Goals** | Set and achieve listening goals | **दैनिक लक्ष्य** | सुनने के लक्ष्य सेट करें और प्राप्त करें |
+| 🏆 **Achievements** | Earn badges for milestones | **उपलब्धियां** | माइलस्टोन के लिए बैज अर्जित करें |
+| 📊 **Weekly Summary** | Visual listening statistics | **साप्ताहिक सारांश** | दृश्य सुनने के आँकड़े |
+
+**Available Achievements / उपलब्ध उपलब्धियां:**
+- 🎵 **First Beat** - Play your first song / अपना पहला गाना बजाएं
+- 🎧 **Music Lover** - Listen to 100 songs / 100 गाने सुनें
+- 🎼 **Melody Master** - Listen to 500 songs / 500 गाने सुनें
+- 🔥 **Streak Starter** - Maintain 7-day streak / 7 दिन की स्ट्रीक बनाए रखें
+- 🏆 **Streak Champion** - Maintain 30-day streak / 30 दिन की स्ट्रीक बनाए रखें
+
+---
+
+#### 📝 Song Notes & Memories / गाने के नोट्स और यादें
+
+Attach personal notes to your favorite songs! Remember why a song is special to you.
+
+अपने पसंदीदा गानों में व्यक्तिगत नोट्स जोड़ें! याद रखें कि एक गाना आपके लिए क्यों खास है।
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 📝 **Add Notes** | Write personal memories | **नोट्स जोड़ें** | व्यक्तिगत यादें लिखें |
+| 😊 **Mood Tags** | Tag with emoji moods | **मूड टैग** | इमोजी मूड के साथ टैग करें |
+| 📅 **Date Tracking** | See when you added notes | **दिनांक ट्रैकिंग** | देखें कब आपने नोट्स जोड़े |
+| 🔍 **Search Notes** | Find songs by memories | **नोट्स खोजें** | यादों से गाने खोजें |
+
+---
+
+#### 🌙 Smart Sleep Timer / स्मार्ट स्लीप टाइमर
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| ⏱️ **Custom Timer** | Set any duration | **कस्टम टाइमर** | कोई भी अवधि सेट करें |
+| 📉 **Gradual Fade** | Smooth volume fade-out | **धीरे-धीरे फेड** | सहज वॉल्यूम फेड-आउट |
+| 🎵 **End of Song** | Stop after current song | **गाने के अंत में** | वर्तमान गाने के बाद रुकें |
+| 🌙 **Sleep Mode** | Perfect for bedtime | **स्लीप मोड** | सोने के समय के लिए परफेक्ट |
+
+---
+
+#### 🎧 Focus Mode / फोकस मोड
+
+Block distractions while listening to music!
+
+संगीत सुनते समय विकर्षणों को ब्लॉक करें!
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🔕 **Block Notifications** | No interruptions | **नोटिफिकेशन ब्लॉक** | कोई रुकावट नहीं |
+| 🎯 **Distraction-Free** | Pure music experience | **विकर्षण-मुक्त** | शुद्ध संगीत अनुभव |
+| ⏰ **Timer** | Auto-disable after time | **टाइमर** | समय के बाद ऑटो-डिसेबल |
+
+---
+
+#### 📊 Music Journey / संगीत यात्रा
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 📈 **Listening Stats** | Total songs, time, artists | **सुनने के आँकड़े** | कुल गाने, समय, कलाकार |
+| 📅 **Timeline** | Your music history | **टाइमलाइन** | आपका संगीत इतिहास |
+| 🏆 **Achievements** | All earned badges | **उपलब्धियां** | सभी अर्जित बैज |
+| 📊 **Weekly Chart** | Visual bar chart | **साप्ताहिक चार्ट** | दृश्य बार चार्ट |
+
+---
+
+#### 💬 Daily Music Quotes / दैनिक संगीत उद्धरण
+
+100+ inspirational music quotes that change daily!
+
+100+ प्रेरणादायक संगीत उद्धरण जो रोज़ बदलते हैं!
+
+---
+
+### 🎨 Customization & UI / अनुकूलन और यूआई
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🎨 **Dynamic Themes** | Colors from album art | **डायनामिक थीम** | एल्बम आर्ट से रंग |
+| 🌙 **Dark Mode** | AMOLED-friendly dark theme | **डार्क मोड** | AMOLED-फ्रेंडली डार्क थीम |
+| ☀️ **Light Mode** | Clean, bright interface | **लाइट मोड** | साफ़, उज्ज्वल इंटरफ़ेस |
+| 🎯 **Material Design 3** | Google's latest design | **Material Design 3** | Google का नवीनतम डिज़ाइन |
+| 📱 **Adaptive Icons** | Modern Android icons | **एडेप्टिव आइकन** | आधुनिक Android आइकन |
+
+---
+
+### 🌐 Integration & Connectivity / एकीकरण और कनेक्टिविटी
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🚗 **Android Auto** | Use while driving | **Android Auto** | ड्राइविंग के दौरान उपयोग करें |
+| 👾 **Discord RPC** | Show what you're listening | **Discord RPC** | दिखाएं आप क्या सुन रहे हैं |
+| 📱 **Widgets** | Home screen widgets | **विजेट्स** | होम स्क्रीन विजेट्स |
+| 🔗 **YouTube Account** | Sync with your account | **YouTube अकाउंट** | अपने अकाउंट के साथ सिंक करें |
+| 🌐 **Multi-Language** | Many languages supported | **बहुभाषी** | कई भाषाएं समर्थित |
+
+---
+
+### 📚 Library & Content / लाइब्रेरी और सामग्री
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 📚 **Library Management** | Organize your music | **लाइब्रेरी प्रबंधन** | अपने संगीत को व्यवस्थित करें |
+| 🎵 **Playlists** | Create custom playlists | **प्लेलिस्ट** | कस्टम प्लेलिस्ट बनाएं |
+| ❤️ **Favorites** | Mark favorite songs | **पसंदीदा** | पसंदीदा गाने मार्क करें |
+| 📥 **Downloads** | Manage offline content | **डाउनलोड** | ऑफ़लाइन सामग्री प्रबंधित करें |
+| 📜 **History** | View listening history | **इतिहास** | सुनने का इतिहास देखें |
+| 👤 **Artists** | Browse by artists | **कलाकार** | कलाकारों द्वारा ब्राउज़ करें |
+| 💿 **Albums** | Browse by albums | **एल्बम** | एल्बम द्वारा ब्राउज़ करें |
+
+---
+
+### 🛡️ Privacy & Security / गोपनीयता और सुरक्षा
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🔐 **Local Storage** | Data stays on device | **लोकल स्टोरेज** | डेटा डिवाइस पर रहता है |
+| 🔒 **Encrypted Passwords** | SHA-256 hashing | **एन्क्रिप्टेड पासवर्ड** | SHA-256 हैशिंग |
+| 🚫 **No Tracking** | No user tracking | **कोई ट्रैकिंग नहीं** | कोई यूज़र ट्रैकिंग नहीं |
+| 📊 **Export Data** | Backup your data | **डेटा एक्सपोर्ट** | अपना डेटा बैकअप करें |
+| 📥 **Import Data** | Restore from backup | **डेटा इम्पोर्ट** | बैकअप से पुनर्स्थापित करें |
+
+---
+
+## 📥 Installation / इंस्टॉलेशन
+
+### System Requirements / सिस्टम आवश्यकताएं
+
+| Component | Requirement | घटक | आवश्यकता |
+|-----------|-------------|------|----------|
+| **OS** | Android 7.0+ (API 24) | **ओएस** | Android 7.0+ (API 24) |
+| **Storage** | 50 MB free | **स्टोरेज** | 50 MB मुक्त |
+| **RAM** | 2 GB recommended | **रैम** | 2 GB अनुशंसित |
+| **Network** | For streaming | **नेटवर्क** | स्ट्रीमिंग के लिए |
+
+### Download Options / डाउनलोड विकल्प
 
 <div align="center">
-  
-[![OpenApk](https://img.shields.io/badge/OpenApk-FF6B35?style=for-the-badge&logo=android&logoColor=white)](https://www.openapk.net/shivaaymusic/com.shivaay20005.shivaaymusic/)
+
+| Source | Link |
+|--------|------|
+| 📦 **GitHub Releases** | [![GitHub](https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github)](https://github.com/shivaay20005/shivaaymusic/releases) |
+| 🌐 **Official Website** | [![Website](https://img.shields.io/badge/Website-shivaaymusic.netlify.app-blue?style=for-the-badge&logo=netlify)](https://shivaaymusic.netlify.app/) |
+| 📱 **F-Droid** | [![F-Droid](https://img.shields.io/badge/F--Droid-1976D2?style=for-the-badge&logo=f-droid&logoColor=white)](https://f-droid.org/es/packages/com.shivaay20005.shivaaymusic/) |
+| 📲 **OpenApk** | [![OpenApk](https://img.shields.io/badge/OpenApk-FF6B35?style=for-the-badge&logo=android&logoColor=white)](https://www.openapk.net/shivaaymusic/com.shivaay20005.shivaaymusic/) |
 
 </div>
 
-> **Security Notice**: For security reasons, we recommend obtaining the application exclusively through the official channels mentioned above. Avoid downloading APKs from unverified sources.
+### Installation Steps / इंस्टॉलेशन चरण
+
+1. **Download APK** / APK डाउनलोड करें
+2. **Enable Unknown Sources** / अज्ञात स्रोत सक्षम करें
+   - Settings → Security → Unknown Sources
+3. **Install APK** / APK इंस्टॉल करें
+4. **Open & Enjoy!** / खोलें और आनंद लें!
+
+> ⚠️ **Security Notice**: Download only from official sources / केवल आधिकारिक स्रोतों से डाउनलोड करें
 
 ---
 
-## Copyright & Ownership
+## 📋 Changelog / परिवर्तन लॉग
 
-### 🔒 **Proprietary Software Notice**
+For complete changelog with all fixes and updates, see **[CHANGELOG.md](CHANGELOG.md)**
 
-**ShivaayMusic** is the exclusive intellectual property of **Shivaay20005**. All rights reserved.
+सभी फिक्स और अपडेट के साथ पूर्ण परिवर्तन लॉग के लिए, देखें **[CHANGELOG.md](CHANGELOG.md)**
 
-#### ⚠️ **Important Legal Notice:**
+### Recent Updates / हाल के अपडेट
 
-- **© 2025 Shivaay20005 - All Rights Reserved**
-- This software is proprietary and protected by copyright law
-- **NO MODIFICATION** allowed without explicit written permission
-- **NO REDISTRIBUTION** of source code or compiled applications  
-- **NO REVERSE ENGINEERING** or decompilation permitted
-- **NO COMMERCIAL USE** without licensing agreement
-- **NO FORK** or derivative works allowed
+#### Version 1.0.2 (December 2024)
 
-#### 🛡️ **Usage Restrictions:**
-
-✅ **ALLOWED:**
-- Download and use the official APK for personal use
-- Report bugs through official channels
-
-❌ **NOT ALLOWED:**
-- Modifying the source code
-- Creating derivative applications
-- Selling or distributing the app
-- Using the code in other projects
-- Building from source without permission
-
-#### 📞 **Contact for Licensing:**
-For commercial licensing or modification requests, contact: **shivaay20005@gmail.com**
-
-> **Legal Warning:** Unauthorized use, modification, or distribution of this software may result in legal action.
+| Type | Change | प्रकार | परिवर्तन |
+|------|--------|--------|----------|
+| 🐛 **Fix** | Navigation crash on player screen | **फिक्स** | प्लेयर स्क्रीन पर नेविगेशन क्रैश |
+| 🐛 **Fix** | Duplicate string resources | **फिक्स** | डुप्लिकेट स्ट्रिंग रिसोर्स |
+| ✨ **New** | User authentication system | **नया** | यूज़र प्रमाणीकरण सिस्टम |
+| ✨ **New** | Mood-based music | **नया** | मूड-आधारित संगीत |
+| ✨ **New** | Listening streaks | **नया** | सुनने की स्ट्रीक्स |
+| ✨ **New** | Song notes/memories | **नया** | गाने के नोट्स/यादें |
+| ✨ **New** | Smart sleep timer | **नया** | स्मार्ट स्लीप टाइमर |
+| ✨ **New** | Focus mode | **नया** | फोकस मोड |
+| ✨ **New** | Music achievements | **नया** | संगीत उपलब्धियां |
+| ✨ **New** | Daily music quotes | **नया** | दैनिक संगीत उद्धरण |
+| 🎨 **UI** | New app logo | **यूआई** | नया ऐप लोगो |
 
 ---
 
-## Support the Project
+## 🤝 Support the Project / प्रोजेक्ट का समर्थन करें
 
-If you find value in **shivaaymusic** and want to contribute to its continued development, consider making a donation. Your financial support enables us to:
+If you enjoy ShivaayMusic, please consider supporting its development!
 
-- Implement new features and improvements
-- Fix bugs and optimize performance
-- Maintain project infrastructure
-- Dedicate more time to development and maintenance
+अगर आप ShivaayMusic का आनंद लेते हैं, तो कृपया इसके विकास का समर्थन करने पर विचार करें!
 
 <div align="center">
-  
+
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub_Sponsors-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sponsors/shivaay20005)
 [![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](mailto:shivaay20005@gmail.com)
 
+**⭐ Star this repository if you like it! / अगर आपको पसंद आया तो इस रिपॉजिटरी को स्टार करें!**
+
 </div>
 
 ---
 
-## License
+## 📜 License / लाइसेंस
 
-**ShivaayMusic** is proprietary software owned by **Shivaay20005**.
+**ShivaayMusic** is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
 
-```
-Copyright © 2025 Shivaay20005. All rights reserved.
+**ShivaayMusic** **GNU General Public License v3.0 (GPL-3.0)** के तहत लाइसेंस प्राप्त है।
 
-This software is licensed, not sold. No part of this software may be 
-reproduced, modified, distributed, or transmitted in any form or by any 
-means without the express written permission of the copyright owner.
+See [LICENSE](LICENSE) for details / विवरण के लिए [LICENSE](LICENSE) देखें
 
-UNAUTHORIZED COPYING, MODIFICATION, DISTRIBUTION, OR USE OF THIS SOFTWARE 
-IS STRICTLY PROHIBITED AND MAY RESULT IN LEGAL CONSEQUENCES.
-```
+---
 
-### 📧 Contact Information
+## 📞 Contact / संपर्क
 
-- **Developer:** Shivaay20005
-- **Email:** shivaay20005@gmail.com
-- **Project:** https://github.com/shivaay20005/shivaaymusic
+| | |
+|---|---|
+| **Developer** | Shivaay20005 |
+| **Email** | shivaay20005@gmail.com |
+| **GitHub** | [github.com/shivaay20005](https://github.com/shivaay20005) |
+| **Project** | [github.com/shivaay20005/shivaaymusic](https://github.com/shivaay20005/shivaaymusic) |
 
 ---
 
 <div align="center">
-  <h3>© 2025 Shivaay20005 - All Rights Reserved</h3>
-  <p><strong>ShivaayMusic</strong> - Premium YouTube Music Experience</p>
+
+## 🎵 Thank You for Using ShivaayMusic!
+## 🎵 ShivaayMusic का उपयोग करने के लिए धन्यवाद!
+
+<img src="https://files.catbox.moe/yf0lkq.jpg" alt="ShivaayMusic" width="50%"/>
+
+**© 2025 Shivaay20005 - All Rights Reserved**
+
+*"Music is the universal language of mankind"*  
+*"संगीत मानवता की सार्वभौमिक भाषा है"*
+
+[![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge)](https://github.com/shivaay20005/shivaaymusic)
+
 </div>
