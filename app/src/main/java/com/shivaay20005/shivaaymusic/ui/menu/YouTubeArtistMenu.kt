@@ -150,7 +150,7 @@ fun YouTubeArtistMenu(
                     com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.shareArtist(
                         context = context,
                         channelId = artist.id,
-                        name = artist.name
+                        name = artist.title
                     )
                     onDismiss()
                 }
