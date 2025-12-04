@@ -340,13 +340,11 @@ fun YouTubeAlbumMenu(
             icon = R.drawable.share,
             title = R.string.share,
         ) {
-            val intent =
-                Intent().apply {
-                    action = Intent.ACTION_SEND
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, albumItem.shareLink)
-                }
-            context.startActivity(Intent.createChooser(intent, null))
+            com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.shareAlbum(
+                context = context,
+                browseId = albumItem.id,
+                title = albumItem.title
+            )
             onDismiss()
         }
     }

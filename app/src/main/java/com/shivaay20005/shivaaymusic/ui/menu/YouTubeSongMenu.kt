@@ -313,13 +313,11 @@ fun YouTubeSongMenu(
             icon = R.drawable.share,
             title = R.string.share,
         ) {
-            val intent =
-                Intent().apply {
-                    action = Intent.ACTION_SEND
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, song.shareLink)
-                }
-            context.startActivity(Intent.createChooser(intent, null))
+            com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.shareVideo(
+                context = context,
+                videoId = song.id,
+                title = song.title
+            )
             onDismiss()
         }
     }

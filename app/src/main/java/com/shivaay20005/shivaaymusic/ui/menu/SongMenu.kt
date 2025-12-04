@@ -339,12 +339,11 @@ fun SongMenu(
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
                     onDismiss()
-                    val intent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${song.id}")
-                    }
-                    context.startActivity(Intent.createChooser(intent, null))
+                    com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.shareVideo(
+                        context = context,
+                        videoId = song.id,
+                        title = song.title
+                    )
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

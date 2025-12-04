@@ -433,13 +433,11 @@ fun YouTubePlaylistMenu(
             icon = R.drawable.share,
             title = R.string.share,
         ) {
-            val intent =
-                Intent().apply {
-                    action = Intent.ACTION_SEND
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, playlist.shareLink)
-                }
-            context.startActivity(Intent.createChooser(intent, null))
+            com.shivaay20005.shivaaymusic.utils.DeepLinkUtils.sharePlaylist(
+                context = context,
+                playlistId = playlist.id,
+                title = playlist.title
+            )
             onDismiss()
         }
 

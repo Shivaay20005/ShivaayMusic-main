@@ -397,6 +397,9 @@ fun Queue(
                     items = mutableQueueWindows,
                     key = { _, item -> item.uid.hashCode() },
                 ) { index, window ->
+                    // Skip items with null metadata to prevent crashes
+                    val metadata = window.mediaItem.metadata ?: return@itemsIndexed
+                    
                     ReorderableItem(
                         reorderableState = reorderableState,
                         key = window.uid.hashCode(),
@@ -420,7 +423,7 @@ fun Queue(
                                                         message =
                                                             context.getString(
                                                                 R.string.removed_song_from_playlist,
-                                                                currentItem.mediaItem.metadata?.title,
+                                                                currentItem.mediaItem.metadata?.title ?: "",
                                                             ),
                                                         actionLabel = context.getString(R.string.undo),
                                                         duration = SnackbarDuration.Short,
@@ -443,8 +446,8 @@ fun Queue(
                                 horizontalArrangement = Arrangement.Center,
                             ) {
                                 MediaMetadataListItem(
-                                    mediaMetadata = window.mediaItem.metadata!!,
-                                    isSelected = selection && window.mediaItem.metadata!! in selectedSongs,
+                                    mediaMetadata = metadata,
+                                    isSelected = selection && metadata in selectedSongs,
                                     isActive = index == currentWindowIndex,
                                     isPlaying = isPlaying,
                                     trailingContent = {
@@ -489,11 +492,11 @@ fun Queue(
                                             .combinedClickable(
                                                 onClick = {
                                                     if (selection) {
-                                                        if (window.mediaItem.metadata!! in selectedSongs) {
-                                                            selectedSongs.remove(window.mediaItem.metadata!!)
+                                                        if (metadata in selectedSongs) {
+                                                            selectedSongs.remove(metadata)
                                                             selectedItems.remove(currentItem)
                                                         } else {
-                                                            selectedSongs.add(window.mediaItem.metadata!!)
+                                                            selectedSongs.add(metadata)
                                                             selectedItems.add(currentItem)
                                                         }
                                                     } else {
@@ -514,7 +517,7 @@ fun Queue(
                                                         selection = true
                                                     }
                                                     selectedSongs.clear() // Clear all selections
-                                                    selectedSongs.add(window.mediaItem.metadata!!) // Select current item
+                                                    selectedSongs.add(metadata) // Select current item
                                                 },
                                             ),
                                 )
