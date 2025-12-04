@@ -67,9 +67,9 @@ import com.shivaay20005.shivaaymusic.ui.utils.backToMain
 @Composable
 fun shimmerEffect(): Brush {
     val shimmerColors = listOf(
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
     )
 
     val transition = rememberInfiniteTransition(label = "shimmerEffect")
