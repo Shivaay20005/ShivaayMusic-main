@@ -721,7 +721,7 @@ fun SettingsScreen(
                 ) {
                     Image(
                         painter = painterResource(R.drawable.source_icon),
-                        contentDescription = "shivaaymusic Logo",
+                        contentDescription = "ShivaayMusic Logo",
                         modifier = Modifier.size(80.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )
