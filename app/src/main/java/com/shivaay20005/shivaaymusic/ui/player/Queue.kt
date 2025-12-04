@@ -282,13 +282,14 @@ fun Queue(
                                 .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
                         ),
             ) {
-                IconButton(onClick = { state.expandSoft() }) {
-                    Icon(
-                        painter = painterResource(R.drawable.expand_less),
-                        tint = onBackgroundColor,
-                        contentDescription = null,
-                    )
-                }
+                // Expand button commented out - not working properly
+                // IconButton(onClick = { state.expandSoft() }) {
+                //     Icon(
+                //         painter = painterResource(R.drawable.expand_less),
+                //         tint = onBackgroundColor,
+                //         contentDescription = null,
+                //     )
+                // }
             }
         },
     ) {
