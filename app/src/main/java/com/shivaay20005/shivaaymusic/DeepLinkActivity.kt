@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
 /**
@@ -66,7 +66,7 @@ class DeepLinkActivity : ComponentActivity() {
         }
 
         val decodedUrl = try {
-            URLDecoder.decode(encodedUrl, "UTF-8")
+            java.net.URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.name())
         } catch (e: Exception) {
             Log.e(TAG, "Failed to decode URL", e)
             launchMainActivity()
@@ -173,20 +173,25 @@ class DeepLinkActivity : ComponentActivity() {
                 }.onSuccess { songs ->
                     val firstSong = songs.firstOrNull()
                     if (firstSong != null) {
-                        PlayerConnection.instance?.playQueue(
-                            YouTubeQueue(
-                                WatchEndpoint(
-                                    videoId = firstSong.id,
-                                    playlistId = playlistId
-                                ),
-                                firstSong.toMediaMetadata()
+                        val playerConnection = PlayerConnection.instance
+                        if (playerConnection != null) {
+                            playerConnection.playQueue(
+                                YouTubeQueue(
+                                    WatchEndpoint(
+                                        videoId = firstSong.id,
+                                        playlistId = playlistId
+                                    ),
+                                    firstSong.toMediaMetadata()
+                                )
                             )
-                        )
-                        Toast.makeText(
-                            this@DeepLinkActivity,
-                            getString(R.string.now_playing_format, firstSong.title),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                            Toast.makeText(
+                                this@DeepLinkActivity,
+                                getString(R.string.now_playing_format, firstSong.title),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Log.w(TAG, "PlayerConnection not available, launching MainActivity")
+                        }
                     }
                     launchMainActivity()
                 }.onFailure { e ->

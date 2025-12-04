@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 /**
  * Utility class for generating and handling ShivaayMusic deep links.
@@ -21,7 +22,7 @@ object DeepLinkUtils {
      * @return The ShivaayMusic deep link URL
      */
     fun generateShareLink(youtubeUrl: String): String {
-        val encodedUrl = URLEncoder.encode(youtubeUrl, "UTF-8")
+        val encodedUrl = URLEncoder.encode(youtubeUrl, StandardCharsets.UTF_8.name())
         return "$BASE_URL$REDIRECT_PATH?url=$encodedUrl"
     }
 
