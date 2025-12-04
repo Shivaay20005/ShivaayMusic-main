@@ -21,9 +21,9 @@
 
 | Fix # | Issue / समस्या | Solution / समाधान | Status / स्थिति |
 |-------|---------------|-------------------|-----------------|
-| 1 | Navigation Crash - Player screen up arrow crash | Enhanced navigation safety with multi-level fallbacks and exception handling | ✅ Fixed |
+| 1 | Navigation Crash - Player screen up arrow crash | Added previousBackStackEntry null check, try-catch blocks, fallback to Home screen, Toast error messages in MainActivity.kt TopSearch leadingIcon section | ✅ Fixed |
 | 2 | Duplicate String Resources - good_morning, good_afternoon, good_evening | Removed duplicate entries in strings.xml | ✅ Fixed |
-| 3 | Unresolved Reference 'verified' - Build failed due to missing drawable | Changed R.drawable.verified to R.drawable.verified_user in SettingsScreen.kt | ✅ Fixed |
+| 3 | Unresolved Reference 'verified' - Build failed due to missing drawable | Changed R.drawable.verified to R.drawable.verified_user in SettingsScreen.kt line 799 | ✅ Fixed |
 
 #### ⚠️ Known Warnings / ज्ञात चेतावनियां
 
