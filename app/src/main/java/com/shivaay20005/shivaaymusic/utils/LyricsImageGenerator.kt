@@ -340,7 +340,7 @@ object ComposeToImage {
         val logoSize = cardSize * 0.05f
 
         val logoBitmap = getBitmapFromVectorDrawable(
-            context, R.drawable.shivaaymusic, logoSize.toInt(), logoSize.toInt()
+            context, R.drawable.source_icon, logoSize.toInt(), logoSize.toInt()
         ) ?: return
 
         // Pintar el logo

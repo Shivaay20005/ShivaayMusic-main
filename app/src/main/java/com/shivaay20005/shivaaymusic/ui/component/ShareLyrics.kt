@@ -611,7 +611,7 @@ fun LyricsImageCard(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.shivaaymusic),
+                                    painter = painterResource(id = R.drawable.source_icon),
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
                                 )

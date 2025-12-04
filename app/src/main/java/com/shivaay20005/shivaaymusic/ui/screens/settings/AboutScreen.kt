@@ -196,12 +196,8 @@ fun AboutScreen(
                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
         ) {
             Image(
-                painter = painterResource(R.drawable.shivaaymusic_monochrome),
+                painter = painterResource(R.drawable.source_icon),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(
-                    MaterialTheme.colorScheme.onBackground,
-                    BlendMode.SrcIn
-                ),
                 modifier = Modifier
                     .matchParentSize()
                     .clickable { }

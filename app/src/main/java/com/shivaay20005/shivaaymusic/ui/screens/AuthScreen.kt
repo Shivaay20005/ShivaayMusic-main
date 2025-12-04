@@ -232,7 +232,7 @@ fun AuthScreen(
             
             // Logo
             Image(
-                painter = painterResource(R.drawable.shivaaymusic),
+                painter = painterResource(R.drawable.source_icon),
                 contentDescription = "ShivaayMusic Logo",
                 modifier = Modifier.size(100.dp)
             )

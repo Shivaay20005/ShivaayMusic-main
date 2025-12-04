@@ -793,7 +793,7 @@ class MainActivity : ComponentActivity() {
                                                         modifier = Modifier.fillMaxWidth()
                                                     ) {
                                                         Image(
-                                                            painter = painterResource(R.drawable.shivaaymusic),
+                                                            painter = painterResource(R.drawable.source_icon),
                                                             contentDescription = null,
                                                             modifier = Modifier.size(27.dp)
                                                         )
