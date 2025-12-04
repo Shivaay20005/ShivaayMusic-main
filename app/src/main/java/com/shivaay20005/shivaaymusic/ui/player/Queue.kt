@@ -550,11 +550,14 @@ fun Queue(
                         items = automix,
                         key = { _, it -> it.mediaId },
                     ) { index, item ->
+                        // Skip items with null metadata to prevent crashes
+                        val automixMetadata = item.metadata ?: return@itemsIndexed
+                        
                         Row(
                             horizontalArrangement = Arrangement.Center,
                         ) {
                             MediaMetadataListItem(
-                                mediaMetadata = item.metadata!!,
+                                mediaMetadata = automixMetadata,
                                 trailingContent = {
                                     IconButton(
                                         onClick = {
@@ -591,7 +594,7 @@ fun Queue(
                                             onLongClick = {
                                                 menuState.show {
                                                     PlayerMenu(
-                                                        mediaMetadata = item.metadata!!,
+                                                        mediaMetadata = automixMetadata,
                                                         navController = navController,
                                                         playerBottomSheetState = playerBottomSheetState,
                                                         isQueueTrigger = true,
@@ -711,10 +714,15 @@ fun Queue(
                                 selectedItems.clear()
                             } else {
                                 queueWindows
-                                    .filter { it.mediaItem.metadata!! !in selectedSongs }
-                                    .forEach {
-                                        selectedSongs.add(it.mediaItem.metadata!!)
-                                        selectedItems.add(it)
+                                    .filter { window -> 
+                                        val meta = window.mediaItem.metadata
+                                        meta != null && meta !in selectedSongs 
+                                    }
+                                    .forEach { window ->
+                                        window.mediaItem.metadata?.let { meta ->
+                                            selectedSongs.add(meta)
+                                            selectedItems.add(window)
+                                        }
                                     }
                             }
                         },

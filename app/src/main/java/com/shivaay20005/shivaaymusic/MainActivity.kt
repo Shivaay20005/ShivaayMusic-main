@@ -796,7 +796,7 @@ class MainActivity : ComponentActivity() {
                                                         Image(
                                                             painter = painterResource(R.drawable.source_icon),
                                                             contentDescription = null,
-                                                            modifier = Modifier.size(27.dp),
+                                                            modifier = Modifier.size(36.dp),
                                                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                                                         )
                                                         Spacer(modifier = Modifier.width(8.dp))
@@ -816,14 +816,8 @@ class MainActivity : ComponentActivity() {
                                                         in 17..20 -> R.string.good_evening
                                                         else -> R.string.good_night
                                                     }
-                                                    val greetingEmoji = when (currentHour) {
-                                                        in 5..11 -> "🌅"
-                                                        in 12..16 -> "☀️"
-                                                        in 17..20 -> "🌆"
-                                                        else -> "🌙"
-                                                    }
                                                     Text(
-                                                        text = "$greetingEmoji ${stringResource(greetingResId)}",
+                                                        text = stringResource(greetingResId),
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
