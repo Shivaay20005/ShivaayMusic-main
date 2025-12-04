@@ -1,7 +1,10 @@
 # ShivaayMusic
 
-<div align="center">
-  <img src="https://github.com/shivaay20005/shivaaymusic/blob/master/fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Banner de shivaaymusic" width="100%"/>
+<!-- <div align="center">
+  <img src="https://github.com/shivaay20005/shivaaymusic-main/blob/master/fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Banner de shivaaymusic" width="100%"/> -->
+  <div align="center">
+  <img src="https://files.catbox.moe/yf0lkq.jpg" alt="ShivaayMusic Banner" width="100%"/>
+  <img src="https://files.catbox.moe/hxs3kl.jpg" alt="ShivaayMusic Banner" width="100%"/>
   
   ### Advanced YouTube Music Client with Material Design 3 for Android
   
