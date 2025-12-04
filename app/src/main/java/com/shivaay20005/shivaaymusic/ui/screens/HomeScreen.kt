@@ -407,14 +407,14 @@ fun HomeScreen(
                 item {
                     LazyHorizontalGrid(
                         state = quickPicksLazyGridState,
-                        rows = GridCells.Fixed(4),
+                        rows = GridCells.Fixed(3),
                         flingBehavior = rememberSnapFlingBehavior(quickPicksSnapLayoutInfoProvider),
                         contentPadding = WindowInsets.systemBars
                             .only(WindowInsetsSides.Horizontal)
                             .asPaddingValues(),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(ListItemHeight * 4)
+                            .height(ListItemHeight * 3 + 24.dp)
                             .animateItem()
                     ) {
                         items(

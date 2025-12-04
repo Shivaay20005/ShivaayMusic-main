@@ -171,7 +171,7 @@ class MusicService :
     private val audioQuality by enumPreference(
         this,
         AudioQualityKey,
-        com.shivaay20005.shivaaymusic.constants.AudioQuality.AUTO
+        com.shivaay20005.shivaaymusic.constants.AudioQuality.HIGH
     )
 
     private var currentQueue: Queue = EmptyQueue

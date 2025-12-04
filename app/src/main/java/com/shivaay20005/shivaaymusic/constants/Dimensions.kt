@@ -18,12 +18,12 @@ val MiniPlayerHeight = 64.dp
 val QueuePeekHeight = 64.dp
 val AppBarHeight = 64.dp
 
-val ListItemHeight = 72.dp
+val ListItemHeight = 80.dp
 val SuggestionItemHeight = 60.dp
 val SearchFilterHeight = 52.dp
-val ListThumbnailSize = 56.dp
+val ListThumbnailSize = 64.dp
 val SmallGridThumbnailHeight = 120.dp
-val GridThumbnailHeight = 160.dp
+val GridThumbnailHeight = 180.dp
 val AlbumThumbnailSize = 160.dp
 
 val ThumbnailCornerRadius = 12.dp

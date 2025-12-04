@@ -316,23 +316,31 @@ fun Queue(
                 },
                 onDragEnd = { fromIndex, toIndex ->
                     // Safe index calculation to prevent crashes
-                    val safeFrom = (fromIndex - headerItems).coerceIn(0, mutableQueueWindows.lastIndex.coerceAtLeast(0))
-                    val safeTo = (toIndex - headerItems).coerceIn(0, mutableQueueWindows.lastIndex.coerceAtLeast(0))
-                    val toAdjusted = if (safeTo == 0) 1 else safeTo
+                    if (mutableQueueWindows.isEmpty()) return@rememberReorderableLazyListState
                     
-                    if (!playerConnection.player.shuffleModeEnabled) {
-                        playerConnection.player.moveMediaItem(safeFrom, toAdjusted)
-                    } else {
-                        playerConnection.player.setShuffleOrder(
-                            DefaultShuffleOrder(
-                                queueWindows
-                                    .map { it.firstPeriodIndex }
-                                    .toMutableList()
-                                    .move(safeFrom, toAdjusted)
-                                    .toIntArray(),
-                                System.currentTimeMillis(),
-                            ),
-                        )
+                    try {
+                        val safeFrom = (fromIndex - headerItems).coerceIn(0, mutableQueueWindows.lastIndex.coerceAtLeast(0))
+                        val safeTo = (toIndex - headerItems).coerceIn(0, mutableQueueWindows.lastIndex.coerceAtLeast(0))
+                        val toAdjusted = if (safeTo == 0) 1 else safeTo
+                        
+                        if (safeFrom == toAdjusted) return@rememberReorderableLazyListState
+                        
+                        if (!playerConnection.player.shuffleModeEnabled) {
+                            playerConnection.player.moveMediaItem(safeFrom, toAdjusted)
+                        } else {
+                            playerConnection.player.setShuffleOrder(
+                                DefaultShuffleOrder(
+                                    queueWindows
+                                        .map { it.firstPeriodIndex }
+                                        .toMutableList()
+                                        .move(safeFrom, toAdjusted)
+                                        .toIntArray(),
+                                    System.currentTimeMillis(),
+                                ),
+                            )
+                        }
+                    } catch (e: Exception) {
+                        // Ignore reorder errors to prevent crashes
                     }
                 },
             )
@@ -345,8 +353,12 @@ fun Queue(
         }
 
         LaunchedEffect(mutableQueueWindows) {
-            if (currentWindowIndex != -1) {
-                reorderableState.listState.scrollToItem(currentWindowIndex)
+            if (currentWindowIndex != -1 && currentWindowIndex < mutableQueueWindows.size) {
+                try {
+                    reorderableState.listState.scrollToItem(currentWindowIndex)
+                } catch (e: Exception) {
+                    // Ignore scroll errors to prevent crashes
+                }
             }
         }
 
