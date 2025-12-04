@@ -200,7 +200,8 @@ fun AboutScreen(
                 contentDescription = null,
                 modifier = Modifier
                     .matchParentSize()
-                    .clickable { }
+                    .clickable { },
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
 
             // Shimmer effect overlay only for the image

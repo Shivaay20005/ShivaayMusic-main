@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -234,7 +235,8 @@ fun AuthScreen(
             Image(
                 painter = painterResource(R.drawable.source_icon),
                 contentDescription = "ShivaayMusic Logo",
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(100.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
             
             Spacer(modifier = Modifier.height(16.dp))

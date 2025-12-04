@@ -105,6 +105,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -795,7 +796,8 @@ class MainActivity : ComponentActivity() {
                                                         Image(
                                                             painter = painterResource(R.drawable.source_icon),
                                                             contentDescription = null,
-                                                            modifier = Modifier.size(27.dp)
+                                                            modifier = Modifier.size(27.dp),
+                                                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                                                         )
                                                         Spacer(modifier = Modifier.width(8.dp))
                                                         Text(

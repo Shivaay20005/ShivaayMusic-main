@@ -58,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -706,7 +707,7 @@ fun SettingsScreen(
                 // Logo for unauthenticated user
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(90.dp)
                         .clip(CircleShape)
                         .background(
                             brush = Brush.radialGradient(
@@ -715,14 +716,14 @@ fun SettingsScreen(
                                     MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                                 )
                             )
-                        )
-                        .padding(8.dp),
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = painterResource(R.drawable.source_icon),
                         contentDescription = "shivaaymusic Logo",
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.size(80.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))

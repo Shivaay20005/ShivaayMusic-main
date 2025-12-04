@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -614,6 +615,7 @@ fun LyricsImageCard(
                                     painter = painterResource(id = R.drawable.source_icon),
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
+                                    colorFilter = ColorFilter.tint(mainText)
                                 )
                             }
                         }
