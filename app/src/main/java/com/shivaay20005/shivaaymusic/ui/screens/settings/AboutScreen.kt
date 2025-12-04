@@ -421,6 +421,13 @@ fun UserCards(uriHandler: UriHandler) {
             onClick = { uriHandler.openUri("https://github.com/Prateek6388-web/") }
         )
 
+        UserCard(
+            imageUrl = "https://files.catbox.moe/6dnudf.jpg",
+            name = "Rohit",
+            role = "Code Analyzer",
+            onClick = { uriHandler.openUri("https://github.com/Rohit-Patel-Techie") }
+        )
+
         // Hidden UserCard entries - commented out by Shivaay
         /*
         UserCard(
