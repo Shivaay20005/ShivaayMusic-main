@@ -92,20 +92,26 @@ class HomeViewModel @Inject constructor(
             (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
                 .filter { it is Song || it is Album }
 
-        // Now load network data in parallel
+        // Now load network data in parallel with error handling
         val accountPlaylistsDeferred = viewModelScope.async(Dispatchers.IO) {
             if (YouTube.cookie != null) {
-                YouTube.library("FEmusic_liked_playlists").completedLibraryPage().getOrNull()
+                YouTube.library("FEmusic_liked_playlists").completedLibraryPage()
+                    .onFailure { reportException(it) }
+                    .getOrNull()
                     ?.items?.filterIsInstance<PlaylistItem>()?.filterNot { it.id == "SE" }
             } else null
         }
 
         val homePageDeferred = viewModelScope.async(Dispatchers.IO) {
-            YouTube.home().getOrNull()
+            YouTube.home()
+                .onFailure { reportException(it) }
+                .getOrNull()
         }
 
         val explorePageDeferred = viewModelScope.async(Dispatchers.IO) {
-            YouTube.explore().getOrNull()
+            YouTube.explore()
+                .onFailure { reportException(it) }
+                .getOrNull()
         }
 
         val smartRecsDeferred = viewModelScope.async(Dispatchers.IO) {
