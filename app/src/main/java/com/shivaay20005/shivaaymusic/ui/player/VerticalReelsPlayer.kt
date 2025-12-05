@@ -255,22 +255,14 @@ fun VerticalReelsPlayer(
                     }
 
                     Text(
-                        text = "Now Playing",
+                        text = stringResource(R.string.now_playing),
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold
                     )
 
-                    IconButton(
-                        onClick = { /* Menu */ }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.more_vert),
-                            contentDescription = "Menu",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
+                    // Spacer to balance the layout (menu removed for now)
+                    Spacer(modifier = Modifier.size(48.dp))
                 }
 
                 Spacer(modifier = Modifier.weight(0.3f))
