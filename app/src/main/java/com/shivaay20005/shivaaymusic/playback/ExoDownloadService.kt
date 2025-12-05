@@ -94,6 +94,16 @@ class ExoDownloadService : DownloadService(
                     Util.fromUtf8Bytes(download.request.data)
                 )
                 NotificationUtil.setNotification(context, nextNotificationId++, notification)
+            } else if (download.state == Download.STATE_COMPLETED) {
+                // Show notification when download completes successfully
+                val songName = Util.fromUtf8Bytes(download.request.data)
+                val notification = notificationHelper.buildDownloadCompletedNotification(
+                    context,
+                    R.drawable.offline,
+                    null,
+                    songName
+                )
+                NotificationUtil.setNotification(context, nextNotificationId++, notification)
             }
         }
     }

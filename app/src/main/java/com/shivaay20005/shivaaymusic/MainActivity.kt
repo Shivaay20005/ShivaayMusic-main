@@ -353,7 +353,7 @@ class MainActivity : ComponentActivity() {
             val autoDarkMode by rememberPreference(AutoDarkModeKey, defaultValue = false)
             val darkStartTime by rememberPreference(DarkStartTimeKey, defaultValue = "18:00")
             val darkEndTime by rememberPreference(DarkEndTimeKey, defaultValue = "06:00")
-            val playerStyle by rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.CLASSIC)
+            val playerStyle by rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.VERTICAL_REELS)
 
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -777,7 +777,7 @@ class MainActivity : ComponentActivity() {
                             topBar = {
                                 val playerBackground by rememberEnumPreference(
                                     key = PlayerBackgroundStyleKey,
-                                    defaultValue = PlayerBackgroundStyle.DEFAULT
+                                    defaultValue = PlayerBackgroundStyle.BLUR
                                 )
 
                                 if (shouldShowTopBar) {

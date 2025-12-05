@@ -163,12 +163,12 @@ fun AppearanceSettings(
     )
     val (playerStyle, onPlayerStyleChange) = rememberEnumPreference(
         PlayerStyleKey,
-        defaultValue = PlayerStyle.CLASSIC
+        defaultValue = PlayerStyle.VERTICAL_REELS
     )
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.DEFAULT,
+            defaultValue = PlayerBackgroundStyle.BLUR,
         )
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
