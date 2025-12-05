@@ -23,6 +23,8 @@ import com.shivaay20005.shivaaymusic.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -59,101 +61,77 @@ class HomeViewModel @Inject constructor(
     private suspend fun load() {
         isLoading.value = true
 
-        // Increased song counts for fuller home screen
-        quickPicks.value = database.quickPicks()
-            .first().shuffled().take(30)
-
-        forgottenFavorites.value = database.forgottenFavorites()
-            .first().shuffled().take(30)
+        // PARALLEL LOADING - Load local data first (fast)
+        val quickPicksDeferred = viewModelScope.async(Dispatchers.IO) {
+            database.quickPicks().first().shuffled().take(30)
+        }
+        
+        val forgottenFavoritesDeferred = viewModelScope.async(Dispatchers.IO) {
+            database.forgottenFavorites().first().shuffled().take(30)
+        }
 
         val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
-        val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 25, offset = 3)
-            .first().shuffled().take(15)
-        val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 12, offset = 1)
-            .first().filter { it.album.thumbnailUrl != null }.shuffled().take(8)
-        val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp)
-            .first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }
-            .shuffled().take(8)
-        keepListening.value =
-            (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
+        
+        val keepListeningDeferred = viewModelScope.async(Dispatchers.IO) {
+            val songs = database.mostPlayedSongs(fromTimeStamp, limit = 25, offset = 3)
+                .first().shuffled().take(15)
+            val albums = database.mostPlayedAlbums(fromTimeStamp, limit = 12, offset = 1)
+                .first().filter { it.album.thumbnailUrl != null }.shuffled().take(8)
+            val artists = database.mostPlayedArtists(fromTimeStamp)
+                .first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }
+                .shuffled().take(8)
+            (songs + albums + artists).shuffled()
+        }
+
+        // Wait for local data to complete first (fast)
+        quickPicks.value = quickPicksDeferred.await()
+        forgottenFavorites.value = forgottenFavoritesDeferred.await()
+        keepListening.value = keepListeningDeferred.await()
 
         allLocalItems.value =
             (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
                 .filter { it is Song || it is Album }
 
-        if (YouTube.cookie != null) {
-            YouTube.library("FEmusic_liked_playlists").completedLibraryPage().onSuccess {
-                accountPlaylists.value = it.items.filterIsInstance<PlaylistItem>()
-                    .filterNot { it.id == "SE" }
-            }.onFailure {
-                reportException(it)
+        // Now load network data in parallel
+        val accountPlaylistsDeferred = viewModelScope.async(Dispatchers.IO) {
+            if (YouTube.cookie != null) {
+                YouTube.library("FEmusic_liked_playlists").completedLibraryPage().getOrNull()
+                    ?.items?.filterIsInstance<PlaylistItem>()?.filterNot { it.id == "SE" }
+            } else null
+        }
+
+        val homePageDeferred = viewModelScope.async(Dispatchers.IO) {
+            YouTube.home().getOrNull()
+        }
+
+        val explorePageDeferred = viewModelScope.async(Dispatchers.IO) {
+            YouTube.explore().getOrNull()
+        }
+
+        val smartRecsDeferred = viewModelScope.async(Dispatchers.IO) {
+            try {
+                forYouMix.value = RecommendationEngine.getMixedForYou(database)
+                RecommendationEngine.getAllSmartRecommendations(database)
+            } catch (e: Exception) {
+                reportException(e)
+                null
             }
         }
 
-        // ShivaayMusic Exclusive - Smart Recommendations Engine
-        try {
-            // Get "For You" mix first (highest priority)
-            forYouMix.value = RecommendationEngine.getMixedForYou(database)
-            
-            // Get all smart recommendations
-            val allRecs = RecommendationEngine.getAllSmartRecommendations(database)
-            smartRecommendations.value = allRecs
-        } catch (e: Exception) {
-            reportException(e)
-        }
-
-        // Similar to artists (enhanced with more variety)
-        val artistRecommendations =
-            database.mostPlayedArtists(fromTimeStamp, limit = 15).first()
-                .filter { it.artist.isYouTubeArtist }
-                .shuffled().take(6)
-                .mapNotNull {
-                    val items = mutableListOf<YTItem>()
-                    YouTube.artist(it.id).onSuccess { page ->
-                        // Get items from multiple sections for more variety
-                        page.sections.forEach { section ->
-                            items += section.items.shuffled().take(6)
-                        }
-                    }
-                    SimilarRecommendation(
-                        title = it,
-                        items = items
-                            .shuffled()
-                            .take(18)
-                            .ifEmpty { return@mapNotNull null }
-                    )
-                }
+        // Wait for network data in parallel
+        val results = awaitAll(
+            accountPlaylistsDeferred,
+            homePageDeferred,
+            explorePageDeferred,
+            smartRecsDeferred
+        )
         
-        // Similar to songs (enhanced)
-        val songRecommendations =
-            database.mostPlayedSongs(fromTimeStamp, limit = 20).first()
-                .filter { it.album != null }
-                .shuffled().take(5)
-                .mapNotNull { song ->
-                    val endpoint =
-                        YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
-                            ?: return@mapNotNull null
-                    val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
-                    SimilarRecommendation(
-                        title = song,
-                        items = (page.songs.shuffled().take(15) +
-                                page.albums.shuffled().take(6) +
-                                page.artists.shuffled().take(6) +
-                                page.playlists.shuffled().take(6))
-                            .shuffled()
-                            .take(20)
-                            .ifEmpty { return@mapNotNull null }
-                    )
-                }
-        similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
+        accountPlaylists.value = results[0] as? List<PlaylistItem>
+        homePage.value = results[1] as? HomePage
+        smartRecommendations.value = results[3] as? List<SmartRecommendation>
 
-        YouTube.home().onSuccess { page ->
-            homePage.value = page
-        }.onFailure {
-            reportException(it)
-        }
-
-        YouTube.explore().onSuccess { page ->
+        // Process explore page with artist sorting
+        (results[2] as? ExplorePage)?.let { page ->
             val artists: Set<String>
             val favouriteArtists: Set<String>
             database.artistsBookmarkedByCreateDateAsc().first().let { list ->
@@ -171,8 +149,51 @@ class HomeViewModel @Inject constructor(
                         else 2
                     }
             )
-        }.onFailure {
-            reportException(it)
+        }
+
+        // Load similar recommendations in parallel (these are slower network calls)
+        viewModelScope.launch(Dispatchers.IO) {
+            val artistRecommendations =
+                database.mostPlayedArtists(fromTimeStamp, limit = 15).first()
+                    .filter { it.artist.isYouTubeArtist }
+                    .shuffled().take(6)
+                    .mapNotNull {
+                        val items = mutableListOf<YTItem>()
+                        YouTube.artist(it.id).onSuccess { page ->
+                            page.sections.forEach { section ->
+                                items += section.items.shuffled().take(6)
+                            }
+                        }
+                        SimilarRecommendation(
+                            title = it,
+                            items = items
+                                .shuffled()
+                                .take(18)
+                                .ifEmpty { return@mapNotNull null }
+                        )
+                    }
+            
+            val songRecommendations =
+                database.mostPlayedSongs(fromTimeStamp, limit = 20).first()
+                    .filter { it.album != null }
+                    .shuffled().take(5)
+                    .mapNotNull { song ->
+                        val endpoint =
+                            YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
+                                ?: return@mapNotNull null
+                        val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
+                        SimilarRecommendation(
+                            title = song,
+                            items = (page.songs.shuffled().take(15) +
+                                    page.albums.shuffled().take(6) +
+                                    page.artists.shuffled().take(6) +
+                                    page.playlists.shuffled().take(6))
+                                .shuffled()
+                                .take(20)
+                                .ifEmpty { return@mapNotNull null }
+                        )
+                    }
+            similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
         }
 
         allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
