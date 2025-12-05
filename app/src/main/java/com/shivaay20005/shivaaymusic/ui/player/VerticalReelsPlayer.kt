@@ -291,6 +291,7 @@ fun VerticalReelsPlayer(
                                         mediaMetadata = metadata,
                                         navController = navController,
                                         playerBottomSheetState = state,
+                                        // Details dialog not shown in vertical player for minimal UI
                                         onShowDetailsDialog = { },
                                         onDismiss = menuState::dismiss,
                                     )
@@ -585,7 +586,7 @@ fun VerticalReelsPlayer(
                     ) {
                         // Download progress indicator
                         if (download?.state == Download.STATE_DOWNLOADING) {
-                            val progress = download!!.percentDownloaded / 100f
+                            val progress = (download?.percentDownloaded ?: 0f) / 100f
                             val animatedProgress by animateFloatAsState(
                                 targetValue = progress,
                                 animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
