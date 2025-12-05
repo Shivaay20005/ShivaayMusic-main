@@ -297,7 +297,6 @@ fun VerticalReelsPlayer(
                     // Play/Pause overlay
                     androidx.compose.animation.AnimatedVisibility(
                         visible = !isPlaying,
-                        modifier = Modifier,
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
