@@ -125,9 +125,9 @@ fun ExploreScreen(
                         }
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // New Release Albums section
             explorePage?.newReleaseAlbums?.takeIf { it.isNotEmpty() }?.let { newReleaseAlbums ->

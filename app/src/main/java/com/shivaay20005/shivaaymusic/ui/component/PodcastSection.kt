@@ -54,6 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shivaay20005.shivaaymusic.R
 
+// Height constants for podcast UI elements
+val PodcastCategoryChipHeight = 100.dp
+val FeaturedPodcastCardHeight = 140.dp
+
 /**
  * ShivaayMusic Exclusive - Podcast Categories
  */
@@ -289,7 +293,7 @@ fun PodcastCategoryChip(
 ) {
     Card(
         modifier = modifier
-            .height(100.dp)
+            .height(PodcastCategoryChipHeight)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -385,7 +389,7 @@ fun FeaturedPodcastCard(
 ) {
     Card(
         modifier = modifier
-            .height(140.dp)
+            .height(FeaturedPodcastCardHeight)
             .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
