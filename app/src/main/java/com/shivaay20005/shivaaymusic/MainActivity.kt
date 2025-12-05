@@ -163,6 +163,8 @@ import com.shivaay20005.shivaaymusic.constants.NavigationBarHeight
 import com.shivaay20005.shivaaymusic.constants.PauseSearchHistoryKey
 import com.shivaay20005.shivaaymusic.constants.PlayerBackgroundStyle
 import com.shivaay20005.shivaaymusic.constants.PlayerBackgroundStyleKey
+import com.shivaay20005.shivaaymusic.constants.PlayerStyle
+import com.shivaay20005.shivaaymusic.constants.PlayerStyleKey
 import com.shivaay20005.shivaaymusic.constants.PureBlackKey
 import com.shivaay20005.shivaaymusic.constants.SearchSource
 import com.shivaay20005.shivaaymusic.constants.SearchSourceKey
@@ -187,6 +189,7 @@ import com.shivaay20005.shivaaymusic.ui.component.rememberBottomSheetState
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.ShimmerTheme
 import com.shivaay20005.shivaaymusic.ui.menu.YouTubeSongMenu
 import com.shivaay20005.shivaaymusic.ui.player.BottomSheetPlayer
+import com.shivaay20005.shivaaymusic.ui.player.VerticalReelsPlayer
 import com.shivaay20005.shivaaymusic.ui.screens.AuthScreen
 import com.shivaay20005.shivaaymusic.ui.screens.Screens
 import com.shivaay20005.shivaaymusic.ui.screens.navigationBuilder
@@ -350,6 +353,7 @@ class MainActivity : ComponentActivity() {
             val autoDarkMode by rememberPreference(AutoDarkModeKey, defaultValue = false)
             val darkStartTime by rememberPreference(DarkStartTimeKey, defaultValue = "18:00")
             val darkEndTime by rememberPreference(DarkEndTimeKey, defaultValue = "06:00")
+            val playerStyle by rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.CLASSIC)
 
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -1198,14 +1202,25 @@ class MainActivity : ComponentActivity() {
                             },
                             bottomBar = {
                                 Box {
-                                    BottomSheetPlayer(
-                                        state = playerBottomSheetState,
-                                        navController = navController,
-                                        onOpenFullscreenLyrics = {
-                                            showFullscreenLyrics = true
-                                        },
-                                        modifier = Modifier.fillMaxSize()
-                                    )
+                                    when (playerStyle) {
+                                        PlayerStyle.CLASSIC -> {
+                                            BottomSheetPlayer(
+                                                state = playerBottomSheetState,
+                                                navController = navController,
+                                                onOpenFullscreenLyrics = {
+                                                    showFullscreenLyrics = true
+                                                },
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                        PlayerStyle.VERTICAL_REELS -> {
+                                            VerticalReelsPlayer(
+                                                state = playerBottomSheetState,
+                                                navController = navController,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                    }
 
 
 

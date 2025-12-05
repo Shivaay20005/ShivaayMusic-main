@@ -328,6 +328,12 @@
     <string name="default_">Default</string>
     <string name="squiggly">Squiggly</string>
     <string name="slim">Slim</string>
+    <string name="player_style">Player Style</string>
+    <string name="player_style_classic">Classic Player</string>
+    <string name="player_style_vertical_reels">Vertical Reels Player</string>
+    <string name="player_style_desc">Choose how the music player opens</string>
+    <string name="swipe_up_next">Swipe up for next</string>
+    <string name="swipe_down_previous">Swipe down for previous</string>
     <string name="misc">Misc</string>
     <string name="default_open_tab">Default open tab</string>
     <string name="slim_navbar">Hide bottom navigation bar labels</string>

@@ -91,6 +91,8 @@ import com.shivaay20005.shivaaymusic.constants.PlayerBackgroundStyle
 import com.shivaay20005.shivaaymusic.constants.PlayerBackgroundStyleKey
 import com.shivaay20005.shivaaymusic.constants.PlayerButtonsStyle
 import com.shivaay20005.shivaaymusic.constants.PlayerButtonsStyleKey
+import com.shivaay20005.shivaaymusic.constants.PlayerStyle
+import com.shivaay20005.shivaaymusic.constants.PlayerStyleKey
 import com.shivaay20005.shivaaymusic.constants.PlayerTextAlignmentKey
 import com.shivaay20005.shivaaymusic.constants.PureBlackKey
 import com.shivaay20005.shivaaymusic.constants.SliderStyle
@@ -158,6 +160,10 @@ fun AppearanceSettings(
     val (playerButtonsStyle, onPlayerButtonsStyleChange) = rememberEnumPreference(
         PlayerButtonsStyleKey,
         defaultValue = PlayerButtonsStyle.DEFAULT
+    )
+    val (playerStyle, onPlayerStyleChange) = rememberEnumPreference(
+        PlayerStyleKey,
+        defaultValue = PlayerStyle.CLASSIC
     )
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
@@ -410,6 +416,20 @@ fun AppearanceSettings(
 
         PreferenceGroupTitle(
             title = stringResource(R.string.player),
+        )
+
+        // Player Style preference
+        EnumListPreference(
+            title = { Text(stringResource(R.string.player_style)) },
+            icon = { Icon(painterResource(R.drawable.play), null) },
+            selectedValue = playerStyle,
+            onValueSelected = onPlayerStyleChange,
+            valueText = {
+                when (it) {
+                    PlayerStyle.CLASSIC -> stringResource(R.string.player_style_classic)
+                    PlayerStyle.VERTICAL_REELS -> stringResource(R.string.player_style_vertical_reels)
+                }
+            },
         )
 
         // Determine available options based on Android version

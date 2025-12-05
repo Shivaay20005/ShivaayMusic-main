@@ -271,10 +271,16 @@ enum class PlayerButtonsStyle {
     SECONDARY,
 }
 
+enum class PlayerStyle {
+    CLASSIC,
+    VERTICAL_REELS,
+}
+
 val TopSize = stringPreferencesKey("topSize")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
+val PlayerStyleKey = stringPreferencesKey("playerStyle")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
 val LyricsClickKey = booleanPreferencesKey("lyricsClick")
