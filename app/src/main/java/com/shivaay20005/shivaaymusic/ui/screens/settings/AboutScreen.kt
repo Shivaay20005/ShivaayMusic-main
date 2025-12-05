@@ -415,14 +415,14 @@ fun UserCards(uriHandler: UriHandler) {
 
         UserCard(
             imageUrl = "https://files.catbox.moe/6kwzs4.jpg",
-            name = "\uD81A\uDD10 Prateek",
+            name = "♞ Prateek",
             role = " Icon designer",
             onClick = { uriHandler.openUri("https://github.com/Prateek6388-web/") }
         )
 
         UserCard(
             imageUrl = "https://files.catbox.moe/6dnudf.jpg",
-            name = "Rohit",
+            name = "♝ Rohit",
             role = "Code Analyzer",
             onClick = { uriHandler.openUri("https://github.com/Rohit-Patel-Techie") }
         )
