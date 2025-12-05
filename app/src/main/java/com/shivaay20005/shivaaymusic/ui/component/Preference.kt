@@ -383,14 +383,14 @@ fun TimePickerPreference(
                                 style = MaterialTheme.typography.labelMedium
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                TextButton(onClick = { if (selectedHour > 0) selectedHour-- }) {
+                                TextButton(onClick = { selectedHour = if (selectedHour > 0) selectedHour - 1 else 23 }) {
                                     Text("-")
                                 }
                                 Text(
                                     text = String.format("%02d", selectedHour),
                                     style = MaterialTheme.typography.headlineMedium
                                 )
-                                TextButton(onClick = { if (selectedHour < 23) selectedHour++ }) {
+                                TextButton(onClick = { selectedHour = if (selectedHour < 23) selectedHour + 1 else 0 }) {
                                     Text("+")
                                 }
                             }
@@ -409,14 +409,16 @@ fun TimePickerPreference(
                                 style = MaterialTheme.typography.labelMedium
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                TextButton(onClick = { if (selectedMinute >= 5) selectedMinute -= 5 else selectedMinute = 55 }) {
+                                TextButton(onClick = { 
+                                    selectedMinute = (selectedMinute - 5 + 60) % 60
+                                }) {
                                     Text("-")
                                 }
                                 Text(
                                     text = String.format("%02d", selectedMinute),
                                     style = MaterialTheme.typography.headlineMedium
                                 )
-                                TextButton(onClick = { if (selectedMinute < 55) selectedMinute += 5 else selectedMinute = 0 }) {
+                                TextButton(onClick = { selectedMinute = (selectedMinute + 5) % 60 }) {
                                     Text("+")
                                 }
                             }
