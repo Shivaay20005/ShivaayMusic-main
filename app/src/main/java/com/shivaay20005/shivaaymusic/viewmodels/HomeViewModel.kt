@@ -59,20 +59,21 @@ class HomeViewModel @Inject constructor(
     private suspend fun load() {
         isLoading.value = true
 
+        // Increased song counts for fuller home screen
         quickPicks.value = database.quickPicks()
-            .first().shuffled().take(20)
+            .first().shuffled().take(30)
 
         forgottenFavorites.value = database.forgottenFavorites()
-            .first().shuffled().take(20)
+            .first().shuffled().take(30)
 
         val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
-        val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5)
-            .first().shuffled().take(10)
-        val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2)
-            .first().filter { it.album.thumbnailUrl != null }.shuffled().take(5)
+        val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 25, offset = 3)
+            .first().shuffled().take(15)
+        val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 12, offset = 1)
+            .first().filter { it.album.thumbnailUrl != null }.shuffled().take(8)
         val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp)
             .first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }
-            .shuffled().take(5)
+            .shuffled().take(8)
         keepListening.value =
             (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
 
@@ -103,31 +104,31 @@ class HomeViewModel @Inject constructor(
 
         // Similar to artists (enhanced with more variety)
         val artistRecommendations =
-            database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
+            database.mostPlayedArtists(fromTimeStamp, limit = 15).first()
                 .filter { it.artist.isYouTubeArtist }
-                .shuffled().take(4)
+                .shuffled().take(6)
                 .mapNotNull {
                     val items = mutableListOf<YTItem>()
                     YouTube.artist(it.id).onSuccess { page ->
                         // Get items from multiple sections for more variety
                         page.sections.forEach { section ->
-                            items += section.items.shuffled().take(4)
+                            items += section.items.shuffled().take(6)
                         }
                     }
                     SimilarRecommendation(
                         title = it,
                         items = items
                             .shuffled()
-                            .take(12)
+                            .take(18)
                             .ifEmpty { return@mapNotNull null }
                     )
                 }
         
         // Similar to songs (enhanced)
         val songRecommendations =
-            database.mostPlayedSongs(fromTimeStamp, limit = 15).first()
+            database.mostPlayedSongs(fromTimeStamp, limit = 20).first()
                 .filter { it.album != null }
-                .shuffled().take(3)
+                .shuffled().take(5)
                 .mapNotNull { song ->
                     val endpoint =
                         YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
@@ -135,12 +136,12 @@ class HomeViewModel @Inject constructor(
                     val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
                     SimilarRecommendation(
                         title = song,
-                        items = (page.songs.shuffled().take(10) +
-                                page.albums.shuffled().take(4) +
-                                page.artists.shuffled().take(4) +
-                                page.playlists.shuffled().take(4))
+                        items = (page.songs.shuffled().take(15) +
+                                page.albums.shuffled().take(6) +
+                                page.artists.shuffled().take(6) +
+                                page.playlists.shuffled().take(6))
                             .shuffled()
-                            .take(15)
+                            .take(20)
                             .ifEmpty { return@mapNotNull null }
                     )
                 }

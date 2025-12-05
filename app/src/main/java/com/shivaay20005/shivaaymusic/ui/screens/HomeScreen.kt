@@ -96,6 +96,7 @@ import com.shivaay20005.shivaaymusic.ui.component.ShivaaySpecialHeader
 import com.shivaay20005.shivaaymusic.ui.component.SongGridItem
 import com.shivaay20005.shivaaymusic.ui.component.SongListItem
 import com.shivaay20005.shivaaymusic.ui.component.YouTubeGridItem
+import com.shivaay20005.shivaaymusic.ui.component.YouTubeListItem
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.GridItemPlaceHolder
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.ShimmerHost
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.TextPlaceholder
@@ -405,16 +406,22 @@ fun HomeScreen(
                 }
 
                 item {
+                    // Increased rows for more content
+                    val rows = when {
+                        quickPicks.size > 20 -> 4
+                        quickPicks.size > 12 -> 3
+                        else -> 3
+                    }
                     LazyHorizontalGrid(
                         state = quickPicksLazyGridState,
-                        rows = GridCells.Fixed(3),
+                        rows = GridCells.Fixed(rows),
                         flingBehavior = rememberSnapFlingBehavior(quickPicksSnapLayoutInfoProvider),
                         contentPadding = WindowInsets.systemBars
                             .only(WindowInsetsSides.Horizontal)
                             .asPaddingValues(),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(ListItemHeight * 3 + 24.dp)
+                            .height(ListItemHeight * rows + 24.dp)
                             .animateItem()
                     ) {
                         items(
@@ -484,7 +491,12 @@ fun HomeScreen(
                 }
 
                 item {
-                    val rows = if (keepListening.size > 6) 2 else 1
+                    // Increased rows for more content
+                    val rows = when {
+                        keepListening.size > 12 -> 3
+                        keepListening.size > 6 -> 2
+                        else -> 1
+                    }
                     LazyHorizontalGrid(
                         state = rememberLazyGridState(),
                         rows = GridCells.Fixed(rows),
@@ -558,15 +570,15 @@ fun HomeScreen(
                 }
             }
 
-            similarRecommendations?.forEach {
+            similarRecommendations?.forEachIndexed { recIndex, rec ->
                 item {
                     NavigationTitle(
                         label = stringResource(R.string.similar_to),
-                        title = it.title.title,
-                        thumbnail = it.title.thumbnailUrl?.let { thumbnailUrl ->
+                        title = rec.title.title,
+                        thumbnail = rec.title.thumbnailUrl?.let { thumbnailUrl ->
                             {
                                 val shape =
-                                    if (it.title is Artist) CircleShape else RoundedCornerShape(
+                                    if (rec.title is Artist) CircleShape else RoundedCornerShape(
                                         ThumbnailCornerRadius
                                     )
                                 AsyncImage(
@@ -579,10 +591,10 @@ fun HomeScreen(
                             }
                         },
                         onClick = {
-                            when (it.title) {
-                                is Song -> navController.navigate("album/${it.title.album!!.id}")
-                                is Album -> navController.navigate("album/${it.title.id}")
-                                is Artist -> navController.navigate("artist/${it.title.id}")
+                            when (rec.title) {
+                                is Song -> navController.navigate("album/${rec.title.album!!.id}")
+                                is Album -> navController.navigate("album/${rec.title.id}")
+                                is Artist -> navController.navigate("artist/${rec.title.id}")
                                 is Playlist -> {}
                             }
                         },
@@ -590,29 +602,99 @@ fun HomeScreen(
                     )
                 }
 
-                item {
-                    LazyRow(
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier.animateItem()
-                    ) {
-                        items(it.items) { item ->
-                            ytGridItem(item)
+                // Alternate between vertical list and horizontal grid for variety
+                if (recIndex % 2 == 1) {
+                    // Vertical layout for songs
+                    val songItems = rec.items.filterIsInstance<SongItem>().take(4)
+                    if (songItems.isNotEmpty()) {
+                        items(
+                            items = songItems,
+                            key = { "similar_vertical_${rec.title.id}_${it.id}" }
+                        ) { item ->
+                            YouTubeListItem(
+                                item = item,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    item.endpoint ?: WatchEndpoint(videoId = item.id),
+                                                    item.toMediaMetadata()
+                                                )
+                                            )
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                YouTubeSongMenu(
+                                                    song = item,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .animateItem()
+                                    .padding(horizontal = 12.dp)
+                            )
+                        }
+                        // Show remaining items horizontally
+                        val remainingItems = rec.items.filterNot { it in songItems }
+                        if (remainingItems.isNotEmpty()) {
+                            item {
+                                LazyRow(
+                                    contentPadding = WindowInsets.systemBars
+                                        .only(WindowInsetsSides.Horizontal)
+                                        .asPaddingValues(),
+                                    modifier = Modifier.animateItem()
+                                ) {
+                                    items(remainingItems) { item ->
+                                        ytGridItem(item)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        item {
+                            LazyRow(
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                                modifier = Modifier.animateItem()
+                            ) {
+                                items(rec.items) { item ->
+                                    ytGridItem(item)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Horizontal grid layout
+                    item {
+                        LazyRow(
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                            modifier = Modifier.animateItem()
+                        ) {
+                            items(rec.items) { item ->
+                                ytGridItem(item)
+                            }
                         }
                     }
                 }
             }
 
-            homePage?.sections?.forEach {
+            homePage?.sections?.forEachIndexed { sectionIndex, section ->
                 item {
                     NavigationTitle(
-                        title = it.title,
-                        label = it.label,
-                        thumbnail = it.thumbnail?.let { thumbnailUrl ->
+                        title = section.title,
+                        label = section.label,
+                        thumbnail = section.thumbnail?.let { thumbnailUrl ->
                             {
                                 val shape =
-                                    if (it.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
+                                    if (section.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
                                         ThumbnailCornerRadius
                                     )
                                 AsyncImage(
@@ -628,15 +710,86 @@ fun HomeScreen(
                     )
                 }
 
-                item {
-                    LazyRow(
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier.animateItem()
-                    ) {
-                        items(it.items) { item ->
-                            ytGridItem(item)
+                // Alternate between horizontal and vertical layouts for variety
+                if (sectionIndex % 3 == 1) {
+                    // Vertical list layout - show songs as list items
+                    val songItems = section.items.filterIsInstance<SongItem>().take(5)
+                    if (songItems.isNotEmpty()) {
+                        items(
+                            items = songItems,
+                            key = { "vertical_${section.title}_${it.id}" }
+                        ) { item ->
+                            YouTubeListItem(
+                                item = item,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    item.endpoint ?: WatchEndpoint(videoId = item.id),
+                                                    item.toMediaMetadata()
+                                                )
+                                            )
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                YouTubeSongMenu(
+                                                    song = item,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .animateItem()
+                                    .padding(horizontal = 12.dp)
+                            )
+                        }
+                        // Also show remaining items horizontally
+                        val remainingItems = section.items.filterNot { it in songItems }
+                        if (remainingItems.isNotEmpty()) {
+                            item {
+                                LazyRow(
+                                    contentPadding = WindowInsets.systemBars
+                                        .only(WindowInsetsSides.Horizontal)
+                                        .asPaddingValues(),
+                                    modifier = Modifier.animateItem()
+                                ) {
+                                    items(remainingItems) { item ->
+                                        ytGridItem(item)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Fallback to horizontal if no songs
+                        item {
+                            LazyRow(
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                                modifier = Modifier.animateItem()
+                            ) {
+                                items(section.items) { item ->
+                                    ytGridItem(item)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Horizontal grid layout (default)
+                    item {
+                        LazyRow(
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                            modifier = Modifier.animateItem()
+                        ) {
+                            items(section.items) { item ->
+                                ytGridItem(item)
+                            }
                         }
                     }
                 }
@@ -721,8 +874,12 @@ fun HomeScreen(
                 }
 
                 item {
-                    // take min in case list size is less than 4
-                    val rows = min(4, forgottenFavorites.size)
+                    // Increased rows for more content
+                    val rows = when {
+                        forgottenFavorites.size > 20 -> 5
+                        forgottenFavorites.size > 12 -> 4
+                        else -> min(4, forgottenFavorites.size)
+                    }
                     LazyHorizontalGrid(
                         state = forgottenFavoritesLazyGridState,
                         rows = GridCells.Fixed(rows),
