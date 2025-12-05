@@ -409,7 +409,7 @@ fun TimePickerPreference(
                                 style = MaterialTheme.typography.labelMedium
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                TextButton(onClick = { if (selectedMinute > 0) selectedMinute -= 5 else selectedMinute = 55 }) {
+                                TextButton(onClick = { if (selectedMinute >= 5) selectedMinute -= 5 else selectedMinute = 55 }) {
                                     Text("-")
                                 }
                                 Text(

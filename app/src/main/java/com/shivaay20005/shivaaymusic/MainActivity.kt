@@ -354,8 +354,21 @@ class MainActivity : ComponentActivity() {
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
             val isSystemInDarkTheme = isSystemInDarkTheme()
             
+            // State for triggering periodic time checks
+            var timeCheckTrigger by remember { mutableStateOf(0L) }
+            
+            // Periodically update time check every minute when auto dark mode is enabled
+            LaunchedEffect(autoDarkMode) {
+                if (autoDarkMode) {
+                    while (true) {
+                        delay(60_000L) // Check every minute
+                        timeCheckTrigger = System.currentTimeMillis()
+                    }
+                }
+            }
+            
             // Check if current time is in dark mode period
-            val isInDarkModePeriod = remember(autoDarkMode, darkStartTime, darkEndTime) {
+            val isInDarkModePeriod = remember(autoDarkMode, darkStartTime, darkEndTime, timeCheckTrigger) {
                 if (!autoDarkMode) return@remember false
                 
                 val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
