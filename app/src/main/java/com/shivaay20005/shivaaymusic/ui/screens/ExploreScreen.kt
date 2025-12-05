@@ -2,6 +2,7 @@ package com.shivaay20005.shivaaymusic.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -93,25 +95,39 @@ fun ExploreScreen(
                     },
                 )
 
-                LazyHorizontalGrid(
-                    rows = GridCells.Fixed(4),
-                    contentPadding = PaddingValues(6.dp),
-                    modifier = Modifier.height((MoodAndGenresButtonHeight + 12.dp) * 4 + 12.dp),
+                // Vertical layout for Moods and Genres (2 items per row)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(moodAndGenres) {
-                        MoodAndGenresButton(
-                            title = it.title,
-                            onClick = {
-                                navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
-                            },
-                            modifier =
-                                Modifier
-                                    .padding(6.dp)
-                                    .width(180.dp),
-                        )
+                    moodAndGenres.chunked(2).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            row.forEach { item ->
+                                MoodAndGenresButton(
+                                    title = item.title,
+                                    onClick = {
+                                        navController.navigate("youtube_browse/${item.endpoint.browseId}?params=${item.endpoint.params}")
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(vertical = 4.dp),
+                                )
+                            }
+                            // Fill remaining space if odd number of items
+                            if (row.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // New Release Albums section
             explorePage?.newReleaseAlbums?.takeIf { it.isNotEmpty() }?.let { newReleaseAlbums ->

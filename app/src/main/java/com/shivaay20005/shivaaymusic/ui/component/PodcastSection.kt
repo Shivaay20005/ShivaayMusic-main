@@ -279,7 +279,7 @@ val youtubeVideoCategories = listOf(
 )
 
 /**
- * ShivaayMusic Exclusive - Podcast Category Chip
+ * ShivaayMusic Exclusive - Podcast Category Chip - Vertical Layout Compatible
  */
 @Composable
 fun PodcastCategoryChip(
@@ -289,8 +289,7 @@ fun PodcastCategoryChip(
 ) {
     Card(
         modifier = modifier
-            .width(160.dp)
-            .height(120.dp)
+            .height(100.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -303,22 +302,22 @@ fun PodcastCategoryChip(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
                     text = category.emoji,
-                    fontSize = 40.sp
+                    fontSize = 32.sp
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = stringResource(category.nameResId),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -328,7 +327,7 @@ fun PodcastCategoryChip(
 }
 
 /**
- * ShivaayMusic Exclusive - Podcast Categories Row
+ * ShivaayMusic Exclusive - Podcast Categories Row - Vertical Layout
  */
 @Composable
 fun PodcastCategoriesSection(
@@ -343,22 +342,37 @@ fun PodcastCategoriesSection(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Vertical layout with 2 items per row
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(podcastCategories) { category ->
-                PodcastCategoryChip(
-                    category = category,
-                    onClick = { onCategoryClick(category) }
-                )
+            podcastCategories.chunked(2).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    row.forEach { category ->
+                        PodcastCategoryChip(
+                            category = category,
+                            onClick = { onCategoryClick(category) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    // Fill remaining space if odd number of items
+                    if (row.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
 }
 
 /**
- * ShivaayMusic Exclusive - Featured Podcast Card (Enhanced)
+ * ShivaayMusic Exclusive - Featured Podcast Card (Vertical Layout Compatible)
  */
 @Composable
 fun FeaturedPodcastCard(
@@ -371,8 +385,7 @@ fun FeaturedPodcastCard(
 ) {
     Card(
         modifier = modifier
-            .width(320.dp)
-            .height(180.dp)
+            .height(140.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
@@ -413,7 +426,7 @@ fun FeaturedPodcastCard(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(
@@ -421,40 +434,40 @@ fun FeaturedPodcastCard(
                 ) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color.White,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.85f),
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Surface(
-                        shape = RoundedCornerShape(24.dp),
+                        shape = RoundedCornerShape(20.dp),
                         color = Color.White,
                         shadowElevation = 4.dp
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.play),
                                 contentDescription = null,
                                 tint = gradientColors[0],
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = stringResource(R.string.podcast_listen_now),
-                                style = MaterialTheme.typography.labelLarge,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = gradientColors[0]
                             )
@@ -462,11 +475,11 @@ fun FeaturedPodcastCard(
                     }
                 }
                 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 
                 Text(
                     text = emoji,
-                    fontSize = 64.sp
+                    fontSize = 48.sp
                 )
             }
         }
@@ -474,7 +487,7 @@ fun FeaturedPodcastCard(
 }
 
 /**
- * ShivaayMusic Exclusive - Featured Podcasts Section
+ * ShivaayMusic Exclusive - Featured Podcasts Section - Vertical Layout
  */
 @Composable
 fun FeaturedPodcastsSection(
@@ -502,11 +515,14 @@ fun FeaturedPodcastsSection(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Vertical layout for featured podcasts
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(featuredPodcasts) { (info, details) ->
+            featuredPodcasts.forEach { (info, details) ->
                 val (title, subtitle, emoji) = info
                 val (colors, query) = details
                 FeaturedPodcastCard(
@@ -514,7 +530,8 @@ fun FeaturedPodcastsSection(
                     subtitle = subtitle,
                     emoji = emoji,
                     gradientColors = colors,
-                    onClick = { onPodcastClick(query) }
+                    onClick = { onPodcastClick(query) },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
