@@ -377,7 +377,7 @@ fun LocalPlaylistScreen(
 
 
     val headerItems = 2
-// Reemplaza tu rememberReorderableLazyListState actual con este código modificado
+// Replace your current rememberReorderableLazyListState with this modified code
     val reorderableState =
         rememberReorderableLazyListState(
             onMove = { from, to ->
@@ -389,12 +389,12 @@ fun LocalPlaylistScreen(
                 val from = if (fromIndex < 2) 2 else fromIndex
                 val to = if (toIndex < 2) 2 else toIndex
 
-                // Actualizar la base de datos local primero
+                // Update the local database first
                 database.transaction {
                     move(viewModel.playlistId, from - headerItems, to - headerItems)
                 }
 
-                // Si es una playlist de YouTube, sincronizar con YouTube
+                // If it's a YouTube playlist, sync with YouTube
                 if (viewModel.playlist.value?.playlist?.browseId != null) {
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
                         try {
@@ -410,7 +410,7 @@ fun LocalPlaylistScreen(
                                 )
                             }
                         } catch (e: Exception) {
-                            // Manejar errores de sincronización con YouTube
+                            // Handle YouTube sync errors
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
                                     message = context.getString(R.string.error_unknown, e.message),
@@ -1119,7 +1119,7 @@ fun LocalPlaylistHeader(
                                     deletePlaylistImage(context, playlist.playlist.id)
                                     customThumbnailUri = null
                                     showEditButtons =
-                                        false // Ocultar los botones después de eliminar
+                                        false // Hide buttons after delete
                                 },
                                 modifier = Modifier.size(24.dp)
                             ) {

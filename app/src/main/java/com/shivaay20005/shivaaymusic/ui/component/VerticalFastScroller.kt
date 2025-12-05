@@ -88,11 +88,11 @@ fun VerticalFastScroller(
             // Haptic feedback
             val hapticFeedback = LocalHapticFeedback.current
 
-            // Animaciones mejoradas para Material Design 3
+            // Enhanced animations for Material Design 3
             val thumbScale = remember { Animatable(1f) }
-            val thumbElevation = remember { Animatable(3f) } // Elevación base
+            val thumbElevation = remember { Animatable(3f) } // Base elevation
 
-            // Colores animados para transiciones suaves
+            // Animated colors for smooth transitions
             val thumbColorAnimated by animateColorAsState(
                 targetValue = if (isThumbDragged) {
                     MaterialTheme.colorScheme.primary
@@ -103,26 +103,26 @@ fun VerticalFastScroller(
                 label = "thumb_color"
             )
 
-            // Animación de grosor del track
+            // Track thickness animation
             val trackAlphaAnimated by animateFloatAsState(
                 targetValue = if (isThumbDragged) 0.5f else 0.3f,
                 animationSpec = tween(300),
                 label = "track_alpha"
             )
 
-            // Efectos de interacción mejorados con más dinamismo
+            // Enhanced interaction effects with more dynamism
             LaunchedEffect(isThumbDragged) {
                 if (isThumbDragged) {
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     thumbScale.animateTo(
-                        targetValue = 1.3f, // Más escala para mejor feedback
+                        targetValue = 1.3f, // More scale for better feedback
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
                             stiffness = Spring.StiffnessHigh
                         )
                     )
                     thumbElevation.animateTo(
-                        targetValue = 12f, // Mayor elevación
+                        targetValue = 12f, // Higher elevation
                         animationSpec = spring(stiffness = Spring.StiffnessHigh)
                     )
                 } else {
@@ -134,29 +134,29 @@ fun VerticalFastScroller(
                         )
                     )
                     thumbElevation.animateTo(
-                        targetValue = 3f, // Elevación base más pronunciada
+                        targetValue = 3f, // More pronounced base elevation
                         animationSpec = spring(stiffness = Spring.StiffnessMedium)
                     )
                 }
             }
 
-            // When thumb dragged - Mejorado para mejor precisión
+            // When thumb dragged - Improved for better precision
             LaunchedEffect(thumbOffsetY) {
                 if (layoutInfo.totalItemsCount == 0 || !isThumbDragged) return@LaunchedEffect
                 val scrollRatio = (thumbOffsetY - thumbTopPadding) / trackHeightPx
                 val scrollItem = layoutInfo.totalItemsCount * scrollRatio
                 val scrollItemRounded = scrollItem.roundToInt().coerceIn(0, layoutInfo.totalItemsCount - 1)
 
-                // Mejora: Cálculo más preciso del offset dentro del item
+                // Improvement: More precise offset calculation within the item
                 val scrollItemSize = layoutInfo.visibleItemsInfo
                     .find { it.index == scrollItemRounded }?.size
                     ?: run {
-                        // Fallback: usar tamaño promedio si el item no está visible
+                        // Fallback: use average size if item is not visible
                         val averageItemSize = layoutInfo.visibleItemsInfo
                             .takeIf { it.isNotEmpty() }
                             ?.map { it.size }
                             ?.average()?.toInt()
-                            ?: 200 // Valor por defecto razonable
+                            ?: 200 // Reasonable default value
                         averageItemSize
                     }
 
@@ -170,15 +170,15 @@ fun VerticalFastScroller(
                     )
                     scrolled.tryEmit(Unit)
                 } catch (e: Exception) {
-                    // Fallback silencioso si hay error de scroll
+                    // Silent fallback if scroll error occurs
                 }
             }
 
-            // When list scrolled - Optimizado para máxima fluidez
+            // When list scrolled - Optimized for maximum fluidity
             LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
                 if (listState.layoutInfo.totalItemsCount == 0 || isThumbDragged) return@LaunchedEffect
 
-                // Usar snapshotFlow para mejor rendimiento
+                // Use snapshotFlow for better performance
                 snapshotFlow {
                     Triple(
                         listState.firstVisibleItemIndex,
@@ -195,7 +195,7 @@ fun VerticalFastScroller(
                         val proportion = scrollOffset.toFloat() / (scrollRange.toFloat() - heightPx)
                         val newThumbOffset = (trackHeightPx * proportion.coerceIn(0f, 1f) + thumbTopPadding)
 
-                        // Interpolación suave para reducir jank
+                        // Smooth interpolation to reduce jank
                         val smoothFactor = 0.8f
                         thumbOffsetY = thumbOffsetY * (1f - smoothFactor) + newThumbOffset * smoothFactor
                         scrolled.tryEmit(Unit)
@@ -203,11 +203,11 @@ fun VerticalFastScroller(
                 }
             }
 
-            // Thumb alpha con transición más suave y inteligente
+            // Thumb alpha with smoother and smarter transition
             val alpha = remember { Animatable(0f) }
             val isThumbVisible = alpha.value > 0f
 
-            // Detección de velocidad de scroll para mejor UX
+            // Scroll velocity detection for better UX
             var lastScrollTime by remember { mutableStateOf(0L) }
             var scrollVelocity by remember { mutableStateOf(0f) }
 
@@ -220,7 +220,7 @@ fun VerticalFastScroller(
                     lastScrollTime = currentTime
 
                     alpha.snapTo(1f)
-                    // Tiempo de fade adaptativo según velocidad
+                    // Adaptive fade delay based on velocity
                     val fadeDelay = if (scrollVelocity > 10f) 3000 else 2000
                     alpha.animateTo(
                         targetValue = 0f,
@@ -232,7 +232,7 @@ fun VerticalFastScroller(
                 }
             }
 
-            // Indicador de track mejorado con animaciones
+            // Enhanced track indicator with animations
             Box(
                 modifier = Modifier
                     .offset { IntOffset(0, thumbTopPadding.roundToInt()) }
@@ -247,7 +247,7 @@ fun VerticalFastScroller(
                     )
             )
 
-            // Thumb principal mejorado con más características
+            // Enhanced main thumb with more features
             Box(
                 modifier = Modifier
                     .offset { IntOffset(0, thumbOffsetY.roundToInt()) }
@@ -281,7 +281,7 @@ fun VerticalFastScroller(
                                 orientation = Orientation.Vertical,
                                 enabled = isThumbVisible,
                                 state = rememberDraggableState { delta ->
-                                    val sensitivity = 1.2f // Factor de sensibilidad ajustable
+                                    val sensitivity = 1.2f // Adjustable sensitivity factor
                                     val adjustedDelta = delta * sensitivity
 
                                     val newOffsetY = thumbOffsetY + adjustedDelta
@@ -290,7 +290,7 @@ fun VerticalFastScroller(
                                         thumbTopPadding + trackHeightPx
                                     )
 
-                                    // Haptic feedback más inteligente
+                                    // Smarter haptic feedback
                                     if (abs(adjustedDelta) > 3f) {
                                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     }
@@ -327,11 +327,11 @@ private fun computeScrollOffset(state: LazyListState): Int {
     val laidOutArea = abs(endChild.bottom - startDecoratedTop)
     val itemRange = abs(minPosition - maxPosition) + 1
 
-    // Mejora: Manejo más robusto de divisiones por cero
+    // Improvement: More robust handling of division by zero
     val avgSizePerRow = if (itemRange > 0 && laidOutArea > 0) {
         laidOutArea.toFloat() / itemRange
     } else {
-        200f // Valor por defecto
+        200f // Default value
     }
 
     return (itemsBefore * avgSizePerRow + (0 - startDecoratedTop)).roundToInt().coerceAtLeast(0)
@@ -347,16 +347,16 @@ private fun computeScrollRange(state: LazyListState): Int {
     val laidOutArea = endChild.bottom - startChild.top
     val laidOutRange = abs(startChild.index - endChild.index) + 1
 
-    // Mejora: Cálculo más preciso del rango total
+    // Improvement: More precise calculation of total range
     val averageItemSize = if (laidOutRange > 0 && laidOutArea > 0) {
         laidOutArea.toFloat() / laidOutRange
     } else {
-        200f // Valor por defecto
+        200f // Default value
     }
 
     val totalRange = (averageItemSize * state.layoutInfo.totalItemsCount).roundToInt()
 
-    // Añadir padding si existe
+    // Add padding if it exists
     return totalRange + state.layoutInfo.beforeContentPadding + state.layoutInfo.afterContentPadding
 }
 

@@ -1213,10 +1213,10 @@ fun PlaylistGridItem(
     badges = badges,
     thumbnailContent = {
         val thumbnailUri =
-            getPlaylistImageUri(context, playlist.playlist.id) // Obtener URI de la miniatura
+            getPlaylistImageUri(context, playlist.playlist.id) // Get thumbnail URI
 
         if (thumbnailUri != null) {
-            // Si la URI de la imagen existe, la mostramos
+            // If the image URI exists, display it
             AsyncImage(
                 model = thumbnailUri,
                 contentDescription = null,

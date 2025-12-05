@@ -750,7 +750,7 @@ fun BottomSheetPlayer(
                             }
                         },
                 ) {
-                    // Indicador de progreso circular de fondo
+                    // Circular progress indicator background
                     if (download?.state == Download.STATE_DOWNLOADING) {
                         val progress = download!!.percentDownloaded / 100f
                         val animatedProgress by animateFloatAsState(
@@ -768,7 +768,7 @@ fun BottomSheetPlayer(
                             val radius = (size.minDimension - strokeWidth) / 2
                             val center = Offset(size.width / 2, size.height / 2)
 
-                            // Círculo de fondo (gris)
+                            // Background circle (gray)
                             drawCircle(
                                 color = iconButtonColor.copy(alpha = 0.3f),
                                 radius = radius,
@@ -776,7 +776,7 @@ fun BottomSheetPlayer(
                                 style = Stroke(width = strokeWidth)
                             )
 
-                            // Círculo de progreso
+                            // Progress circle
                             if (animatedProgress > 0f) {
                                 drawArc(
                                     color = iconButtonColor,
@@ -797,7 +797,7 @@ fun BottomSheetPlayer(
                         }
                     }
 
-                    // Icono central con animación
+                    // Central icon with animation
                     val iconResource = when (download?.state) {
                         Download.STATE_COMPLETED -> R.drawable.offline
                         Download.STATE_DOWNLOADING -> R.drawable.pause // o R.drawable.download_pause
@@ -1210,7 +1210,7 @@ fun BottomSheetPlayer(
 
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
-                            onOpenFullscreenLyrics = onOpenFullscreenLyrics, // Pasar la función
+                            onOpenFullscreenLyrics = onOpenFullscreenLyrics, // Pass the function
                             modifier = Modifier.size(thumbnailSize)
                         )
                     }
@@ -1247,7 +1247,7 @@ fun BottomSheetPlayer(
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
                             modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
-                            onOpenFullscreenLyrics = onOpenFullscreenLyrics, // Pasar la función del parámetro
+                            onOpenFullscreenLyrics = onOpenFullscreenLyrics, // Pass the function from parameter
                         )
                     }
 

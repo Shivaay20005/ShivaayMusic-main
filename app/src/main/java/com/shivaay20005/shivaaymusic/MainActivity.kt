@@ -1601,7 +1601,7 @@ fun NotificationPermissionPreference() {
                 ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED // Usar PackageManager en lugar de PermissionChecker
+                ) == PackageManager.PERMISSION_GRANTED // Use PackageManager instead of PermissionChecker
             } else {
                 // For earlier versions, check if notifications are enabled
                 NotificationManagerCompat.from(context).areNotificationsEnabled()

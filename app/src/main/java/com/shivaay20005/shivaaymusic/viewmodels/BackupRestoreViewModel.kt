@@ -34,7 +34,7 @@ class BackupRestoreViewModel @Inject constructor(
         runCatching {
             context.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
-                    // Guardar settings excluyendo VISITOR_DATA si es necesario
+                    // Save settings excluding VISITOR_DATA if necessary
                     val settingsFile = context.filesDir / "datastore" / SETTINGS_FILENAME
                     if (settingsFile.exists()) {
                         settingsFile.inputStream().buffered().use { inputStream ->
@@ -43,7 +43,7 @@ class BackupRestoreViewModel @Inject constructor(
                         }
                     }
 
-                    // Guardar base de datos
+                    // Save database
                     runBlocking(Dispatchers.IO) {
                         database.checkpoint()
                     }
@@ -110,16 +110,16 @@ class BackupRestoreViewModel @Inject constructor(
 
     fun resetVisitorData(context: Context) {
         runCatching {
-            // Implementa aquí cómo borras VISITOR_DATA, por ejemplo, desde DataStore
+            // Implement how you delete VISITOR_DATA, for example, from DataStore
             val visitorDataFile = context.filesDir / "datastore" / SETTINGS_FILENAME
             if (visitorDataFile.exists()) {
-                // Borra solo la parte de VISITOR_DATA si es posible, o reinicia el archivo
+                // Delete only the VISITOR_DATA part if possible, or reset the file
                 visitorDataFile.delete()
             }
 
             Toast.makeText(
                 context,
-                "VISITOR_DATA reseteado. La aplicación se reiniciará.",
+                "VISITOR_DATA reset. The app will restart.",
                 Toast.LENGTH_SHORT
             ).show()
 

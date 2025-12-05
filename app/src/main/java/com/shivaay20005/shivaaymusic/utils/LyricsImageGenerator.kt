@@ -289,7 +289,7 @@ object ComposeToImage {
             isAntiAlias = true
         }
 
-        // Ajuste dinámico del tamaño de texto para que encaje en el área
+        // Dynamic text size adjustment to fit the area
         var textSize = paint.textSize
         val maxWidth = (config.cardSize * textConfig.maxLyricsWidthRatio).toInt()
         val maxHeight = config.cardSize * 0.5f
@@ -354,10 +354,10 @@ object ComposeToImage {
 
         canvas.drawBitmap(logoBitmap, logoX, logoY, paint)
 
-        // Obtener el nombre de la app
+        // Get the app name
         val appName = context.getString(R.string.app_name)
 
-        // Configurar la pintura del texto
+        // Configure text paint
         val textPaint = TextPaint().apply {
             color = logoColor
             textSize = cardSize * 0.042f
@@ -366,7 +366,7 @@ object ComposeToImage {
             letterSpacing = 0.01f
         }
 
-        // Medir altura para ajustar alineación vertical
+        // Measure height to adjust vertical alignment
         val textBounds = Rect()
         textPaint.getTextBounds(appName, 0, appName.length, textBounds)
         val textHeight = textBounds.height()
@@ -374,7 +374,7 @@ object ComposeToImage {
         val textX = logoX + logoSize + 12f
         val textY = logoY + logoSize / 2f + textHeight / 2f - 4f
 
-        // Dibujar el nombre de la app
+        // Draw the app name
         canvas.drawText(appName, textX, textY, textPaint)
     }
 

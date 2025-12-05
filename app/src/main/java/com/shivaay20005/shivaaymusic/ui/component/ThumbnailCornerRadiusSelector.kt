@@ -102,12 +102,12 @@ fun ThumbnailCornerRadiusSelectorButton(
     var showDialog by remember { mutableStateOf(false) }
     var currentRadius by remember { mutableStateOf(24f) }
 
-    // Cargar el valor guardado al iniciar
+    // Load saved value on start
     LaunchedEffect(Unit) {
         currentRadius = AppConfig.getThumbnailCornerRadius(context)
     }
 
-    // Botón mejorado con mejor semántica y táctil
+    // Improved button with better semantics and touch feedback
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -220,7 +220,7 @@ fun ThumbnailCornerRadiusModal(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Previsualización con imagen de fondo
+                    // Preview with background image
                     Box(
                         modifier = Modifier
                             .size(160.dp)
@@ -233,13 +233,13 @@ fun ThumbnailCornerRadiusModal(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Imagen de ejemplo con bordes redondeados
+                        // Example image with rounded corners
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(thumbnailCornerRadius.dp))
                         ) {
-                            // Usando un painterResource para cargar una imagen local
+                            // Using a painterResource to load a local image
                             Image(
                                 painter = painterResource(id = R.drawable.previewalbum),
                                 contentDescription = null,
@@ -281,7 +281,7 @@ fun ThumbnailCornerRadiusModal(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Campo personalizado con mejor disposición
+                    // Custom field with better layout
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -311,11 +311,11 @@ fun ThumbnailCornerRadiusModal(
                         OutlinedTextField(
                             value = customValue,
                             onValueChange = { newValue ->
-                                // Solo aceptar números
+                                // Only accept numbers
                                 if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
                                     customValue = newValue
                                     newValue.toIntOrNull()?.let { intValue ->
-                                        // Limitar a 45
+                                        // Limit to 45
                                         val limitedValue = minOf(intValue, 45).toFloat()
                                         thumbnailCornerRadius = limitedValue
                                         isCustomSelected = true
@@ -349,7 +349,7 @@ fun ThumbnailCornerRadiusModal(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Sección del slider mejorada para más feedback
+                    // Enhanced slider section for more feedback
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -412,7 +412,7 @@ fun ThumbnailCornerRadiusModal(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Divisor para separar visualmente los botones de acción
+                    // Divider to visually separate action buttons
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth(),
                         thickness = 1.dp,
@@ -421,7 +421,7 @@ fun ThumbnailCornerRadiusModal(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Botones de acción con mejor UX
+                    // Action buttons with better UX
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),

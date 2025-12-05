@@ -188,7 +188,7 @@ fun LyricsImageCard(
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Controls superiores rediseñados
+        // Redesigned top controls
         if (showControls) {
             ModernControlsSection(
                 selectedPreset = selectedPreset,
@@ -202,7 +202,7 @@ fun LyricsImageCard(
                 onSaveImage = {
                     isGenerating = true
                     onSaveImage()
-                    // Simular proceso
+                    // Simulate process
                     kotlinx.coroutines.GlobalScope.launch {
                         kotlinx.coroutines.delay(1500)
                         isGenerating = false
@@ -214,7 +214,7 @@ fun LyricsImageCard(
             )
         }
 
-        // Theme selector horizontal
+        // Horizontal theme selector
         AnimatedVisibility(
             visible = isDropdownExpanded,
             enter = slideInVertically() + fadeIn(),
@@ -233,7 +233,7 @@ fun LyricsImageCard(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Card principal rediseñada
+        // Redesigned main card
         LyricsImageCard(
             lyricText = lyricText,
             mediaMetadata = mediaMetadata,
@@ -486,7 +486,7 @@ fun LyricsImageCard(
                         }
                     )
             ) {
-                // Patrón de fondo sutil
+                // Subtle background pattern
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val pattern = 40.dp.toPx()
                     for (x in 0..size.width.toInt() step pattern.toInt()) {

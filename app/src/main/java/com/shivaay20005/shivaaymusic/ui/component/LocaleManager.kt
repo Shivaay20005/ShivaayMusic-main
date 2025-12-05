@@ -306,11 +306,11 @@ class LocaleManager private constructor(private val context: Context) {
 
         return try {
             _changeState.value = LanguageChangeState.Changing
-            Log.d(TAG, "Cambiando idioma a: $languageCode")
+            Log.d(TAG, "Changing language to: $languageCode")
 
-            delay(ANIMATION_DELAY) // Tiempo para animaciones
+            delay(ANIMATION_DELAY) // Time for animations
 
-            // Guardar preferencia
+            // Save preference
             val editor = sharedPreferences.edit()
             editor.putString(PREF_LANGUAGE_KEY, languageCode)
             val saved = editor.commit() // Use commit for synchronous operation

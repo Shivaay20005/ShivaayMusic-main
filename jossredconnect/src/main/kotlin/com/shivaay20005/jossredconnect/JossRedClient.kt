@@ -43,11 +43,11 @@ object JossRedClient {
             throw JossRedException(
                 statusCode = response.code,
                 message = when (response.code) {
-                    403 -> "Acceso denegado (403) para el recurso"
-                    404 -> "Recurso no encontrado (404)"
-                    in 400..499 -> "Error del cliente (${response.code})"
-                    in 500..599 -> "Error del servidor (${response.code})"
-                    else -> "Error desconocido (${response.code})"
+                    403 -> "Access denied (403) for the resource"
+                    404 -> "Resource not found (404)"
+                    in 400..499 -> "Client error (${response.code})"
+                    in 500..599 -> "Server error (${response.code})"
+                    else -> "Unknown error (${response.code})"
                 }
             )
         }

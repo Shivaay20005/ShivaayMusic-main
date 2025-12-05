@@ -116,7 +116,7 @@ fun ShareLyricsDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Icono y título en la misma línea
+                        // Icon and title on the same line
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.weight(1f)
@@ -148,7 +148,7 @@ fun ShareLyricsDialog(
                             )
                         }
 
-                        // Botón de cerrar compacto
+                        // Compact close button
                         IconButton(
                             onClick = onDismiss,
                             modifier = Modifier.size(32.dp)
@@ -164,7 +164,7 @@ fun ShareLyricsDialog(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Información de la canción más compacta
+                    // More compact song information
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -184,12 +184,12 @@ fun ShareLyricsDialog(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Opciones de compartir con mejor spacing
+                    // Share options with better spacing
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Compartir como texto - Botón principal
+                        // Share as text - Main button
                         Button(
                             onClick = {
                                 val songLink = mediaMetadata?.id?.let { id ->
@@ -233,7 +233,7 @@ fun ShareLyricsDialog(
                             )
                         }
 
-                        // Compartir como imagen - Botón secundario
+                        // Share as image - Secondary button
                         OutlinedButton(
                             onClick = {
                                 showColorPickerDialog = true
@@ -266,7 +266,7 @@ fun ShareLyricsDialog(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Botón de cancelar como texto button
+                    // Cancel button as text button
                     TextButton(
                         onClick = onDismiss,
                         modifier = Modifier.fillMaxWidth()
@@ -388,7 +388,7 @@ fun ShareLyricsImageCustomizationDialog(
                             .filter { color ->
                                 val hsv = FloatArray(3)
                                 android.graphics.Color.colorToHSV(color.toArgb(), hsv)
-                                hsv[1] > 0.2f // saturación
+                                hsv[1] > 0.2f // saturation
                             }
                         paletteColors.clear()
                         paletteColors.addAll(colors.take(5))

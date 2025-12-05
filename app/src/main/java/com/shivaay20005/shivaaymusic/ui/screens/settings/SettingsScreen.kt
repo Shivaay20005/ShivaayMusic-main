@@ -606,7 +606,7 @@ fun SettingsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     when {
-                        // Mostrar avatar personalizado si existe y no hay error
+                        // Show custom avatar if it exists and there's no error
                         customAvatarUri != null && !imageLoadError -> {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)

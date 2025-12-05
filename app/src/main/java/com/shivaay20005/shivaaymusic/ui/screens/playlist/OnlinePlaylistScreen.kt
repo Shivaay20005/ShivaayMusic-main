@@ -179,7 +179,7 @@ fun OnlinePlaylistScreen(
 
 
     LaunchedEffect(playlist?.id) {
-        // Restaurar posición si cambias de playlist
+        // Restore position when changing playlist
         if (playlist?.id != null) {
             lazyListState.scrollToItem(0)
         }
@@ -191,7 +191,7 @@ fun OnlinePlaylistScreen(
         }
     }
 
-    // Calcular el padding del contenido considerando WindowInsets
+    // Calculate content padding considering WindowInsets
     val contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime)
         .asPaddingValues()
     val wrappedSongs = filteredSongs.map { item -> ItemWrapper(item) }.toMutableList()

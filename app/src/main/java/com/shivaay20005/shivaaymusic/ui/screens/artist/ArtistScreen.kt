@@ -396,7 +396,7 @@ fun ArtistScreen(
 
                                                             is AlbumItem -> {
                                                                 try {
-                                                                    // Validar que el ID no esté vacío o nulo
+                                                                    // Validate that the ID is not empty or null
                                                                     if (item.id.isNotEmpty()) {
                                                                         navController.navigate("album/${item.id}")
                                                                     } else {
