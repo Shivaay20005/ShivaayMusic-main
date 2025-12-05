@@ -15,7 +15,7 @@
 [![Stars](https://img.shields.io/github/stars/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=yellow&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/stargazers)
 [![Forks](https://img.shields.io/github/forks/shivaay20005/shivaaymusic?style=flat-square&logo=github&color=blue&labelColor=161B22)](https://github.com/shivaay20005/shivaaymusic/network/members)
 
-**Current Version / वर्तमान संस्करण: v1.0.2 (Build 120)**
+**Current Version / वर्तमान संस्करण: v1.0.4 (Build 124)**
 
 </div>
 
@@ -27,6 +27,7 @@
 |---------|-------|
 | [Overview](#-overview) | [अवलोकन](#-अवलोकन-overview-in-hindi) |
 | [All Features](#-all-features--सभी-सुविधाएं) | [सभी सुविधाएं](#-all-features--सभी-सुविधाएं) |
+| [Player Styles](#-player-styles--प्लेयर-स्टाइल) | [प्लेयर स्टाइल](#-player-styles--प्लेयर-स्टाइल) |
 | [Installation](#-installation--इंस्टॉलेशन) | [इंस्टॉलेशन](#-installation--इंस्टॉलेशन) |
 | [Changelog](#-changelog--परिवर्तन-लॉग) | [परिवर्तन लॉग](#-changelog--परिवर्तन-लॉग) |
 | [Support](#-support-the-project--प्रोजेक्ट-का-समर्थन-करें) | [समर्थन](#-support-the-project--प्रोजेक्ट-का-समर्थन-करें) |
@@ -47,6 +48,8 @@
 | 📱 **Offline Mode** | Download and play music without internet |
 | 🎯 **Exclusive Features** | Mood-based music, streaks, achievements & more |
 | 🔒 **Privacy Focused** | All data stored securely on your device |
+| 📺 **Vertical Reels Player** | TikTok-style vertical player for immersive experience |
+| 🔔 **Download Notifications** | Get notified when songs finish downloading |
 
 ---
 
@@ -64,6 +67,8 @@
 | 📱 **ऑफ़लाइन मोड** | इंटरनेट के बिना संगीत डाउनलोड करें और बजाएं |
 | 🎯 **एक्सक्लूसिव फ़ीचर्स** | मूड-आधारित संगीत, स्ट्रीक्स, अचीवमेंट्स और भी बहुत कुछ |
 | 🔒 **प्राइवेसी केंद्रित** | सभी डेटा आपके डिवाइस पर सुरक्षित रूप से संग्रहीत |
+| 📺 **वर्टिकल रील्स प्लेयर** | इमर्सिव अनुभव के लिए TikTok-स्टाइल वर्टिकल प्लेयर |
+| 🔔 **डाउनलोड नोटिफिकेशन** | गाने डाउनलोड होने पर नोटिफिकेशन प्राप्त करें |
 
 > **नोट**: ShivaayMusic एक स्वतंत्र प्रोजेक्ट है और YouTube या Google से संबद्ध, प्रायोजित या समर्थित नहीं है।
 
@@ -83,6 +88,30 @@
 
 ---
 
+### 📺 Player Styles / प्लेयर स्टाइल
+
+ShivaayMusic offers multiple player styles for different experiences!
+
+ShivaayMusic विभिन्न अनुभवों के लिए कई प्लेयर स्टाइल प्रदान करता है!
+
+| Style | Description | स्टाइल | विवरण |
+|-------|-------------|--------|-------|
+| 📺 **Vertical Reels Player** (Default) | TikTok-style immersive full-screen player | **वर्टिकल रील्स प्लेयर** (डिफ़ॉल्ट) | TikTok-स्टाइल इमर्सिव फुल-स्क्रीन प्लेयर |
+| 🎵 **Classic Player** | Traditional music player layout | **क्लासिक प्लेयर** | पारंपरिक म्यूज़िक प्लेयर लेआउट |
+| 📥 **Download Button** | Download songs directly from player | **डाउनलोड बटन** | प्लेयर से सीधे गाने डाउनलोड करें |
+| ⚙️ **More Options Menu** | Access all settings via "..." menu | **अधिक विकल्प मेनू** | "..." मेनू से सभी सेटिंग्स एक्सेस करें |
+| 🔔 **Download Notifications** | Get notified when downloads complete | **डाउनलोड नोटिफिकेशन** | डाउनलोड पूरा होने पर नोटिफिकेशन पाएं |
+
+#### Player Background Styles / प्लेयर बैकग्राउंड स्टाइल
+
+| Style | Description | स्टाइल | विवरण |
+|-------|-------------|--------|-------|
+| 🌫️ **Blur** (Default) | Beautiful blurred album art background | **ब्लर** (डिफ़ॉल्ट) | सुंदर धुंधली एल्बम आर्ट बैकग्राउंड |
+| 🎨 **Gradient** | Smooth gradient colors | **ग्रेडिएंट** | स्मूद ग्रेडिएंट रंग |
+| 🖼️ **Default** | Follow theme colors | **डिफ़ॉल्ट** | थीम रंगों का पालन करें |
+
+---
+
 ### 🎵 Core Music Features / मुख्य संगीत सुविधाएं
 
 | Feature | Description | सुविधा | विवरण |
@@ -95,6 +124,32 @@
 | 📜 **Queue Management** | Full control over playback queue | **क्यू प्रबंधन** | प्लेबैक क्यू पर पूर्ण नियंत्रण |
 | 🔀 **Shuffle & Repeat** | Various playback modes | **शफ़ल और रिपीट** | विभिन्न प्लेबैक मोड |
 | ▶️ **Mini Player** | Compact player for quick access | **मिनी प्लेयर** | त्वरित पहुंच के लिए कॉम्पैक्ट प्लेयर |
+
+---
+
+### 🏠 Home Screen Features / होम स्क्रीन सुविधाएं
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🌅 **Time-Based Greeting** | Good Morning/Afternoon/Evening/Night | **समय-आधारित अभिवादन** | सुप्रभात/शुभ दोपहर/शुभ संध्या/शुभ रात्रि |
+| 🎵 **Quick Picks** | 30 personalized song recommendations | **क्विक पिक्स** | 30 व्यक्तिगत गाने की सिफारिशें |
+| 💖 **Forgotten Favorites** | 30 songs you haven't played recently | **भूले हुए पसंदीदा** | 30 गाने जो आपने हाल ही में नहीं बजाए |
+| 🎧 **Keep Listening** | Continue with 15 songs, 8 albums, 8 artists | **सुनते रहें** | 15 गाने, 8 एल्बम, 8 कलाकारों के साथ जारी रखें |
+| 🎯 **Similar Recommendations** | Artist & song-based suggestions | **समान सिफारिशें** | कलाकार और गाने-आधारित सुझाव |
+| ⚡ **Fast Loading** | Parallel data loading for speed | **फास्ट लोडिंग** | स्पीड के लिए पैरेलल डेटा लोडिंग |
+| ✨ **Chip Animations** | Bounce & shimmer effects on navigation | **चिप एनिमेशन** | नेविगेशन पर बाउंस और शिमर इफेक्ट्स |
+| 📐 **Mixed Layouts** | Horizontal & vertical song displays | **मिक्स्ड लेआउट** | क्षैतिज और ऊर्ध्वाधर गाने प्रदर्शन |
+
+---
+
+### 🔍 Explore Screen Features / एक्सप्लोर स्क्रीन सुविधाएं
+
+| Feature | Description | सुविधा | विवरण |
+|---------|-------------|--------|-------|
+| 🎭 **Moods & Genres** | Chill, Focus, Energetic & more (vertical layout) | **मूड्स और जॉनर** | चिल, फोकस, एनर्जेटिक और अधिक (वर्टिकल लेआउट) |
+| 🎙️ **Podcast Categories** | Browse podcasts by category (vertical layout) | **पॉडकास्ट कैटेगरी** | कैटेगरी द्वारा पॉडकास्ट ब्राउज़ करें (वर्टिकल लेआउट) |
+| 🎧 **Featured Podcasts** | Full-width podcast cards | **फीचर्ड पॉडकास्ट** | फुल-विड्थ पॉडकास्ट कार्ड |
+| 📺 **New Releases** | Latest music releases | **न्यू रिलीज़** | नवीनतम संगीत रिलीज़ |
 
 ---
 
@@ -303,6 +358,25 @@ For complete changelog with all fixes and updates, see **[CHANGELOG.md](CHANGELO
 
 ### Recent Updates / हाल के अपडेट
 
+#### Version 1.0.4 (December 2024)
+
+| Type | Change | प्रकार | परिवर्तन |
+|------|--------|--------|----------|
+| 🐛 **Fix** | AnimatedVisibility scope resolution error | **फिक्स** | AnimatedVisibility स्कोप रिज़ॉल्यूशन एरर |
+| ✨ **New** | Vertical Reels Player as default | **नया** | डिफ़ॉल्ट के रूप में वर्टिकल रील्स प्लेयर |
+| ✨ **New** | Download button in Vertical Player | **नया** | वर्टिकल प्लेयर में डाउनलोड बटन |
+| ✨ **New** | More options menu (...) in Vertical Player | **नया** | वर्टिकल प्लेयर में अधिक विकल्प मेनू (...) |
+| ✨ **New** | Blur background as default player style | **नया** | डिफ़ॉल्ट प्लेयर स्टाइल के रूप में ब्लर बैकग्राउंड |
+| ✨ **New** | Download complete notification alerts | **नया** | डाउनलोड पूर्ण नोटिफिकेशन अलर्ट |
+| ✨ **New** | Expanded home screen with more content | **नया** | अधिक सामग्री के साथ विस्तारित होम स्क्रीन |
+| ✨ **New** | Mixed horizontal/vertical layouts | **नया** | मिश्रित क्षैतिज/ऊर्ध्वाधर लेआउट |
+| ✨ **New** | Chip click animations (bounce & shimmer) | **नया** | चिप क्लिक एनिमेशन (बाउंस और शिमर) |
+| ⚡ **Perf** | Faster home screen loading (parallel data) | **परफ** | तेज़ होम स्क्रीन लोडिंग (पैरेलल डेटा) |
+| 🎨 **UI** | Vertical layout for Explore screen sections | **यूआई** | एक्सप्लोर स्क्रीन सेक्शन के लिए वर्टिकल लेआउट |
+| 🎨 **UI** | Larger ShivaayMusic icon (44dp) | **यूआई** | बड़ा ShivaayMusic आइकन (44dp) |
+| 🎨 **UI** | Greeting below app name in header | **यूआई** | हेडर में ऐप नाम के नीचे अभिवादन |
+| 🌐 **i18n** | All Spanish text/comments translated to English | **i18n** | सभी स्पेनिश टेक्स्ट/कमेंट्स अंग्रेज़ी में अनुवादित |
+
 #### Version 1.0.2 (December 2024)
 
 | Type | Change | प्रकार | परिवर्तन |
@@ -335,6 +409,16 @@ If you enjoy ShivaayMusic, please consider supporting its development!
 **⭐ Star this repository if you like it! / अगर आपको पसंद आया तो इस रिपॉजिटरी को स्टार करें!**
 
 </div>
+
+---
+
+## 👥 Team / टीम
+
+| Symbol | Name | Role |
+|--------|------|------|
+| ♔ | **Shivaay** | Lead Developer / मुख्य डेवलपर |
+| ♞ | **Prateek** | Contributor / योगदानकर्ता |
+| ♝ | **Rohit** | Contributor / योगदानकर्ता |
 
 ---
 
