@@ -305,6 +305,13 @@
     <string name="enable_squiggly_slider">Enable squiggly slider</string>
     <string name="enable_swipe_thumbnail">Enable swipe to change song</string>
     <string name="pure_black">Pure black</string>
+    <string name="auto_dark_mode">Automatic Dark Mode</string>
+    <string name="auto_dark_mode_desc">Automatically switch between light and dark mode based on time of day</string>
+    <string name="dark_start_time">Dark mode start time</string>
+    <string name="dark_end_time">Dark mode end time</string>
+    <string name="time_format_hint">HH:mm (e.g., 18:00)</string>
+    <string name="hour">Hour</string>
+    <string name="minute">Minute</string>
     <string name="customize_navigation_tabs">Customize navigation tabs</string>
     <string name="player">Player</string>
     <string name="player_text_alignment">Player text alignment</string>

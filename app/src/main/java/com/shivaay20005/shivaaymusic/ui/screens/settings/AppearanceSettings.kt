@@ -75,8 +75,11 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.shivaay20005.shivaaymusic.LocalPlayerAwareWindowInsets
 import com.shivaay20005.shivaaymusic.R
+import com.shivaay20005.shivaaymusic.constants.AutoDarkModeKey
 import com.shivaay20005.shivaaymusic.constants.ChipSortTypeKey
+import com.shivaay20005.shivaaymusic.constants.DarkEndTimeKey
 import com.shivaay20005.shivaaymusic.constants.DarkModeKey
+import com.shivaay20005.shivaaymusic.constants.DarkStartTimeKey
 import com.shivaay20005.shivaaymusic.constants.DefaultOpenTabKey
 import com.shivaay20005.shivaaymusic.constants.DynamicThemeKey
 import com.shivaay20005.shivaaymusic.constants.GridItemSize
@@ -102,6 +105,7 @@ import com.shivaay20005.shivaaymusic.ui.component.PlayerSliderTrack
 import com.shivaay20005.shivaaymusic.ui.component.PreferenceEntry
 import com.shivaay20005.shivaaymusic.ui.component.PreferenceGroupTitle
 import com.shivaay20005.shivaaymusic.ui.component.SwitchPreference
+import com.shivaay20005.shivaaymusic.ui.component.TimePickerPreference
 import com.shivaay20005.shivaaymusic.ui.component.ThumbnailCornerRadiusSelectorButton
 import com.shivaay20005.shivaaymusic.ui.utils.backToMain
 import com.shivaay20005.shivaaymusic.utils.rememberEnumPreference
@@ -136,6 +140,19 @@ fun AppearanceSettings(
     val (darkMode, onDarkModeChange) = rememberEnumPreference(
         DarkModeKey,
         defaultValue = DarkMode.AUTO
+    )
+
+    val (autoDarkMode, onAutoDarkModeChange) = rememberPreference(
+        AutoDarkModeKey,
+        defaultValue = false
+    )
+    val (darkStartTime, onDarkStartTimeChange) = rememberPreference(
+        DarkStartTimeKey,
+        defaultValue = "18:00"
+    )
+    val (darkEndTime, onDarkEndTimeChange) = rememberPreference(
+        DarkEndTimeKey,
+        defaultValue = "06:00"
     )
 
     val (playerButtonsStyle, onPlayerButtonsStyleChange) = rememberEnumPreference(
@@ -356,6 +373,31 @@ fun AppearanceSettings(
                 }
             },
         )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.auto_dark_mode)) },
+            description = stringResource(R.string.auto_dark_mode_desc),
+            icon = { Icon(painterResource(R.drawable.schedule), null) },
+            checked = autoDarkMode,
+            onCheckedChange = onAutoDarkModeChange,
+        )
+
+        AnimatedVisibility(autoDarkMode) {
+            Column {
+                TimePickerPreference(
+                    title = stringResource(R.string.dark_start_time),
+                    currentTime = darkStartTime,
+                    onTimeSelected = onDarkStartTimeChange,
+                    icon = { Icon(painterResource(R.drawable.dark_mode), null) },
+                )
+                TimePickerPreference(
+                    title = stringResource(R.string.dark_end_time),
+                    currentTime = darkEndTime,
+                    onTimeSelected = onDarkEndTimeChange,
+                    icon = { Icon(painterResource(R.drawable.lightbulb), null) },
+                )
+            }
+        }
 
         AnimatedVisibility(useDarkTheme) {
             SwitchPreference(

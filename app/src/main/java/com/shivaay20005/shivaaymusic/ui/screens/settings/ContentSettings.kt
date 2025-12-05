@@ -164,30 +164,30 @@ fun ContentSettings(
 
         LanguagePreference()
 
-        // Proxy settings
-        PreferenceGroupTitle(title = stringResource(R.string.proxy))
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_proxy)) },
-            icon = { Icon(painterResource(R.drawable.wifi_proxy), null) },
-            checked = proxyEnabled,
-            onCheckedChange = onProxyEnabledChange,
-        )
-        if (proxyEnabled) {
-            Column {
-                ListPreference(
-                    title = { Text(stringResource(R.string.proxy_type)) },
-                    selectedValue = proxyType,
-                    values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
-                    valueText = { it.name },
-                    onValueSelected = onProxyTypeChange,
-                )
-                EditTextPreference(
-                    title = { Text(stringResource(R.string.proxy_url)) },
-                    value = proxyUrl,
-                    onValueChange = onProxyUrlChange,
-                )
-            }
-        }
+        // Proxy settings - Hidden as per user request
+        // PreferenceGroupTitle(title = stringResource(R.string.proxy))
+        // SwitchPreference(
+        //     title = { Text(stringResource(R.string.enable_proxy)) },
+        //     icon = { Icon(painterResource(R.drawable.wifi_proxy), null) },
+        //     checked = proxyEnabled,
+        //     onCheckedChange = onProxyEnabledChange,
+        // )
+        // if (proxyEnabled) {
+        //     Column {
+        //         ListPreference(
+        //             title = { Text(stringResource(R.string.proxy_type)) },
+        //             selectedValue = proxyType,
+        //             values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
+        //             valueText = { it.name },
+        //             onValueSelected = onProxyTypeChange,
+        //         )
+        //         EditTextPreference(
+        //             title = { Text(stringResource(R.string.proxy_url)) },
+        //             value = proxyUrl,
+        //             onValueChange = onProxyUrlChange,
+        //         )
+        //     }
+        // }
 
         // Lyrics settings
         PreferenceGroupTitle(title = stringResource(R.string.lyrics))

@@ -149,7 +149,10 @@ import com.shivaay20005.innertube.YouTube
 import com.shivaay20005.innertube.models.SongItem
 import com.shivaay20005.innertube.models.WatchEndpoint
 import com.shivaay20005.shivaaymusic.constants.AppBarHeight
+import com.shivaay20005.shivaaymusic.constants.AutoDarkModeKey
+import com.shivaay20005.shivaaymusic.constants.DarkEndTimeKey
 import com.shivaay20005.shivaaymusic.constants.DarkModeKey
+import com.shivaay20005.shivaaymusic.constants.DarkStartTimeKey
 import com.shivaay20005.shivaaymusic.constants.DefaultOpenTabKey
 import com.shivaay20005.shivaaymusic.constants.DisableScreenshotKey
 import com.shivaay20005.shivaaymusic.constants.DynamicThemeKey
@@ -344,12 +347,48 @@ class MainActivity : ComponentActivity() {
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+            val autoDarkMode by rememberPreference(AutoDarkModeKey, defaultValue = false)
+            val darkStartTime by rememberPreference(DarkStartTimeKey, defaultValue = "18:00")
+            val darkEndTime by rememberPreference(DarkEndTimeKey, defaultValue = "06:00")
 
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
             val isSystemInDarkTheme = isSystemInDarkTheme()
+            
+            // Check if current time is in dark mode period
+            val isInDarkModePeriod = remember(autoDarkMode, darkStartTime, darkEndTime) {
+                if (!autoDarkMode) return@remember false
+                
+                val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                val currentMinute = Calendar.getInstance().get(Calendar.MINUTE)
+                val currentTimeMinutes = currentHour * 60 + currentMinute
+                
+                val startParts = darkStartTime.split(":")
+                val startHour = startParts.getOrNull(0)?.toIntOrNull() ?: 18
+                val startMinute = startParts.getOrNull(1)?.toIntOrNull() ?: 0
+                val startTimeMinutes = startHour * 60 + startMinute
+                
+                val endParts = darkEndTime.split(":")
+                val endHour = endParts.getOrNull(0)?.toIntOrNull() ?: 6
+                val endMinute = endParts.getOrNull(1)?.toIntOrNull() ?: 0
+                val endTimeMinutes = endHour * 60 + endMinute
+                
+                // Handle overnight case (e.g., 18:00 to 06:00)
+                if (startTimeMinutes > endTimeMinutes) {
+                    // Dark mode spans midnight
+                    currentTimeMinutes >= startTimeMinutes || currentTimeMinutes < endTimeMinutes
+                } else {
+                    // Normal case (e.g., 22:00 to 23:00)
+                    currentTimeMinutes >= startTimeMinutes && currentTimeMinutes < endTimeMinutes
+                }
+            }
+            
             val useDarkTheme =
-                remember(darkTheme, isSystemInDarkTheme) {
-                    if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+                remember(darkTheme, isSystemInDarkTheme, autoDarkMode, isInDarkModePeriod) {
+                    when {
+                        autoDarkMode -> isInDarkModePeriod
+                        darkTheme == DarkMode.AUTO -> isSystemInDarkTheme
+                        else -> darkTheme == DarkMode.ON
+                    }
                 }
             LaunchedEffect(useDarkTheme) {
                 setSystemBarAppearance(useDarkTheme)

@@ -332,3 +332,107 @@ fun PreferenceGroupTitle(
         modifier = modifier.padding(16.dp),
     )
 }
+
+@Composable
+fun TimePickerPreference(
+    modifier: Modifier = Modifier,
+    title: String,
+    currentTime: String,
+    onTimeSelected: (String) -> Unit,
+    icon: (@Composable () -> Unit)? = null,
+    isEnabled: Boolean = true,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedHour by remember { mutableStateOf(currentTime.split(":").getOrNull(0)?.toIntOrNull() ?: 18) }
+    var selectedMinute by remember { mutableStateOf(currentTime.split(":").getOrNull(1)?.toIntOrNull() ?: 0) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(title) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
+                        onTimeSelected(formattedTime)
+                        showDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Hour picker
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = stringResource(R.string.hour),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TextButton(onClick = { if (selectedHour > 0) selectedHour-- }) {
+                                    Text("-")
+                                }
+                                Text(
+                                    text = String.format("%02d", selectedHour),
+                                    style = MaterialTheme.typography.headlineMedium
+                                )
+                                TextButton(onClick = { if (selectedHour < 23) selectedHour++ }) {
+                                    Text("+")
+                                }
+                            }
+                        }
+
+                        Text(
+                            text = ":",
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+
+                        // Minute picker
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = stringResource(R.string.minute),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TextButton(onClick = { if (selectedMinute > 0) selectedMinute -= 5 else selectedMinute = 55 }) {
+                                    Text("-")
+                                }
+                                Text(
+                                    text = String.format("%02d", selectedMinute),
+                                    style = MaterialTheme.typography.headlineMedium
+                                )
+                                TextButton(onClick = { if (selectedMinute < 55) selectedMinute += 5 else selectedMinute = 0 }) {
+                                    Text("+")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    PreferenceEntry(
+        modifier = modifier,
+        title = { Text(title) },
+        description = currentTime,
+        icon = icon,
+        onClick = { showDialog = true },
+        isEnabled = isEnabled,
+    )
+}
