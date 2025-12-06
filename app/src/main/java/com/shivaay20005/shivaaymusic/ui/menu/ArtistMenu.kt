@@ -128,7 +128,7 @@ fun ArtistMenu(
                 val intent = Intent().apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/channel/${artist.id}")
+                    putExtra(Intent.EXTRA_TEXT, "https://shivaaymusic.com/channel/${artist.id}")
                 }
                 context.startActivity(Intent.createChooser(intent, null))
             }

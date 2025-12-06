@@ -38,7 +38,7 @@ data class PlaylistEntity(
     val shareLink: String?
         get() {
             return if (browseId != null)
-                "https://music.youtube.com/playlist?list=$browseId"
+                "https://shivaaymusic.com/playlist?list=$browseId"
             else null
         }
 

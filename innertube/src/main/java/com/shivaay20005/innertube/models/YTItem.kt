@@ -6,6 +6,11 @@ sealed class YTItem {
     abstract val thumbnail: String
     abstract val explicit: Boolean
     abstract val shareLink: String
+    
+    companion object {
+        // Custom domain for share links - ShivaayMusic branding
+        const val SHARE_DOMAIN = "https://shivaaymusic.com"
+    }
 }
 
 data class Artist(
@@ -30,7 +35,7 @@ data class SongItem(
     val endpoint: WatchEndpoint? = null,
 ) : YTItem() {
     override val shareLink: String
-        get() = "https://music.youtube.com/watch?v=$id"
+        get() = "${SHARE_DOMAIN}/watch?v=$id"
 }
 
 data class AlbumItem(
@@ -44,7 +49,7 @@ data class AlbumItem(
     override val explicit: Boolean = false,
 ) : YTItem() {
     override val shareLink: String
-        get() = "https://music.youtube.com/playlist?list=$playlistId"
+        get() = "${SHARE_DOMAIN}/playlist?list=$playlistId"
 }
 
 data class PlaylistItem(
@@ -61,7 +66,7 @@ data class PlaylistItem(
     override val explicit: Boolean
         get() = false
     override val shareLink: String
-        get() = "https://music.youtube.com/playlist?list=$id"
+        get() = "${SHARE_DOMAIN}/playlist?list=$id"
 }
 
 data class ArtistItem(
@@ -75,7 +80,7 @@ data class ArtistItem(
     override val explicit: Boolean
         get() = false
     override val shareLink: String
-        get() = "https://music.youtube.com/channel/$id"
+        get() = "${SHARE_DOMAIN}/channel/$id"
 }
 
 fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) =

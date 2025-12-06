@@ -148,17 +148,20 @@
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.NoDisplay">
 
-            <!-- App Link for https://shivaaymusic.app/play -->
+            <!-- App Link for https://shivaaymusic.com - handles watch, playlist, channel, browse -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:scheme="https"
-                    android:host="shivaaymusic.app"
-                    android:pathPrefix="/play" />
+                <data android:scheme="https" />
+                <data android:host="shivaaymusic.com" />
+                <data android:host="www.shivaaymusic.com" />
+                <data android:pathPrefix="/watch" />
+                <data android:pathPrefix="/playlist" />
+                <data android:pathPrefix="/channel" />
+                <data android:pathPrefix="/browse" />
             </intent-filter>
 
             <!-- Custom scheme: shivaaymusic:// -->
