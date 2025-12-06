@@ -1,6 +1,11 @@
 package com.shivaay20005.shivaaymusic.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -58,6 +63,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import com.shivaay20005.shivaaymusic.LocalDatabase
 import com.shivaay20005.shivaaymusic.R
@@ -78,6 +84,34 @@ fun AuthScreen(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    
+    // Request notification permission after successful login/signup
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Permission result handled, proceed with login success
+        onLoginSuccess()
+    }
+    
+    // Function to request notification permission and then proceed
+    fun requestNotificationPermissionAndProceed() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            
+            if (!hasPermission) {
+                // Request notification permission
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                onLoginSuccess()
+            }
+        } else {
+            // For Android versions before 13, notifications are enabled by default
+            onLoginSuccess()
+        }
+    }
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     
@@ -136,7 +170,7 @@ fun AuthScreen(
                     }
                     
                     Toast.makeText(context, context.getString(R.string.auth_login_success), Toast.LENGTH_SHORT).show()
-                    onLoginSuccess()
+                    requestNotificationPermissionAndProceed()
                 } else {
                     Toast.makeText(context, context.getString(R.string.auth_error_invalid_credentials), Toast.LENGTH_SHORT).show()
                 }
@@ -199,7 +233,7 @@ fun AuthScreen(
                 }
                 
                 Toast.makeText(context, context.getString(R.string.auth_signup_success), Toast.LENGTH_SHORT).show()
-                onLoginSuccess()
+                requestNotificationPermissionAndProceed()
             } catch (e: Exception) {
                 Toast.makeText(context, context.getString(R.string.auth_error_email_exists), Toast.LENGTH_SHORT).show()
             } finally {
