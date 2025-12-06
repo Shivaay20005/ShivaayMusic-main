@@ -316,6 +316,17 @@ class MainActivity : ComponentActivity() {
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        // Apply screenshot protection synchronously BEFORE the window is shown
+        // This is important - the flag must be set before setContent is called
+        val disableScreenshot = dataStore.get(DisableScreenshotKey, false)
+        if (disableScreenshot) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE,
+            )
+        }
+
+        // Then continue listening for future preference changes
         lifecycleScope.launch {
             dataStore.data
                 .map { it[DisableScreenshotKey] ?: false }
