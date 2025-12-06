@@ -599,8 +599,8 @@ fun HomeScreen(
                                 )
                         )
                         else -> {
-                            // For albums and artists, show as grid item in a row
-                            Row(
+                            // For albums and artists, show as grid item
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 12.dp)

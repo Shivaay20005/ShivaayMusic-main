@@ -141,16 +141,21 @@ constructor(
                     allItems.addAll(result.items)
                     songContinuation = result.continuation
                 }
-                .onFailure { songContinuation = null }
+                .onFailure { error ->
+                    reportException(error)
+                    songContinuation = null
+                }
             loadAttempts++
         }
         
         // Also load albums and playlists for variety
         YouTube.search(query, YouTube.SearchFilter.FILTER_ALBUM)
             .onSuccess { allItems.addAll(it.items.take(15)) }
+            .onFailure { reportException(it) }
         
         YouTube.search(query, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST)
             .onSuccess { allItems.addAll(it.items.take(15)) }
+            .onFailure { reportException(it) }
         
         val filteredItems = allItems
             .distinctBy { it.id }
