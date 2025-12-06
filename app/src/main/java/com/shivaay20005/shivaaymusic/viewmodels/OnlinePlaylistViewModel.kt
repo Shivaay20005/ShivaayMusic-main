@@ -40,6 +40,13 @@ class OnlinePlaylistViewModel @Inject constructor(
     
     // Error state for displaying to user
     val errorMessage = MutableStateFlow<String?>(null)
+    
+    companion object {
+        private const val MAX_RETRY_ATTEMPTS = 2
+        private const val RETRY_DELAY_MS = 1000L
+        private const val MAX_CONTINUATION_FAILURES = 3
+        private const val CONTINUATION_RETRY_DELAY_MS = 500L
+    }
 
     init {
         loadPlaylist()
@@ -70,7 +77,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                     var pageCount = 1
                     var continuationFailures = 0
                     
-                    while (continuation != null && continuationFailures < 3) {
+                    while (continuation != null && continuationFailures < MAX_CONTINUATION_FAILURES) {
                         pageCount++
                         val continuationPage = YouTube.playlistContinuation(continuation).getOrNull()
                         if (continuationPage != null) {
@@ -81,9 +88,9 @@ class OnlinePlaylistViewModel @Inject constructor(
                             continuationFailures = 0 // Reset failure count on success
                         } else {
                             continuationFailures++
-                            if (continuationFailures < 3) {
+                            if (continuationFailures < MAX_CONTINUATION_FAILURES) {
                                 // Wait a bit before retrying continuation
-                                delay(500L)
+                                delay(CONTINUATION_RETRY_DELAY_MS)
                             } else {
                                 // Stop trying but keep what we have
                                 break
@@ -101,9 +108,9 @@ class OnlinePlaylistViewModel @Inject constructor(
                             "This playlist is private"
                         exception.message?.contains("title not found", ignoreCase = true) == true ->
                             "Playlist not accessible. It may be private or deleted."
-                        retryCount < 2 -> {
+                        retryCount < MAX_RETRY_ATTEMPTS -> {
                             // Auto-retry on failure
-                            delay(1000L)
+                            delay(RETRY_DELAY_MS)
                             loadPlaylist(retryCount + 1)
                             return@launch
                         }

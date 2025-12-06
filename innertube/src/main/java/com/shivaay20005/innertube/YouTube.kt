@@ -339,9 +339,9 @@ object YouTube {
         val title = header?.title?.runs?.firstOrNull()?.text
             ?: throw IllegalStateException("Playlist title not found. The playlist may be unavailable or private.")
         
-        // Get thumbnail with fallback to a default
+        // Get thumbnail with fallback to empty string (the app should handle missing thumbnails gracefully)
         val thumbnail = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url
-            ?: "https://music.youtube.com/img/on_platform_logo_dark.svg"
+            ?: ""
         
         // Get shuffle endpoint - make optional instead of required
         val shuffleEndpoint = header.buttons?.lastOrNull()?.menuRenderer?.items?.firstOrNull()?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
