@@ -44,6 +44,7 @@ import com.shivaay20005.shivaaymusic.ui.component.MoodSelectorCard
 import com.shivaay20005.shivaaymusic.ui.component.NavigationTitle
 import com.shivaay20005.shivaaymusic.ui.component.PodcastSection
 import com.shivaay20005.shivaaymusic.ui.component.YouTubeGridItem
+import com.shivaay20005.shivaaymusic.ui.component.YouTubeListItem
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.GridItemPlaceHolder
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.ShimmerHost
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.TextPlaceholder
@@ -129,7 +130,7 @@ fun ExploreScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // New Release Albums section
+            // New Release Albums section - Mixed vertical and horizontal layout
             explorePage?.newReleaseAlbums?.takeIf { it.isNotEmpty() }?.let { newReleaseAlbums ->
                 NavigationTitle(
                     title = stringResource(R.string.new_release_albums),
@@ -138,37 +139,71 @@ fun ExploreScreen(
                     },
                 )
 
-                LazyRow(
-                    contentPadding = WindowInsets.systemBars
-                        .only(WindowInsetsSides.Horizontal)
-                        .asPaddingValues(),
-                ) {
-                    items(
-                        items = newReleaseAlbums,
-                        key = { it.id }
-                    ) { album ->
-                        YouTubeGridItem(
-                            item = album,
-                            isActive = mediaMetadata?.album?.id == album.id,
-                            isPlaying = isPlaying,
-                            coroutineScope = coroutineScope,
-                            modifier = Modifier
-                                .combinedClickable(
-                                    onClick = {
-                                        navController.navigate("album/${album.id}")
-                                    },
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            YouTubeAlbumMenu(
-                                                albumItem = album,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
+                // Split: first 4 albums vertical, rest horizontal
+                val verticalAlbums = newReleaseAlbums.take(4)
+                val horizontalAlbums = newReleaseAlbums.drop(4)
+
+                // Vertical album items
+                verticalAlbums.forEach { album ->
+                    YouTubeListItem(
+                        item = album,
+                        isActive = mediaMetadata?.album?.id == album.id,
+                        isPlaying = isPlaying,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("album/${album.id}")
+                                },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    menuState.show {
+                                        YouTubeAlbumMenu(
+                                            albumItem = album,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
                                     }
-                                )
-                        )
+                                }
+                            )
+                    )
+                }
+
+                // Horizontal row for remaining albums
+                if (horizontalAlbums.isNotEmpty()) {
+                    LazyRow(
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                    ) {
+                        items(
+                            items = horizontalAlbums,
+                            key = { it.id }
+                        ) { album ->
+                            YouTubeGridItem(
+                                item = album,
+                                isActive = mediaMetadata?.album?.id == album.id,
+                                isPlaying = isPlaying,
+                                coroutineScope = coroutineScope,
+                                modifier = Modifier
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("album/${album.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                YouTubeAlbumMenu(
+                                                    albumItem = album,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    )
+                            )
+                        }
                     }
                 }
             }
