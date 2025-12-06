@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.shivaay20005.innertube.YouTube
 import com.shivaay20005.innertube.models.PlaylistItem
 import com.shivaay20005.innertube.models.SongItem
-import com.shivaay20005.innertube.utils.completed
 import com.shivaay20005.shivaaymusic.db.MusicDatabase
+import com.shivaay20005.shivaaymusic.db.entities.PlaylistEntity
+import com.shivaay20005.shivaaymusic.db.entities.PlaylistSongMap
+import com.shivaay20005.shivaaymusic.models.toMediaMetadata
 import com.shivaay20005.shivaaymusic.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class OnlinePlaylistViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    database: MusicDatabase
+    private val database: MusicDatabase
 ) : ViewModel() {
     private val playlistId = savedStateHandle.get<String>("playlistId")!!
 
@@ -28,16 +30,113 @@ class OnlinePlaylistViewModel @Inject constructor(
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
     val dbPlaylist = database.playlistByBrowseId(playlistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    
+    // Loading state for large playlists
+    val isLoading = MutableStateFlow(true)
+    val loadingProgress = MutableStateFlow<String?>(null)
+    val isSaving = MutableStateFlow(false)
+    val saveProgress = MutableStateFlow<String?>(null)
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            YouTube.playlist(playlistId).completed()
+            isLoading.value = true
+            loadingProgress.value = "Loading playlist..."
+            
+            YouTube.playlist(playlistId)
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
-                    playlistSongs.value = playlistPage.songs
+                    val songs = playlistPage.songs.toMutableList()
+                    playlistSongs.value = songs
+                    loadingProgress.value = "Loaded ${songs.size} songs..."
+                    
+                    // Load continuation pages for large playlists
+                    var continuation = playlistPage.songsContinuation
+                    var pageCount = 1
+                    while (continuation != null) {
+                        pageCount++
+                        val continuationPage = YouTube.playlistContinuation(continuation).getOrNull()
+                        if (continuationPage != null) {
+                            songs.addAll(continuationPage.songs)
+                            playlistSongs.value = songs.toList()
+                            loadingProgress.value = "Loaded ${songs.size} songs..."
+                            continuation = continuationPage.continuation
+                        } else {
+                            break
+                        }
+                    }
+                    loadingProgress.value = "Total: ${songs.size} songs"
                 }.onFailure {
                     reportException(it)
+                    loadingProgress.value = "Failed to load playlist"
                 }
+            
+            isLoading.value = false
+        }
+    }
+
+    /**
+     * Import the playlist to local database with progress tracking
+     * This handles large playlists by batch inserting songs
+     */
+    fun importPlaylistToLocal(onComplete: (success: Boolean, message: String) -> Unit) {
+        val currentPlaylist = playlist.value ?: run {
+            onComplete(false, "Playlist not loaded")
+            return
+        }
+        val currentSongs = playlistSongs.value
+        if (currentSongs.isEmpty()) {
+            onComplete(false, "No songs to import")
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            isSaving.value = true
+            saveProgress.value = "Creating playlist..."
+            
+            try {
+                database.transaction {
+                    // Create the playlist entity
+                    val playlistEntity = PlaylistEntity(
+                        name = currentPlaylist.title,
+                        browseId = currentPlaylist.id,
+                        isEditable = currentPlaylist.isEditable,
+                        playEndpointParams = currentPlaylist.playEndpoint?.params,
+                        shuffleEndpointParams = currentPlaylist.shuffleEndpoint?.params,
+                        radioEndpointParams = currentPlaylist.radioEndpoint?.params
+                    ).toggleLike()
+                    insert(playlistEntity)
+                    
+                    // Insert songs in batches for better performance with large playlists
+                    val batchSize = 50
+                    val totalSongs = currentSongs.size
+                    
+                    currentSongs.chunked(batchSize).forEachIndexed { batchIndex, batch ->
+                        val startIndex = batchIndex * batchSize
+                        saveProgress.value = "Importing songs ${startIndex + 1}-${minOf(startIndex + batch.size, totalSongs)} of $totalSongs..."
+                        
+                        batch.forEachIndexed { indexInBatch, song ->
+                            val songMetadata = song.toMediaMetadata()
+                            insert(songMetadata)
+                            insert(
+                                PlaylistSongMap(
+                                    songId = songMetadata.id,
+                                    playlistId = playlistEntity.id,
+                                    position = startIndex + indexInBatch
+                                )
+                            )
+                        }
+                    }
+                }
+                
+                saveProgress.value = "Import complete! ${currentSongs.size} songs added"
+                onComplete(true, "Successfully imported ${currentSongs.size} songs")
+            } catch (e: Exception) {
+                reportException(e)
+                saveProgress.value = "Import failed"
+                onComplete(false, "Failed to import: ${e.message}")
+            } finally {
+                isSaving.value = false
+            }
         }
     }
 }

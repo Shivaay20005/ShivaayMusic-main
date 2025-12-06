@@ -126,6 +126,12 @@ fun OnlinePlaylistScreen(
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
+    
+    // Loading and saving state for large playlists
+    val isLoading by viewModel.isLoading.collectAsState()
+    val loadingProgress by viewModel.loadingProgress.collectAsState()
+    val isSaving by viewModel.isSaving.collectAsState()
+    val saveProgress by viewModel.saveProgress.collectAsState()
 
     var selection by remember {
         mutableStateOf(false)
@@ -170,9 +176,6 @@ fun OnlinePlaylistScreen(
             query = TextFieldValue()
         }
     }
-
-
-
 
 
 
@@ -279,40 +282,44 @@ fun OnlinePlaylistScreen(
                                                 )
                                             }
 
-                                            playlist.songCountText?.let { songCountText ->
-                                                Text(
-                                                    text = songCountText,
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.Normal,
-                                                )
+                                            // Show song count with loading progress
+                                            Column {
+                                                playlist.songCountText?.let { songCountText ->
+                                                    Text(
+                                                        text = songCountText,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        fontWeight = FontWeight.Normal,
+                                                    )
+                                                }
+                                                // Show loading progress for large playlists
+                                                if (isLoading || loadingProgress != null) {
+                                                    Text(
+                                                        text = loadingProgress ?: "Loading...",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                    )
+                                                }
+                                                // Show save progress when importing
+                                                if (isSaving || saveProgress != null) {
+                                                    Text(
+                                                        text = saveProgress ?: "Saving...",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.secondary,
+                                                    )
+                                                }
                                             }
 
                                             Row {
                                                 if (playlist.id != "LM") {
                                                     IconButton(
+                                                        enabled = !isSaving,
                                                         onClick = {
                                                             if (dbPlaylist?.playlist == null) {
-                                                                database.transaction {
-                                                                    val playlistEntity =
-                                                                        PlaylistEntity(
-                                                                            name = playlist.title,
-                                                                            browseId = playlist.id,
-                                                                            isEditable = playlist.isEditable,
-                                                                            playEndpointParams = playlist.playEndpoint?.params,
-                                                                            shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                                                            radioEndpointParams = playlist.radioEndpoint?.params
-                                                                        ).toggleLike()
-                                                                    insert(playlistEntity)
-                                                                    songs.map(SongItem::toMediaMetadata)
-                                                                        .onEach(::insert)
-                                                                        .mapIndexed { index, song ->
-                                                                            PlaylistSongMap(
-                                                                                songId = song.id,
-                                                                                playlistId = playlistEntity.id,
-                                                                                position = index
-                                                                            )
-                                                                        }
-                                                                        .forEach(::insert)
+                                                                // Use the ViewModel's import function for large playlists
+                                                                viewModel.importPlaylistToLocal { success, message ->
+                                                                    coroutineScope.launch {
+                                                                        snackbarHostState.showSnackbar(message)
+                                                                    }
                                                                 }
                                                             } else {
                                                                 database.transaction {
