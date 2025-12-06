@@ -90,7 +90,7 @@ fun UpdateAlertBanner(
                     try {
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://github.com/shivaay20005/shivaaymusic/releases/latest")
+                            Uri.parse("https://github.com/Shivaay20005/ShivaayMusic-main/releases/latest")
                         )
                         context.startActivity(intent)
                     } catch (e: Exception) {

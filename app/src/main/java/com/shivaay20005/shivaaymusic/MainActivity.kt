@@ -1817,7 +1817,7 @@ private fun openNotificationSettings(context: Context) {
 
 suspend fun checkForUpdates(): String? = withContext(Dispatchers.IO) {
     try {
-        val url = URL("https://api.github.com/repos/shivaay20005/shivaaymusic/releases/latest")
+        val url = URL("https://api.github.com/repos/Shivaay20005/ShivaayMusic-main/releases/latest")
         val connection = url.openConnection()
         connection.connect()
         val json = connection.getInputStream().bufferedReader().use { it.readText() }

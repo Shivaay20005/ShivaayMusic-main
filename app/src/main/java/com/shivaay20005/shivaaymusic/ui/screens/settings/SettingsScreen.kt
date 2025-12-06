@@ -142,7 +142,7 @@ fun VersionCard(uriHandler: UriHandler) {
 
             ),
         shape = RoundedCornerShape(38.dp),
-        onClick = { uriHandler.openUri("https://github.com/shivaay20005/shivaaymusic/releases/latest") }
+        onClick = { uriHandler.openUri("https://github.com/Shivaay20005/ShivaayMusic-main/releases/latest") }
     ) {
         Column(
             modifier = Modifier
@@ -412,7 +412,7 @@ suspend fun downloadApk(
     try {
         // URL of the APK (adjust this URL according to where your APK files are hosted)
         val apkUrl =
-            "https://github.com/shivaay20005/shivaaymusic/releases/download/$version/app-release.apk"
+            "https://github.com/Shivaay20005/ShivaayMusic-main/releases/download/$version/app-release.apk"
 
         // Create destination file
         val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
@@ -513,7 +513,7 @@ fun installApk(context: Context, apkUri: Uri) {
 // These functions you already had
 suspend fun checkForUpdates(): String? = withContext(Dispatchers.IO) {
     try {
-        val url = URL("https://api.github.com/repos/shivaay20005/shivaaymusic/releases/latest")
+        val url = URL("https://api.github.com/repos/Shivaay20005/ShivaayMusic-main/releases/latest")
         val connection = url.openConnection()
         connection.connect()
         val json = connection.getInputStream().bufferedReader().use { it.readText() }
