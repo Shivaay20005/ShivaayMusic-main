@@ -593,7 +593,7 @@ fun VerticalReelsPlayer(
             }
 
             // Swipe indicator
-            AnimatedVisibility(
+            androidx.compose.animation.AnimatedVisibility(
                 visible = isDragging && abs(offsetY) > 50,
                 enter = fadeIn(),
                 exit = fadeOut(),
