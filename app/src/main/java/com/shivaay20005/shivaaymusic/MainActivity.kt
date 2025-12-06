@@ -693,6 +693,24 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(null)
                     }
                     DisposableEffect(Unit) {
+                        // Helper function to play a video by ID
+                        fun playVideo(videoId: String) {
+                            coroutineScope.launch {
+                                withContext(Dispatchers.IO) {
+                                    YouTube.queue(listOf(videoId))
+                                }.onSuccess {
+                                    playerConnection?.playQueue(
+                                        YouTubeQueue(
+                                            WatchEndpoint(videoId = it.firstOrNull()?.id),
+                                            it.firstOrNull()?.toMediaMetadata()
+                                        )
+                                    )
+                                }.onFailure {
+                                    reportException(it)
+                                }
+                            }
+                        }
+                        
                         val listener =
                             Consumer<Intent> { intent ->
                                 val uri = intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)
@@ -729,24 +747,40 @@ class MainActivity : ComponentActivity() {
 
                                     else ->
                                         when {
-                                            path == "watch" -> uri.getQueryParameter("v")
+                                            path == "watch" -> {
+                                                // Check if there's a playlist ID in the watch URL
+                                                val playlistId = uri.getQueryParameter("list")
+                                                val videoId = uri.getQueryParameter("v")
+                                                
+                                                if (playlistId != null && playlistId.isNotEmpty()) {
+                                                    // If playlist ID exists, navigate to playlist
+                                                    if (playlistId.startsWith("OLAK5uy_")) {
+                                                        coroutineScope.launch {
+                                                            YouTube
+                                                                .albumSongs(playlistId)
+                                                                .onSuccess { songs ->
+                                                                    songs.firstOrNull()?.album?.id?.let { browseId ->
+                                                                        navController.navigate("album/$browseId")
+                                                                    }
+                                                                }.onFailure {
+                                                                    // Fallback to playing just the video
+                                                                    if (videoId != null) {
+                                                                        playVideo(videoId)
+                                                                    }
+                                                                }
+                                                        }
+                                                    } else {
+                                                        navController.navigate("online_playlist/$playlistId")
+                                                    }
+                                                } else if (videoId != null) {
+                                                    playVideo(videoId)
+                                                }
+                                                null // Return null to avoid the .let block
+                                            }
                                             uri.host == "youtu.be" -> path
                                             else -> null
                                         }?.let { videoId ->
-                                            coroutineScope.launch {
-                                                withContext(Dispatchers.IO) {
-                                                    YouTube.queue(listOf(videoId))
-                                                }.onSuccess {
-                                                    playerConnection?.playQueue(
-                                                        YouTubeQueue(
-                                                            WatchEndpoint(videoId = it.firstOrNull()?.id),
-                                                            it.firstOrNull()?.toMediaMetadata()
-                                                        )
-                                                    )
-                                                }.onFailure {
-                                                    reportException(it)
-                                                }
-                                            }
+                                            playVideo(videoId)
                                         }
                                 }
                             }

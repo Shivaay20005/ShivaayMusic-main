@@ -133,6 +133,9 @@ fun OnlinePlaylistScreen(
     val loadingProgress by viewModel.loadingProgress.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
     val saveProgress by viewModel.saveProgress.collectAsState()
+    
+    // Error state
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     var selection by remember {
         mutableStateOf(false)
@@ -479,6 +482,47 @@ fun OnlinePlaylistScreen(
                                         .alpha(if (hideExplicit && song.item.second.explicit) 0.3f else 1f)
                                         .animateItem(),
                             )
+                        }
+                    } else if (errorMessage != null) {
+                        // Show error state with retry button
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.error),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                
+                                Spacer(Modifier.height(16.dp))
+                                
+                                Text(
+                                    text = errorMessage ?: "Failed to load playlist",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                                
+                                Spacer(Modifier.height(24.dp))
+                                
+                                Button(
+                                    onClick = { viewModel.retry() }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.sync),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                                    )
+                                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                    Text(stringResource(R.string.retry))
+                                }
+                            }
                         }
                     } else {
                         item {
