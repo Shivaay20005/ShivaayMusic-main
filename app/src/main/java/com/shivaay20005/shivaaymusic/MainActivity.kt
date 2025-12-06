@@ -897,7 +897,7 @@ class MainActivity : ComponentActivity() {
                                                         painter = painterResource(R.drawable.source_icon),
                                                         contentDescription = null,
                                                         modifier = Modifier.size(44.dp),
-                                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                                                        contentScale = ContentScale.Fit
                                                     )
                                                     Spacer(modifier = Modifier.width(8.dp))
                                                     Column {
