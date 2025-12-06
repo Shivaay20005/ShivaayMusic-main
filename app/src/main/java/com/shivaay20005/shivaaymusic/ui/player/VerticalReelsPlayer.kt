@@ -317,7 +317,7 @@ fun VerticalReelsPlayer(
                         .padding(horizontal = 40.dp)
                 ) {
                     // Show Lyrics when showLyrics is true
-                    AnimatedVisibility(
+                    androidx.compose.animation.AnimatedVisibility(
                         visible = showLyrics,
                         enter = fadeIn(),
                         exit = fadeOut()
@@ -337,7 +337,7 @@ fun VerticalReelsPlayer(
                     }
                     
                     // Show Thumbnail when lyrics are hidden
-                    AnimatedVisibility(
+                    androidx.compose.animation.AnimatedVisibility(
                         visible = !showLyrics,
                         enter = fadeIn(),
                         exit = fadeOut()
