@@ -381,7 +381,7 @@ fun RichPresence(song: Song?) {
                 onClick = {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://github.com/Shivaay20005/ShivaayMusic-main")
+                        Uri.parse("https://github.com/shivaay20005/shivaaymusic")
                     )
                     context.startActivity(intent)
                 },
