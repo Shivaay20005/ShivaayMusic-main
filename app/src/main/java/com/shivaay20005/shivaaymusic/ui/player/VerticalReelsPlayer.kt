@@ -35,6 +35,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -70,14 +72,17 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.shivaay20005.shivaaymusic.LocalPlayerConnection
 import com.shivaay20005.shivaaymusic.R
+import com.shivaay20005.shivaaymusic.constants.ShowLyricsKey
 import com.shivaay20005.shivaaymusic.extensions.togglePlayPause
 import com.shivaay20005.shivaaymusic.extensions.toggleRepeatMode
 import com.shivaay20005.shivaaymusic.ui.component.BottomSheet
 import com.shivaay20005.shivaaymusic.ui.component.BottomSheetState
 import com.shivaay20005.shivaaymusic.ui.component.LocalMenuState
+import com.shivaay20005.shivaaymusic.ui.component.Lyrics
 import com.shivaay20005.shivaaymusic.ui.menu.PlayerMenu
 import com.shivaay20005.shivaaymusic.ui.theme.extractGradientColors
 import com.shivaay20005.shivaaymusic.utils.makeTimeString
+import com.shivaay20005.shivaaymusic.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -94,6 +99,7 @@ fun VerticalReelsPlayer(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val currentView = LocalView.current
 
     val playbackState by playerConnection.playbackState.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -110,6 +116,17 @@ fun VerticalReelsPlayer(
         mutableLongStateOf(playerConnection.player.duration)
     }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
+    
+    // Lyrics state - click on thumbnail to show lyrics
+    var showLyrics by rememberPreference(ShowLyricsKey, false)
+    
+    // Keep screen on when lyrics are shown
+    DisposableEffect(showLyrics) {
+        currentView.keepScreenOn = showLyrics
+        onDispose {
+            currentView.keepScreenOn = false
+        }
+    }
 
     // Swipe gesture state
     var offsetY by remember { mutableFloatStateOf(0f) }
@@ -292,52 +309,83 @@ fun VerticalReelsPlayer(
 
                 Spacer(modifier = Modifier.weight(0.3f))
 
-                // Album art - Large centered thumbnail
+                // Album art / Lyrics - Large centered area
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 40.dp)
                 ) {
-                    val thumbnailScale by animateFloatAsState(
-                        targetValue = if (isPlaying) 1f else 0.95f,
-                        animationSpec = tween(300),
-                        label = "thumbnailScale"
-                    )
-
-                    AsyncImage(
-                        model = mediaMetadata?.thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .scale(thumbnailScale)
-                            .clip(RoundedCornerShape(24.dp))
-                            .clickable {
-                                playerConnection.player.togglePlayPause()
-                            }
-                    )
-
-                    // Play/Pause overlay
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = !isPlaying,
+                    // Show Lyrics when showLyrics is true
+                    AnimatedVisibility(
+                        visible = showLyrics,
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
                         Box(
-                            contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(80.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.6f))
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color.Black.copy(alpha = 0.3f))
+                                .clickable { showLyrics = false }
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.play),
-                                contentDescription = "Play",
-                                tint = Color.White,
-                                modifier = Modifier.size(40.dp)
+                            Lyrics(
+                                sliderPositionProvider = { sliderPosition ?: position }
                             )
+                        }
+                    }
+                    
+                    // Show Thumbnail when lyrics are hidden
+                    AnimatedVisibility(
+                        visible = !showLyrics,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        val thumbnailScale by animateFloatAsState(
+                            targetValue = if (isPlaying) 1f else 0.95f,
+                            animationSpec = tween(300),
+                            label = "thumbnailScale"
+                        )
+
+                        Box(contentAlignment = Alignment.Center) {
+                            AsyncImage(
+                                model = mediaMetadata?.thumbnailUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .scale(thumbnailScale)
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .clickable {
+                                        // Click on thumbnail to show lyrics
+                                        showLyrics = true
+                                    }
+                            )
+
+                            // Play/Pause overlay
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = !isPlaying,
+                                enter = fadeIn(),
+                                exit = fadeOut()
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Black.copy(alpha = 0.6f))
+                                        .clickable { playerConnection.player.togglePlayPause() }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.play),
+                                        contentDescription = "Play",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -53,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -92,6 +94,7 @@ import java.time.LocalDateTime
 import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,6 +134,76 @@ fun PlayerMenu(
 
     var showErrorPlaylistAddDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+    
+    // Sleep Timer state
+    var showSleepTimerDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var sleepTimerValue by remember {
+        mutableFloatStateOf(30f)
+    }
+    
+    // Sleep Timer Dialog
+    if (showSleepTimerDialog) {
+        AlertDialog(
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            onDismissRequest = { showSleepTimerDialog = false },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.bedtime),
+                    contentDescription = null
+                )
+            },
+            title = { Text(stringResource(R.string.sleep_timer)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSleepTimerDialog = false
+                        playerConnection.service.sleepTimer.start(sleepTimerValue.roundToInt())
+                        onDismiss()
+                    },
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showSleepTimerDialog = false },
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.minute,
+                            sleepTimerValue.roundToInt(),
+                            sleepTimerValue.roundToInt()
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+
+                    Slider(
+                        value = sleepTimerValue,
+                        onValueChange = { sleepTimerValue = it },
+                        valueRange = 5f..120f,
+                        steps = (120 - 5) / 5 - 1,
+                    )
+
+                    OutlinedButton(
+                        onClick = {
+                            showSleepTimerDialog = false
+                            playerConnection.service.sleepTimer.start(-1)
+                            onDismiss()
+                        },
+                    ) {
+                        Text(stringResource(R.string.end_of_song))
+                    }
+                }
+            },
+        )
     }
 
     AddToPlaylistDialog(
@@ -493,6 +566,13 @@ fun PlayerMenu(
                         title = R.string.advanced,
                     ) {
                         showPitchTempoDialog = true
+                    }
+                    // Sleep Timer
+                    GridMenuItem(
+                        icon = R.drawable.bedtime,
+                        title = R.string.sleep_timer,
+                    ) {
+                        showSleepTimerDialog = true
                     }
                 }
             }
