@@ -35,6 +35,9 @@ constructor(
     var summaryPage by mutableStateOf<SearchSummaryPage?>(null)
     val viewStateMap = mutableStateMapOf<String, ItemsPage?>()
 
+    // Minimum target items to load for rich search results
+    private val minItemsTarget = 60
+
     init {
         viewModelScope.launch {
             filter.collect { filter ->
@@ -78,6 +81,8 @@ constructor(
                                             ),
                                         result.continuation,
                                     )
+                                // Pre-load more results to show 60-80 items initially
+                                preloadMoreResults(filter.value)
                             }.onFailure {
                                 reportException(it)
                             }
@@ -87,29 +92,88 @@ constructor(
         }
     }
 
-    private suspend fun loadAllTabFallback() {
-        // Fall back to loading songs for "All" tab
-        YouTube
-            .search(query, YouTube.SearchFilter.FILTER_SONG)
-            .onSuccess { result ->
-                summaryPage = SearchSummaryPage(
-                    summaries = listOf(
-                        SearchSummary(
-                            title = "Songs",
-                            items = result.items
-                                .distinctBy { it.id }
-                                .filterExplicit(
-                                    context.dataStore.get(
-                                        HideExplicitKey,
-                                        false
-                                    )
-                                )
-                        )
+    /**
+     * Pre-loads additional search results to reach the target count (60-80 items)
+     * This provides a richer search experience with more content visible initially
+     */
+    private fun preloadMoreResults(filterValue: String) {
+        viewModelScope.launch {
+            var currentState = viewStateMap[filterValue] ?: return@launch
+            var loadAttempts = 0
+            val maxAttempts = 4 // Load up to 4 more pages to reach target
+            
+            while (currentState.items.size < minItemsTarget && 
+                   currentState.continuation != null && 
+                   loadAttempts < maxAttempts) {
+                val searchResult = YouTube.searchContinuation(currentState.continuation!!)
+                    .getOrNull() ?: break
+                
+                val newItems = (currentState.items + searchResult.items)
+                    .distinctBy { it.id }
+                    .filterExplicit(
+                        context.dataStore.get(HideExplicitKey, false)
                     )
-                )
-            }.onFailure {
-                reportException(it)
+                
+                currentState = ItemsPage(newItems, searchResult.continuation)
+                viewStateMap[filterValue] = currentState
+                loadAttempts++
             }
+        }
+    }
+
+    private suspend fun loadAllTabFallback() {
+        // Fall back to loading songs for "All" tab with multiple content types
+        val allItems = mutableListOf<com.shivaay20005.innertube.models.YTItem>()
+        var songContinuation: String? = null
+        
+        // Load songs
+        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG)
+            .onSuccess { result ->
+                allItems.addAll(result.items)
+                songContinuation = result.continuation
+            }
+        
+        // Load more songs to reach target
+        var loadAttempts = 0
+        while (allItems.size < minItemsTarget && songContinuation != null && loadAttempts < 4) {
+            YouTube.searchContinuation(songContinuation!!)
+                .onSuccess { result ->
+                    allItems.addAll(result.items)
+                    songContinuation = result.continuation
+                }
+                .onFailure { songContinuation = null }
+            loadAttempts++
+        }
+        
+        // Also load albums and playlists for variety
+        YouTube.search(query, YouTube.SearchFilter.FILTER_ALBUM)
+            .onSuccess { allItems.addAll(it.items.take(15)) }
+        
+        YouTube.search(query, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST)
+            .onSuccess { allItems.addAll(it.items.take(15)) }
+        
+        val filteredItems = allItems
+            .distinctBy { it.id }
+            .filterExplicit(context.dataStore.get(HideExplicitKey, false))
+        
+        if (filteredItems.isNotEmpty()) {
+            summaryPage = SearchSummaryPage(
+                summaries = listOf(
+                    SearchSummary(
+                        title = "Songs",
+                        items = filteredItems.filterIsInstance<com.shivaay20005.innertube.models.SongItem>()
+                    ),
+                    SearchSummary(
+                        title = "Albums",
+                        items = filteredItems.filterIsInstance<com.shivaay20005.innertube.models.AlbumItem>()
+                    ),
+                    SearchSummary(
+                        title = "Playlists",
+                        items = filteredItems.filterIsInstance<com.shivaay20005.innertube.models.PlaylistItem>()
+                    )
+                ).filter { it.items.isNotEmpty() }
+            )
+        }
     }
 
     fun loadMore() {

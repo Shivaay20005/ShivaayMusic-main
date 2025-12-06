@@ -413,11 +413,12 @@ fun HomeScreen(
                 }
 
                 item {
-                    // Increased rows for more content
+                    // Increased rows for more content - "bhar bhar ke songs"
                     val rows = when {
-                        quickPicks.size > 20 -> 4
-                        quickPicks.size > 12 -> 3
-                        else -> 3
+                        quickPicks.size > 40 -> 6
+                        quickPicks.size > 25 -> 5
+                        quickPicks.size > 15 -> 4
+                        else -> 4
                     }
                     LazyHorizontalGrid(
                         state = quickPicksLazyGridState,
@@ -500,9 +501,10 @@ fun HomeScreen(
                 item {
                     // Increased rows for more content
                     val rows = when {
-                        keepListening.size > 12 -> 3
-                        keepListening.size > 6 -> 2
-                        else -> 1
+                        keepListening.size > 25 -> 4
+                        keepListening.size > 15 -> 3
+                        keepListening.size > 8 -> 2
+                        else -> 2
                     }
                     LazyHorizontalGrid(
                         state = rememberLazyGridState(),
@@ -609,10 +611,10 @@ fun HomeScreen(
                     )
                 }
 
-                // Alternate between vertical list and horizontal grid for variety
+                // More vertical layouts - every other section is vertical (increased from 4 to 6 songs)
                 if (recIndex % 2 == 1) {
-                    // Vertical layout for songs
-                    val songItems = rec.items.filterIsInstance<SongItem>().take(4)
+                    // Vertical layout for songs (increased from 4 to 6)
+                    val songItems = rec.items.filterIsInstance<SongItem>().take(6)
                     if (songItems.isNotEmpty()) {
                         items(
                             items = songItems,
@@ -717,10 +719,10 @@ fun HomeScreen(
                     )
                 }
 
-                // Alternate between horizontal and vertical layouts for variety
-                if (sectionIndex % 3 == 1) {
-                    // Vertical list layout - show songs as list items
-                    val songItems = section.items.filterIsInstance<SongItem>().take(5)
+                // Alternate between horizontal and vertical layouts for variety - more vertical items now
+                if (sectionIndex % 2 == 1) {
+                    // Vertical list layout - show songs as list items (increased from 5 to 8)
+                    val songItems = section.items.filterIsInstance<SongItem>().take(8)
                     if (songItems.isNotEmpty()) {
                         items(
                             items = songItems,
@@ -881,11 +883,13 @@ fun HomeScreen(
                 }
 
                 item {
-                    // Increased rows for more content
+                    // Increased rows for more content - "bhar bhar ke songs"
                     val rows = when {
+                        forgottenFavorites.size > 40 -> 7
+                        forgottenFavorites.size > 30 -> 6
                         forgottenFavorites.size > 20 -> 5
-                        forgottenFavorites.size > 12 -> 4
-                        else -> min(4, forgottenFavorites.size)
+                        forgottenFavorites.size > 12 -> 5
+                        else -> min(5, forgottenFavorites.size)
                     }
                     LazyHorizontalGrid(
                         state = forgottenFavoritesLazyGridState,

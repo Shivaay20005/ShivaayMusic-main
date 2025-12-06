@@ -62,24 +62,25 @@ class HomeViewModel @Inject constructor(
         isLoading.value = true
 
         // PARALLEL LOADING - Load local data first (fast)
+        // Increased limits to show more content - "bhar bhar ke songs"
         val quickPicksDeferred = viewModelScope.async(Dispatchers.IO) {
-            database.quickPicks().first().shuffled().take(30)
+            database.quickPicks().first().shuffled().take(60)
         }
         
         val forgottenFavoritesDeferred = viewModelScope.async(Dispatchers.IO) {
-            database.forgottenFavorites().first().shuffled().take(30)
+            database.forgottenFavorites().first().shuffled().take(60)
         }
 
         val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
         
         val keepListeningDeferred = viewModelScope.async(Dispatchers.IO) {
-            val songs = database.mostPlayedSongs(fromTimeStamp, limit = 25, offset = 3)
-                .first().shuffled().take(15)
-            val albums = database.mostPlayedAlbums(fromTimeStamp, limit = 12, offset = 1)
-                .first().filter { it.album.thumbnailUrl != null }.shuffled().take(8)
+            val songs = database.mostPlayedSongs(fromTimeStamp, limit = 50, offset = 3)
+                .first().shuffled().take(30)
+            val albums = database.mostPlayedAlbums(fromTimeStamp, limit = 25, offset = 1)
+                .first().filter { it.album.thumbnailUrl != null }.shuffled().take(15)
             val artists = database.mostPlayedArtists(fromTimeStamp)
                 .first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }
-                .shuffled().take(8)
+                .shuffled().take(15)
             (songs + albums + artists).shuffled()
         }
 
@@ -158,31 +159,32 @@ class HomeViewModel @Inject constructor(
         }
 
         // Load similar recommendations in parallel (these are slower network calls)
+        // Increased limits for more content - "bhar bhar ke aaye"
         viewModelScope.launch(Dispatchers.IO) {
             val artistRecommendations =
-                database.mostPlayedArtists(fromTimeStamp, limit = 15).first()
+                database.mostPlayedArtists(fromTimeStamp, limit = 25).first()
                     .filter { it.artist.isYouTubeArtist }
-                    .shuffled().take(6)
+                    .shuffled().take(10)
                     .mapNotNull {
                         val items = mutableListOf<YTItem>()
                         YouTube.artist(it.id).onSuccess { page ->
                             page.sections.forEach { section ->
-                                items += section.items.shuffled().take(6)
+                                items += section.items.shuffled().take(12)
                             }
                         }
                         SimilarRecommendation(
                             title = it,
                             items = items
                                 .shuffled()
-                                .take(18)
+                                .take(30)
                                 .ifEmpty { return@mapNotNull null }
                         )
                     }
             
             val songRecommendations =
-                database.mostPlayedSongs(fromTimeStamp, limit = 20).first()
+                database.mostPlayedSongs(fromTimeStamp, limit = 40).first()
                     .filter { it.album != null }
-                    .shuffled().take(5)
+                    .shuffled().take(10)
                     .mapNotNull { song ->
                         val endpoint =
                             YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
@@ -190,12 +192,12 @@ class HomeViewModel @Inject constructor(
                         val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
                         SimilarRecommendation(
                             title = song,
-                            items = (page.songs.shuffled().take(15) +
-                                    page.albums.shuffled().take(6) +
-                                    page.artists.shuffled().take(6) +
-                                    page.playlists.shuffled().take(6))
+                            items = (page.songs.shuffled().take(25) +
+                                    page.albums.shuffled().take(12) +
+                                    page.artists.shuffled().take(10) +
+                                    page.playlists.shuffled().take(12))
                                 .shuffled()
-                                .take(20)
+                                .take(35)
                                 .ifEmpty { return@mapNotNull null }
                         )
                     }
