@@ -33,8 +33,9 @@ import com.shivaay20005.shivaaymusic.ui.screens.settings.AccountSettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.AppearanceSettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.BackupAndRestore
 import com.shivaay20005.shivaaymusic.ui.screens.settings.ContentSettings
-import com.shivaay20005.shivaaymusic.ui.screens.settings.DiscordLoginScreen
-import com.shivaay20005.shivaaymusic.ui.screens.settings.DiscordSettings
+// Discord integration disabled
+// import com.shivaay20005.shivaaymusic.ui.screens.settings.DiscordLoginScreen
+// import com.shivaay20005.shivaaymusic.ui.screens.settings.DiscordSettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.PlayerSettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.PrivacySettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.SettingsScreen
@@ -269,12 +270,13 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/backup_restore") {
         BackupAndRestore(navController, scrollBehavior)
     }
-    composable("settings/discord") {
-        DiscordSettings(navController, scrollBehavior)
-    }
-    composable("settings/discord/login") {
-        DiscordLoginScreen(navController)
-    }
+    // Discord integration disabled
+    // composable("settings/discord") {
+    //     DiscordSettings(navController, scrollBehavior)
+    // }
+    // composable("settings/discord/login") {
+    //     DiscordLoginScreen(navController)
+    // }
     composable("settings/about") {
         AboutScreen(navController, scrollBehavior)
     }

@@ -60,8 +60,9 @@ import com.shivaay20005.shivaaymusic.constants.AudioNormalizationKey
 import com.shivaay20005.shivaaymusic.constants.AudioQualityKey
 import com.shivaay20005.shivaaymusic.constants.AutoLoadMoreKey
 import com.shivaay20005.shivaaymusic.constants.AutoSkipNextOnErrorKey
-import com.shivaay20005.shivaaymusic.constants.DiscordTokenKey
-import com.shivaay20005.shivaaymusic.constants.EnableDiscordRPCKey
+// Discord integration disabled
+// import com.shivaay20005.shivaaymusic.constants.DiscordTokenKey
+// import com.shivaay20005.shivaaymusic.constants.EnableDiscordRPCKey
 import com.shivaay20005.shivaaymusic.constants.HideExplicitKey
 import com.shivaay20005.shivaaymusic.constants.HistoryDuration
 import com.shivaay20005.shivaaymusic.constants.MediaSessionConstants.CommandToggleLike
@@ -100,7 +101,8 @@ import com.shivaay20005.shivaaymusic.playback.queues.Queue
 import com.shivaay20005.shivaaymusic.playback.queues.YouTubeQueue
 import com.shivaay20005.shivaaymusic.playback.queues.filterExplicit
 import com.shivaay20005.shivaaymusic.utils.CoilBitmapLoader
-import com.shivaay20005.shivaaymusic.utils.DiscordRPC
+// Discord integration disabled
+// import com.shivaay20005.shivaaymusic.utils.DiscordRPC
 import com.shivaay20005.shivaaymusic.utils.NetworkConnectivityObserver
 import com.shivaay20005.shivaaymusic.utils.YTPlayerUtils
 import com.shivaay20005.shivaaymusic.utils.dataStore
@@ -206,7 +208,8 @@ class MusicService :
 
     private var isAudioEffectSessionOpened = false
 
-    private var discordRpc: DiscordRPC? = null
+    // Discord integration disabled
+    // private var discordRpc: DiscordRPC? = null
 
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
@@ -306,11 +309,12 @@ class MusicService :
 
         currentSong.debounce(1000).collect(scope) { song ->
             updateNotification()
-            if (song != null) {
-                discordRpc?.updateSong(song)
-            } else {
-                discordRpc?.closeRPC()
-            }
+            // Discord integration disabled
+            // if (song != null) {
+            //     discordRpc?.updateSong(song)
+            // } else {
+            //     discordRpc?.closeRPC()
+            // }
         }
 
         combine(
@@ -357,22 +361,23 @@ class MusicService :
                 }
         }
 
-        dataStore.data
-            .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
-            .debounce(300)
-            .distinctUntilChanged()
-            .collect(scope) { (key, enabled) ->
-                if (discordRpc?.isRpcRunning() == true) {
-                    discordRpc?.closeRPC()
-                }
-                discordRpc = null
-                if (key != null && enabled) {
-                    discordRpc = DiscordRPC(this, key)
-                    currentSong.value?.let {
-                        discordRpc?.updateSong(it)
-                    }
-                }
-            }
+        // Discord integration disabled
+        // dataStore.data
+        //     .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
+        //     .debounce(300)
+        //     .distinctUntilChanged()
+        //     .collect(scope) { (key, enabled) ->
+        //         if (discordRpc?.isRpcRunning() == true) {
+        //             discordRpc?.closeRPC()
+        //         }
+        //         discordRpc = null
+        //         if (key != null && enabled) {
+        //             discordRpc = DiscordRPC(this, key)
+        //             currentSong.value?.let {
+        //                 discordRpc?.updateSong(it)
+        //             }
+        //         }
+        //     }
 
         if (dataStore.get(PersistentQueueKey, true)) {
             runCatching {
@@ -1090,10 +1095,11 @@ class MusicService :
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
-        if (discordRpc?.isRpcRunning() == true) {
-            discordRpc?.closeRPC()
-        }
-        discordRpc = null
+        // Discord integration disabled
+        // if (discordRpc?.isRpcRunning() == true) {
+        //     discordRpc?.closeRPC()
+        // }
+        // discordRpc = null
         mediaSession.release()
         player.removeListener(this)
         player.removeListener(sleepTimer)
