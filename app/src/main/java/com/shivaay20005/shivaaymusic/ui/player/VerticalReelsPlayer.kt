@@ -2,14 +2,12 @@ package com.shivaay20005.shivaaymusic.ui.player
 
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -52,12 +50,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -68,23 +62,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.shivaay20005.shivaaymusic.LocalDatabase
-import com.shivaay20005.shivaaymusic.LocalDownloadUtil
 import com.shivaay20005.shivaaymusic.LocalPlayerConnection
 import com.shivaay20005.shivaaymusic.R
 import com.shivaay20005.shivaaymusic.extensions.togglePlayPause
 import com.shivaay20005.shivaaymusic.extensions.toggleRepeatMode
-import com.shivaay20005.shivaaymusic.playback.ExoDownloadService
 import com.shivaay20005.shivaaymusic.ui.component.BottomSheet
 import com.shivaay20005.shivaaymusic.ui.component.BottomSheetState
 import com.shivaay20005.shivaaymusic.ui.component.LocalMenuState
@@ -105,7 +92,6 @@ fun VerticalReelsPlayer(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val database = LocalDatabase.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
 
@@ -116,10 +102,6 @@ fun VerticalReelsPlayer(
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
-
-    // Download state
-    val download by LocalDownloadUtil.current.getDownload(mediaMetadata?.id ?: "")
-        .collectAsState(initial = null)
 
     var position by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.currentPosition)
@@ -535,142 +517,6 @@ fun VerticalReelsPlayer(
                             contentDescription = "Like",
                             tint = if (currentSong?.song?.liked == true) Color(0xFFE91E63) else Color.White,
                             modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Secondary action buttons row (Download)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 48.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Download button
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(Color.White.copy(alpha = 0.2f))
-                            .clickable {
-                                mediaMetadata?.let { metadata ->
-                                    if (download?.state == Download.STATE_COMPLETED) {
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            metadata.id,
-                                            false,
-                                        )
-                                    } else {
-                                        database.transaction {
-                                            insert(metadata)
-                                        }
-                                        val downloadRequest =
-                                            DownloadRequest
-                                                .Builder(metadata.id, metadata.id.toUri())
-                                                .setCustomCacheKey(metadata.id)
-                                                .setData(metadata.title.toByteArray())
-                                                .build()
-                                        DownloadService.sendAddDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            downloadRequest,
-                                            false,
-                                        )
-                                    }
-                                }
-                            },
-                    ) {
-                        // Download progress indicator
-                        if (download?.state == Download.STATE_DOWNLOADING) {
-                            val progress = (download?.percentDownloaded ?: 0f) / 100f
-                            val animatedProgress by animateFloatAsState(
-                                targetValue = progress,
-                                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-                                label = "downloadProgress"
-                            )
-
-                            Canvas(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(2.dp)
-                            ) {
-                                val strokeWidth = 3.dp.toPx()
-                                val radius = (size.minDimension - strokeWidth) / 2
-                                val center = Offset(size.width / 2, size.height / 2)
-
-                                // Background circle
-                                drawCircle(
-                                    color = Color.White.copy(alpha = 0.3f),
-                                    radius = radius,
-                                    center = center,
-                                    style = Stroke(width = strokeWidth)
-                                )
-
-                                // Progress arc
-                                if (animatedProgress > 0f) {
-                                    drawArc(
-                                        color = Color.White,
-                                        startAngle = -90f,
-                                        sweepAngle = 360f * animatedProgress,
-                                        useCenter = false,
-                                        topLeft = Offset(
-                                            center.x - radius,
-                                            center.y - radius
-                                        ),
-                                        size = Size(radius * 2, radius * 2),
-                                        style = Stroke(
-                                            width = strokeWidth,
-                                            cap = StrokeCap.Round
-                                        )
-                                    )
-                                }
-                            }
-                        }
-
-                        // Download icon
-                        val iconResource = when (download?.state) {
-                            Download.STATE_COMPLETED -> R.drawable.offline
-                            Download.STATE_DOWNLOADING -> R.drawable.pause
-                            Download.STATE_FAILED -> R.drawable.error
-                            else -> R.drawable.download
-                        }
-
-                        val iconAlpha by animateFloatAsState(
-                            targetValue = if (download?.state == Download.STATE_DOWNLOADING) 0.8f else 1f,
-                            animationSpec = tween(durationMillis = 200),
-                            label = "iconAlpha"
-                        )
-
-                        val iconScale by animateFloatAsState(
-                            targetValue = if (download?.state == Download.STATE_DOWNLOADING) 0.9f else 1f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessLow
-                            ),
-                            label = "iconScale"
-                        )
-
-                        Icon(
-                            painter = painterResource(iconResource),
-                            contentDescription = when (download?.state) {
-                                Download.STATE_COMPLETED -> "Downloaded"
-                                Download.STATE_DOWNLOADING -> "Downloading..."
-                                Download.STATE_FAILED -> "Download failed"
-                                else -> "Download"
-                            },
-                            tint = when (download?.state) {
-                                Download.STATE_FAILED -> MaterialTheme.colorScheme.error
-                                else -> Color.White
-                            },
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .size(24.dp)
-                                .scale(iconScale)
-                                .alpha(iconAlpha),
                         )
                     }
                 }
