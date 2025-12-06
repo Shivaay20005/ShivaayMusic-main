@@ -102,6 +102,7 @@ import com.shivaay20005.shivaaymusic.ui.component.NavigationTitle
 import com.shivaay20005.shivaaymusic.ui.component.ShivaaySpecialHeader
 import com.shivaay20005.shivaaymusic.ui.component.SongGridItem
 import com.shivaay20005.shivaaymusic.ui.component.SongListItem
+import com.shivaay20005.shivaaymusic.ui.component.UpdateAlertBanner
 import com.shivaay20005.shivaaymusic.ui.component.YouTubeGridItem
 import com.shivaay20005.shivaaymusic.ui.component.YouTubeListItem
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.GridItemPlaceHolder
@@ -394,6 +395,13 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
+            }
+
+            // Update Alert Banner - Shows when new app version is available
+            item {
+                UpdateAlertBanner(
+                    modifier = Modifier.animateItem()
+                )
             }
 
             // ShivaayMusic Exclusive - Daily Quote Card
