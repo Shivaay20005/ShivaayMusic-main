@@ -24,7 +24,6 @@
 | 1 | Navigation Crash - Player screen up arrow crash | Added previousBackStackEntry null check, try-catch blocks, fallback to Home screen, Toast error messages in MainActivity.kt TopSearch leadingIcon section | ✅ Fixed |
 | 2 | Duplicate String Resources - good_morning, good_afternoon, good_evening | Removed duplicate entries in strings.xml | ✅ Fixed |
 | 3 | Unresolved Reference 'verified' - Build failed due to missing drawable | Changed R.drawable.verified to R.drawable.verified_user in SettingsScreen.kt line 799 | ✅ Fixed |
-| 4 | Critical Crash - Search query null pointer exception | Replaced force unwrap operators (!!) with safe null checks, added try-catch error handling, and fixed inverted URL decoding logic in MainActivity.kt search query processing (lines 616-655) | ✅ Fixed |
 
 #### ⚠️ Known Warnings / ज्ञात चेतावनियां
 
@@ -126,7 +125,7 @@
 
 | File / फाइल | Change / परिवर्तन | Version / संस्करण |
 |-------------|------------------|-------------------|
-| `MainActivity.kt` | Navigation crash fix with enhanced error handling (up arrow); Search query crash fix with null safety and URL decoding fix | 1.0.2 |
+| `MainActivity.kt` | Navigation crash fix with enhanced error handling | 1.0.2 |
 | `strings.xml` | Fixed duplicate string resources | 1.0.2 |
 | `SettingsScreen.kt` | Fixed unresolved reference 'verified' → 'verified_user' | 1.0.2 |
 | `AuthScreen.kt` | Added complete authentication UI | 1.0.2 |

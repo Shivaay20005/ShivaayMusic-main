@@ -615,42 +615,33 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(navBackStackEntry) {
                         if (navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
-                            try {
-                                // Safely get query parameter with null check
-                                val queryParam = navBackStackEntry?.arguments?.getString("query")
-                                if (queryParam != null) {
-                                    val searchQuery =
-                                        withContext(Dispatchers.IO) {
-                                            // If query contains %, it's URL encoded and needs decoding
-                                            // Otherwise, it's already decoded or plain text
-                                            if (queryParam.contains("%")) {
-                                                try {
-                                                    URLDecoder.decode(queryParam, "UTF-8")
-                                                } catch (e: IllegalArgumentException) {
-                                                    // If decoding fails due to malformed URL encoding, use original query
-                                                    Log.w("MainActivity", "Failed to decode search query, using original")
-                                                    queryParam
-                                                }
-                                            } else {
-                                                queryParam
-                                            }
-                                        }
-                                    onQueryChange(
-                                        TextFieldValue(
-                                            searchQuery,
-                                            TextRange(searchQuery.length)
+                            val searchQuery =
+                                withContext(Dispatchers.IO) {
+                                    if (navBackStackEntry
+                                            ?.arguments
+                                            ?.getString(
+                                                "query",
+                                            )!!
+                                            .contains(
+                                                "%",
+                                            )
+                                    ) {
+                                        navBackStackEntry?.arguments?.getString(
+                                            "query",
+                                        )!!
+                                    } else {
+                                        URLDecoder.decode(
+                                            navBackStackEntry?.arguments?.getString("query")!!,
+                                            "UTF-8"
                                         )
-                                    )
-                                } else {
-                                    // Fallback: If query is null, set empty query
-                                    onQueryChange(TextFieldValue())
-                                    Log.w("MainActivity", "Search query parameter is null")
+                                    }
                                 }
-                            } catch (e: Exception) {
-                                // Handle any exceptions gracefully
-                                Log.e("MainActivity", "Error processing search query")
-                                onQueryChange(TextFieldValue())
-                            }
+                            onQueryChange(
+                                TextFieldValue(
+                                    searchQuery,
+                                    TextRange(searchQuery.length)
+                                )
+                            )
                         } else if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route }) {
                             onQueryChange(TextFieldValue())
                         }
