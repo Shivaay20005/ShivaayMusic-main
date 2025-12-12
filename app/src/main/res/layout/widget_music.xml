@@ -19,7 +19,7 @@
         android:layout_marginEnd="@dimen/widget_small_margin"
         android:alpha="0.8"
         android:contentDescription="ShivaayMusic"
-        android:src="@drawable/shivaaymusic" />
+        android:src="@mipmap/ic_launcher" />
 
     <!-- Main widget content -->
     <LinearLayout
