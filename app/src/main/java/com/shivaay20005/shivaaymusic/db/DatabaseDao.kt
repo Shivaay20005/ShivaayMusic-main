@@ -618,6 +618,7 @@ interface DatabaseDao {
     fun artistsBookmarkedBySongCountAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
         SELECT artist.*,
@@ -637,7 +638,6 @@ interface DatabaseDao {
         WHERE bookmarkedAt IS NOT NULL
     """,
     )
-    @RewriteQueriesToDropUnusedColumns
     fun artistsBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
 
     @Query("UPDATE artist SET songCount = :count WHERE id = :artistId")
