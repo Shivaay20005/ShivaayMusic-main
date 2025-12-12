@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opening ShivaayMusic...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 400px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1.5rem;
+            border-radius: 16px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        p {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 1.5rem;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: #4fc3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .fallback-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #4fc3f7;
+            color: #1a1a2e;
+            text-decoration: none;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .fallback-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 195, 247, 0.3);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://raw.githubusercontent.com/Shivaay20005/ShivaayMusic-main/main/assets/ic_launcher-playstore.png" alt="ShivaayMusic" class="logo">
+        <div class="spinner" id="spinner"></div>
+        <h1 id="status">Opening ShivaayMusic...</h1>
+        <p id="message">Please wait while we redirect you.</p>
+        <a href="#" class="fallback-btn hidden" id="fallbackBtn">Open in YouTube</a>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            const params = new URLSearchParams(window.location.search);
+            const encodedUrl = params.get('url');
+
+            if (!encodedUrl) {
+                showError('No URL provided');
+                return;
+            }
+
+            let originalUrl;
+            try {
+                originalUrl = decodeURIComponent(encodedUrl);
+            } catch (e) {
+                showError('Invalid URL format');
+                return;
+            }
+
+            // Validate that it's a YouTube URL
+            if (!isYouTubeUrl(originalUrl)) {
+                showError('Invalid YouTube URL');
+                return;
+            }
+
+            const appLinkUrl = 'https://shivaaymusic.app/play?url=' + encodedUrl;
+            const customSchemeUrl = 'shivaaymusic://play?url=' + encodedUrl;
+            const intentUrl = 'intent://play?url=' + encodedUrl + 
+                '#Intent;scheme=shivaaymusic;package=com.shivaay20005.shivaaymusic;end';
+
+            // Set up fallback button
+            const fallbackBtn = document.getElementById('fallbackBtn');
+            fallbackBtn.href = originalUrl;
+
+            // Attempt to open the app in sequence
+            attemptAppOpen(appLinkUrl, customSchemeUrl, intentUrl, originalUrl);
+        })();
+
+        function isYouTubeUrl(url) {
+            try {
+                const parsed = new URL(url);
+                const validHosts = [
+                    'youtube.com', 'www.youtube.com', 'm.youtube.com',
+                    'music.youtube.com', 'youtu.be'
+                ];
+                return validHosts.some(host => parsed.hostname === host || parsed.hostname.endsWith('.' + host));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function attemptAppOpen(appLinkUrl, customSchemeUrl, intentUrl, fallbackUrl) {
+            const startTime = Date.now();
+            let appOpened = false;
+
+            // Listen for visibility change (app opened)
+            const handleVisibility = function() {
+                if (document.hidden) {
+                    appOpened = true;
+                }
+            };
+            document.addEventListener('visibilitychange', handleVisibility);
+
+            // Step 1: Try App Link (Android verified link)
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = appLinkUrl;
+            document.body.appendChild(iframe);
+
+            // Step 2: After a delay, try custom scheme
+            setTimeout(function() {
+                if (appOpened) return;
+                
+                window.location.href = customSchemeUrl;
+            }, 500);
+
+            // Step 3: After another delay, try intent URL (Android only)
+            setTimeout(function() {
+                if (appOpened) return;
+                
+                const isAndroid = /android/i.test(navigator.userAgent);
+                if (isAndroid) {
+                    window.location.href = intentUrl;
+                }
+            }, 1000);
+
+            // Step 4: Show fallback after timeout
+            setTimeout(function() {
+                if (appOpened) return;
+
+                document.removeEventListener('visibilitychange', handleVisibility);
+                showFallback(fallbackUrl);
+            }, 2500);
+        }
+
+        function showFallback(url) {
+            document.getElementById('spinner').classList.add('hidden');
+            document.getElementById('status').textContent = 'App not installed?';
+            document.getElementById('message').textContent = 'Click below to open in YouTube instead.';
+            document.getElementById('fallbackBtn').classList.remove('hidden');
+            
+            // Auto-redirect after 3 more seconds
+            setTimeout(function() {
+                window.location.href = url;
+            }, 3000);
+        }
+
+        function showError(msg) {
+            document.getElementById('spinner').classList.add('hidden');
+            document.getElementById('status').textContent = 'Error';
+            document.getElementById('message').textContent = msg;
+        }
+    </script>
+</body>
+</html>

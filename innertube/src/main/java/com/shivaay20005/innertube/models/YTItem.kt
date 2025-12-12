@@ -1,0 +1,91 @@
+package com.shivaay20005.innertube.models
+
+sealed class YTItem {
+    abstract val id: String
+    abstract val title: String
+    abstract val thumbnail: String
+    abstract val explicit: Boolean
+    abstract val shareLink: String
+    
+    companion object {
+        // Custom domain for share links - ShivaayMusic branding
+        const val SHARE_DOMAIN = "https://shivaaymusic.com"
+    }
+}
+
+data class Artist(
+    val name: String,
+    val id: String?,
+)
+
+data class Album(
+    val name: String,
+    val id: String,
+)
+
+data class SongItem(
+    override val id: String,
+    override val title: String,
+    val artists: List<Artist>,
+    val album: Album? = null,
+    val duration: Int? = null,
+    val setVideoId: String? = null,
+    override val thumbnail: String,
+    override val explicit: Boolean = false,
+    val endpoint: WatchEndpoint? = null,
+) : YTItem() {
+    override val shareLink: String
+        get() = "${SHARE_DOMAIN}/watch?v=$id"
+}
+
+data class AlbumItem(
+    val browseId: String,
+    val playlistId: String,
+    override val id: String = browseId,
+    override val title: String,
+    val artists: List<Artist>?,
+    val year: Int? = null,
+    override val thumbnail: String,
+    override val explicit: Boolean = false,
+) : YTItem() {
+    override val shareLink: String
+        get() = "${SHARE_DOMAIN}/playlist?list=$playlistId"
+}
+
+data class PlaylistItem(
+    override val id: String,
+    override val title: String,
+    var author: Artist?, // changed to var for Home Playlists
+    val songCountText: String?,
+    override val thumbnail: String,
+    val playEndpoint: WatchEndpoint?,
+    val shuffleEndpoint: WatchEndpoint?,
+    val radioEndpoint: WatchEndpoint?,
+    val isEditable: Boolean = false,
+) : YTItem() {
+    override val explicit: Boolean
+        get() = false
+    override val shareLink: String
+        get() = "${SHARE_DOMAIN}/playlist?list=$id"
+}
+
+data class ArtistItem(
+    override val id: String,
+    override val title: String,
+    override val thumbnail: String,
+    val channelId: String? = null,
+    val shuffleEndpoint: WatchEndpoint?,
+    val radioEndpoint: WatchEndpoint?,
+) : YTItem() {
+    override val explicit: Boolean
+        get() = false
+    override val shareLink: String
+        get() = "${SHARE_DOMAIN}/channel/$id"
+}
+
+fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) =
+    if (enabled) {
+        filter { !it.explicit }
+    } else {
+        this
+    }
