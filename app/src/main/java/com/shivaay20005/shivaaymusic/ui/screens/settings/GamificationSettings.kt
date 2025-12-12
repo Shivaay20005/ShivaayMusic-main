@@ -71,17 +71,17 @@ fun GamificationSettings(
         // Profile Link
         PreferenceEntry(
             title = { Text("View Your Profile") },
-            description = { Text("Check your level, achievements, and stats") },
+            description = "Check your level, achievements, and stats",
             icon = { Icon(painterResource(R.drawable.person), null) },
             onClick = { navController.navigate("profile") }
         )
 
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
         // Enable/Disable Gamification
         SwitchPreference(
             title = { Text("Enable Gamification") },
-            description = { Text("Track XP, levels, and unlock rewards") },
+            description = "Track XP, levels, and unlock rewards",
             icon = { Icon(painterResource(R.drawable.star), null) },
             checked = gamificationEnabled,
             onCheckedChange = { }
@@ -90,31 +90,31 @@ fun GamificationSettings(
         // Show Level Badge
         SwitchPreference(
             title = { Text("Show Level Badge") },
-            description = { Text("Display your level badge on profile") },
+            description = "Display your level badge on profile",
             icon = { Icon(painterResource(R.drawable.label), null) },
             checked = showLevelBadge,
             onCheckedChange = { },
-            enabled = gamificationEnabled
+            isEnabled = gamificationEnabled
         )
 
         // Haptic Feedback
         SwitchPreference(
             title = { Text("Haptic Feedback") },
-            description = { Text("Vibrate on level up and achievements") },
+            description = "Vibrate on level up and achievements",
             icon = { Icon(painterResource(R.drawable.vibration), null) },
             checked = gamificationHaptics,
             onCheckedChange = { },
-            enabled = gamificationEnabled
+            isEnabled = gamificationEnabled
         )
 
         // Share Reminders
         SwitchPreference(
             title = { Text("Share Reminders") },
-            description = { Text("Suggest sharing milestones and achievements") },
+            description = "Suggest sharing milestones and achievements",
             icon = { Icon(painterResource(R.drawable.share), null) },
             checked = shareReminders,
             onCheckedChange = { },
-            enabled = gamificationEnabled
+            isEnabled = gamificationEnabled
         )
 
         Spacer(Modifier.height(16.dp))
