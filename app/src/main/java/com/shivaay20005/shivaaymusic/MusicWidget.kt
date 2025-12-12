@@ -251,7 +251,8 @@ class MusicWidget : AppWidgetProvider() {
 
         private fun getAppLaunchPendingIntent(context: Context): PendingIntent {
             val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-            intent?.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                ?: Intent(context, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             return PendingIntent.getActivity(
                 context,
                 0,
