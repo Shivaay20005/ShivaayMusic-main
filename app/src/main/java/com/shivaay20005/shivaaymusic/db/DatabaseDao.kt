@@ -692,6 +692,7 @@ interface DatabaseDao {
             .reversed(descending)
     }
 
+    @Transaction
     @RewriteQueriesToDropUnusedColumns
     @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE id = :id")
     fun artist(id: String): Flow<Artist?>
