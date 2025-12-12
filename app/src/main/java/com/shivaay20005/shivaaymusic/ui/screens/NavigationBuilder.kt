@@ -270,6 +270,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/privacy") {
         PrivacySettings(navController, scrollBehavior)
     }
+    composable("settings/gamification") {
+        GamificationSettings(navController, scrollBehavior)
+    }
     composable("settings/backup_restore") {
         BackupAndRestore(navController, scrollBehavior)
     }

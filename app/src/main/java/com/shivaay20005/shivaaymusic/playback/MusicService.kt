@@ -165,6 +165,9 @@ class MusicService :
     @Inject
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
 
+    @Inject
+    lateinit var gamificationIntegration: com.shivaay20005.shivaaymusic.utils.gamification.GamificationIntegration
+
     private var scope = CoroutineScope(Dispatchers.Main) + Job()
     private val binder = MusicBinder()
 
@@ -279,6 +282,9 @@ class MusicService :
         connectivityManager = getSystemService()!!
 
         connectivityObserver = NetworkConnectivityObserver(this)
+
+        // Initialize gamification
+        gamificationIntegration.initialize()
 
         // Observe network connectivity
         scope.launch {
@@ -680,7 +686,12 @@ class MusicService :
     fun toggleLike() {
         database.query {
             currentSong.value?.let {
+                val wasLiked = it.song.liked
                 update(it.song.toggleLike())
+                // Track gamification when liking (not unliking)
+                if (!wasLiked) {
+                    gamificationIntegration.onSongLiked()
+                }
             }
         }
     }
@@ -1034,6 +1045,11 @@ class MusicService :
                 } catch (_: SQLException) {
                 }
             }
+            // Track gamification for listening
+            gamificationIntegration.onSongListened(
+                songId = mediaItem.mediaId,
+                playDurationMs = playbackStats.totalPlayTimeMs
+            )
             val PauseRemoteListenHistoryKey = booleanPreferencesKey("pauseRemoteListenHistory")
             if (!dataStore.get(PauseRemoteListenHistoryKey, false)) {
                 CoroutineScope(Dispatchers.IO).launch {
