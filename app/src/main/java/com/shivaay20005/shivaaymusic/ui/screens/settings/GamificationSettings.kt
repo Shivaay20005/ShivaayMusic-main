@@ -47,7 +47,7 @@ fun GamificationSettings(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(
+            com.shivaay20005.shivaaymusic.ui.component.ResizableIconButton(
                 onClick = navController::navigateUp,
                 icon = R.drawable.arrow_back
             )
