@@ -69,6 +69,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("stats") {
         StatsScreen(navController)
     }
+    composable("profile") {
+        com.shivaay20005.shivaaymusic.ui.screens.profile.UserProfileScreen(navController)
+    }
     composable("account") {
         AccountScreen(navController, scrollBehavior)
     }
