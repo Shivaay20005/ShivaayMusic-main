@@ -390,6 +390,8 @@
     <string name="auto_skip_next_on_error">Auto skip to next song when error occurs</string>
     <string name="auto_skip_next_on_error_desc">Ensure your continuous playback experience</string>
     <string name="stop_music_on_task_clear">Stop music on task clear</string>
+    <string name="ignore_audio_focus_loss">Continue music during calls</string>
+    <string name="ignore_audio_focus_loss_desc">Keep playing music when phone calls or other apps interrupt</string>
     <string name="equalizer">Equalizer</string>
 
     <string name="storage">Storage</string>
