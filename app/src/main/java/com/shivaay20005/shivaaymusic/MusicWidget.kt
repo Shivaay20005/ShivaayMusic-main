@@ -205,6 +205,7 @@ class MusicWidget : AppWidgetProvider() {
                 views.setImageViewResource(R.id.widget_play_pause, R.drawable.play)
             }
 
+            // Set click listeners for controls
             views.setOnClickPendingIntent(
                 R.id.widget_play_pause,
                 getBroadcastPendingIntent(context, ACTION_PLAY_PAUSE)
@@ -226,6 +227,12 @@ class MusicWidget : AppWidgetProvider() {
                 getBroadcastPendingIntent(context, ACTION_LIKE)
             )
 
+            // Set click listener for album art to open app
+            views.setOnClickPendingIntent(
+                R.id.widget_album_art,
+                getAppLaunchPendingIntent(context)
+            )
+
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
@@ -237,6 +244,17 @@ class MusicWidget : AppWidgetProvider() {
             return PendingIntent.getBroadcast(
                 context,
                 action.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+
+        private fun getAppLaunchPendingIntent(context: Context): PendingIntent {
+            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            intent?.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            return PendingIntent.getActivity(
+                context,
+                0,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )

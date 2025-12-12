@@ -568,6 +568,7 @@
     <string name="visitor_data_reset_cancel">Cancel</string>
 
     <string name="widget_title">Music Widget</string>
+    <string name="widget_description">Control your music playback from the home screen</string>
     <string name="error_saving_image">Error saving image</string>
     <string name="processing">Processing</string>
     <string name="subscribed">Subscribed</string>
