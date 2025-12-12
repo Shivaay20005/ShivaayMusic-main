@@ -12,11 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +30,7 @@ import com.shivaay20005.shivaaymusic.models.DailyQuest
 import com.shivaay20005.shivaaymusic.ui.components.LevelUpDialog
 import com.shivaay20005.shivaaymusic.utils.gamification.LevelProgress
 import com.shivaay20005.shivaaymusic.viewmodels.GamificationViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -383,10 +387,6 @@ fun StatRow(label: String, value: String) {
 @Composable
 private fun Modifier.alpha(alpha: Float): Modifier {
     return this.then(Modifier.graphicsLayer { this.alpha = alpha })
-}
-
-fun Modifier.graphicsLayer(block: androidx.compose.ui.graphics.GraphicsLayerScope.() -> Unit): Modifier {
-    return androidx.compose.ui.graphics.graphicsLayer(block)
 }
 
 @Composable

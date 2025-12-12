@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
@@ -319,6 +320,7 @@ interface DatabaseDao {
     ): Flow<List<SongWithStats>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
         SELECT song.*,
@@ -388,6 +390,7 @@ interface DatabaseDao {
     ): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
     SELECT album.*,
@@ -499,13 +502,15 @@ interface DatabaseDao {
     fun allSongs(): Flow<List<Song>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
         SELECT DISTINCT artist.*,
                (SELECT COUNT(1)
                 FROM song_artist_map
                          JOIN event ON song_artist_map.songId = event.songId
-                WHERE artistId = artist.id) AS songCount
+                WHERE artistId = artist.id) AS songCount,
+               0 AS timeListened
         FROM artist
                  LEFT JOIN(SELECT artistId, SUM(songTotalPlayTime) AS totalPlayTime
                       FROM song_artist_map
@@ -542,30 +547,35 @@ interface DatabaseDao {
     fun lyrics(id: String?): Flow<LyricsEntity?>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id) AS songCount FROM artist WHERE (songCount > 0 AND bookmarkedAt IS NOT NULL)  ORDER BY rowId DESC",
+        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id) AS songCount, 0 AS timeListened FROM artist WHERE (songCount > 0 AND bookmarkedAt IS NOT NULL)  ORDER BY rowId DESC",
     )
     fun artistsInAA(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE songCount > 0  ORDER BY rowId",
+        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount, 0 AS timeListened FROM artist WHERE songCount > 0  ORDER BY rowId",
     )
     fun artistsByCreateDateAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE songCount > 0 ORDER BY name",
+        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount, 0 AS timeListened FROM artist WHERE songCount > 0 ORDER BY name",
     )
     fun artistsByNameAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT * FROM artist WHERE songCount > 0 ORDER BY songCount"
+        "SELECT *, 0 AS timeListened FROM artist WHERE songCount > 0 ORDER BY songCount"
     )
     fun artistsBySongCountAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
         SELECT artist.*,
@@ -573,7 +583,8 @@ interface DatabaseDao {
                 FROM song_artist_map
                          JOIN song ON song_artist_map.songId = song.id
                 WHERE artistId = artist.id
-                  AND song.inLibrary IS NOT NULL) AS songCount
+                  AND song.inLibrary IS NOT NULL) AS songCount,
+               0 AS timeListened
         FROM artist
                  JOIN(SELECT artistId, SUM(totalPlayTime) AS totalPlayTime
                       FROM song_artist_map
@@ -588,24 +599,28 @@ interface DatabaseDao {
     fun artistsByPlayTimeAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt",
+        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount, 0 AS timeListened FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt",
     )
     fun artistsBookmarkedByCreateDateAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY name",
+        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount, 0 AS timeListened FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY name",
     )
     fun artistsBookmarkedByNameAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount",
+        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount, 0 AS timeListened FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount",
     )
     fun artistsBookmarkedBySongCountAsc(): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
         SELECT artist.*,
@@ -613,7 +628,8 @@ interface DatabaseDao {
                 FROM song_artist_map
                          JOIN song ON song_artist_map.songId = song.id
                 WHERE artistId = artist.id
-                  AND song.inLibrary IS NOT NULL) AS songCount
+                  AND song.inLibrary IS NOT NULL) AS songCount,
+               0 AS timeListened
         FROM artist
                  JOIN(SELECT artistId, SUM(totalPlayTime) AS totalPlayTime
                       FROM song_artist_map
@@ -679,37 +695,48 @@ interface DatabaseDao {
             .reversed(descending)
     }
 
-    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE id = :id")
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount, 0 AS timeListened FROM artist WHERE id = :id")
     fun artist(id: String): Flow<Artist?>
 
     @Transaction
-    @Query("SELECT *, (SELECT COUNT(1) FROM song WHERE song.albumId = album.id) AS songCount FROM album WHERE album.bookmarkedAt IS NOT NULL ORDER BY rowId DESC")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, (SELECT COUNT(1) FROM song WHERE song.albumId = album.id) AS songCount, 0 AS songCountListened, 0 AS timeListened FROM album WHERE album.bookmarkedAt IS NOT NULL ORDER BY rowId DESC")
     fun albumsInAA(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY rowId")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY rowId")
     fun albumsByCreateDateAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY title")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY title")
     fun albumsByNameAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY year")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY year")
     fun albumsByYearAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY songCount")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY songCount")
     fun albumsBySongCountAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY duration")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY duration")
     fun albumsByLengthAsc(): Flow<List<Album>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
-        SELECT album.*
+        SELECT album.*,
+               0 AS songCountListened,
+               0 AS timeListened
         FROM album
                  JOIN song
                       ON song.albumId = album.id
@@ -721,29 +748,37 @@ interface DatabaseDao {
     fun albumsByPlayTimeAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY rowId")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY rowId")
     fun albumsLikedByCreateDateAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY title")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY title")
     fun albumsLikedByNameAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY year")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY year")
     fun albumsLikedByYearAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
     fun albumsLikedBySongCountAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY duration")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY duration")
     fun albumsLikedByLengthAsc(): Flow<List<Album>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
         """
-        SELECT album.*
+        SELECT album.*,
+               0 AS songCountListened,
+               0 AS timeListened
         FROM album
                  JOIN song
                       ON song.albumId = album.id
@@ -805,7 +840,8 @@ interface DatabaseDao {
     }.map { it.reversed(descending) }
 
     @Transaction
-    @Query("SELECT * FROM album WHERE id = :id")
+    @RewriteQueriesToDropUnusedColumns
+    @Query("SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE id = :id")
     fun album(id: String): Flow<Album?>
 
     @Transaction
@@ -899,8 +935,9 @@ interface DatabaseDao {
     ): Flow<List<Song>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE name LIKE '%' || :query || '%' AND songCount > 0 LIMIT :previewSize",
+        "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount, 0 AS timeListened FROM artist WHERE name LIKE '%' || :query || '%' AND songCount > 0 LIMIT :previewSize",
     )
     fun searchArtists(
         query: String,
@@ -908,8 +945,9 @@ interface DatabaseDao {
     ): Flow<List<Artist>>
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query(
-        "SELECT * FROM album WHERE title LIKE '%' || :query || '%' AND EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) LIMIT :previewSize",
+        "SELECT *, 0 AS songCountListened, 0 AS timeListened FROM album WHERE title LIKE '%' || :query || '%' AND EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) LIMIT :previewSize",
     )
     fun searchAlbums(
         query: String,
