@@ -26,6 +26,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.datastore.preferences.core.edit
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -155,6 +156,7 @@ import com.shivaay20005.shivaaymusic.constants.DarkModeKey
 import com.shivaay20005.shivaaymusic.constants.DarkStartTimeKey
 import com.shivaay20005.shivaaymusic.constants.DefaultOpenTabKey
 import com.shivaay20005.shivaaymusic.constants.DisableScreenshotKey
+import com.shivaay20005.shivaaymusic.constants.DismissedUpdateVersionKey
 import com.shivaay20005.shivaaymusic.constants.DynamicThemeKey
 import com.shivaay20005.shivaaymusic.constants.IsUserLoggedInKey
 import com.shivaay20005.shivaaymusic.constants.MiniPlayerHeight
@@ -184,6 +186,7 @@ import com.shivaay20005.shivaaymusic.ui.component.IconButton
 import com.shivaay20005.shivaaymusic.ui.component.LocalMenuState
 import com.shivaay20005.shivaaymusic.ui.component.LocaleManager
 import com.shivaay20005.shivaaymusic.ui.component.Lyrics
+import com.shivaay20005.shivaaymusic.ui.component.UpdateNotificationDialog
 import com.shivaay20005.shivaaymusic.ui.component.TopSearch
 import com.shivaay20005.shivaaymusic.ui.component.rememberBottomSheetState
 import com.shivaay20005.shivaaymusic.ui.component.shimmer.ShimmerTheme
@@ -346,10 +349,17 @@ class MainActivity : ComponentActivity() {
         intent?.let { handlevideoIdIntent(it) }
 
         setContent {
+            val dismissedVersion by rememberPreference(DismissedUpdateVersionKey, defaultValue = "")
+            var showUpdateDialog by remember { mutableStateOf(false) }
+
             LaunchedEffect(Unit) {
                 if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
                     Updater.getLatestVersionName().onSuccess {
                         latestVersionName = it
+                        // Show dialog if new version is available and not dismissed
+                        if (isNewerVersion(it, BuildConfig.VERSION_NAME) && it != dismissedVersion) {
+                            showUpdateDialog = true
+                        }
                     }
                 }
             }
@@ -1544,6 +1554,22 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                        }
+
+                        // Update notification dialog
+                        if (showUpdateDialog) {
+                            UpdateNotificationDialog(
+                                newVersion = latestVersionName,
+                                onDismiss = {
+                                    showUpdateDialog = false
+                                    // Save dismissed version to prevent showing again
+                                    lifecycleScope.launch {
+                                        dataStore.edit { preferences ->
+                                            preferences[DismissedUpdateVersionKey] = latestVersionName
+                                        }
+                                    }
+                                }
+                            )
                         }
                     }
 

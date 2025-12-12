@@ -65,6 +65,7 @@ import com.shivaay20005.shivaaymusic.constants.AutoSkipNextOnErrorKey
 // import com.shivaay20005.shivaaymusic.constants.EnableDiscordRPCKey
 import com.shivaay20005.shivaaymusic.constants.HideExplicitKey
 import com.shivaay20005.shivaaymusic.constants.HistoryDuration
+import com.shivaay20005.shivaaymusic.constants.IgnoreAudioFocusLossKey
 import com.shivaay20005.shivaaymusic.constants.MediaSessionConstants.CommandToggleLike
 import com.shivaay20005.shivaaymusic.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.shivaay20005.shivaaymusic.constants.MediaSessionConstants.CommandToggleShuffle
@@ -219,6 +220,12 @@ class MusicService :
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Read audio focus preference
+        val ignoreAudioFocusLoss = runBlocking {
+            dataStore.data.map { it[IgnoreAudioFocusLossKey] ?: true }.first()
+        }
+        
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
                 this,
@@ -227,7 +234,7 @@ class MusicService :
                 R.string.music_player
             )
                 .apply {
-                    setSmallIcon(R.drawable.shivaaymusic_monochrome)
+                    setSmallIcon(R.drawable.ic_notification_icon)
                 },
         )
         player =
@@ -243,7 +250,7 @@ class MusicService :
                         .setUsage(C.USAGE_MEDIA)
                         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                         .build(),
-                    true,
+                    !ignoreAudioFocusLoss,  // If ignoring audio focus loss, don't handle audio focus
                 ).setSeekBackIncrementMs(5000)
                 .setSeekForwardIncrementMs(5000)
                 .build()

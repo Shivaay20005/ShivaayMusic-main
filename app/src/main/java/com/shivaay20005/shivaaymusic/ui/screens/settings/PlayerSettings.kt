@@ -28,6 +28,7 @@ import com.shivaay20005.shivaaymusic.constants.PersistentQueueKey
 import com.shivaay20005.shivaaymusic.constants.SimilarContent
 import com.shivaay20005.shivaaymusic.constants.SkipSilenceKey
 import com.shivaay20005.shivaaymusic.constants.StopMusicOnTaskClearKey
+import com.shivaay20005.shivaaymusic.constants.IgnoreAudioFocusLossKey
 import com.shivaay20005.shivaaymusic.ui.component.EnumListPreference
 import com.shivaay20005.shivaaymusic.ui.component.IconButton
 import com.shivaay20005.shivaaymusic.ui.component.PreferenceGroupTitle
@@ -72,6 +73,10 @@ fun PlayerSettings(
     )
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
         StopMusicOnTaskClearKey,
+        defaultValue = true
+    )
+    val (ignoreAudioFocusLoss, onIgnoreAudioFocusLossChange) = rememberPreference(
+        IgnoreAudioFocusLossKey,
         defaultValue = true
     )
 
@@ -165,6 +170,14 @@ fun PlayerSettings(
             icon = { Icon(painterResource(R.drawable.clear_all), null) },
             checked = stopMusicOnTaskClear,
             onCheckedChange = onStopMusicOnTaskClearChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.ignore_audio_focus_loss)) },
+            description = { Text(stringResource(R.string.ignore_audio_focus_loss_desc)) },
+            icon = { Icon(painterResource(R.drawable.call), null) },
+            checked = ignoreAudioFocusLoss,
+            onCheckedChange = onIgnoreAudioFocusLossChange
         )
     }
 
