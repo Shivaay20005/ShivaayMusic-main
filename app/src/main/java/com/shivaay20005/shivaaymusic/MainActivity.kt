@@ -615,33 +615,34 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(navBackStackEntry) {
                         if (navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
-                            val searchQuery =
-                                withContext(Dispatchers.IO) {
-                                    if (navBackStackEntry
-                                            ?.arguments
-                                            ?.getString(
-                                                "query",
-                                            )!!
-                                            .contains(
-                                                "%",
-                                            )
-                                    ) {
-                                        navBackStackEntry?.arguments?.getString(
-                                            "query",
-                                        )!!
-                                    } else {
-                                        URLDecoder.decode(
-                                            navBackStackEntry?.arguments?.getString("query")!!,
-                                            "UTF-8"
+                            try {
+                                // Safely get query parameter with null check
+                                val queryParam = navBackStackEntry?.arguments?.getString("query")
+                                if (queryParam != null) {
+                                    val searchQuery =
+                                        withContext(Dispatchers.IO) {
+                                            if (queryParam.contains("%")) {
+                                                queryParam
+                                            } else {
+                                                URLDecoder.decode(queryParam, "UTF-8")
+                                            }
+                                        }
+                                    onQueryChange(
+                                        TextFieldValue(
+                                            searchQuery,
+                                            TextRange(searchQuery.length)
                                         )
-                                    }
+                                    )
+                                } else {
+                                    // Fallback: If query is null, set empty query
+                                    onQueryChange(TextFieldValue())
+                                    Log.w("MainActivity", "Search query parameter is null")
                                 }
-                            onQueryChange(
-                                TextFieldValue(
-                                    searchQuery,
-                                    TextRange(searchQuery.length)
-                                )
-                            )
+                            } catch (e: Exception) {
+                                // Handle any URL decoding or other exceptions
+                                Log.e("MainActivity", "Error processing search query: ${e.message}", e)
+                                onQueryChange(TextFieldValue())
+                            }
                         } else if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route }) {
                             onQueryChange(TextFieldValue())
                         }
