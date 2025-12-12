@@ -24,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.shivaay20005.shivaaymusic.models.Badge
 import com.shivaay20005.shivaaymusic.models.DailyQuest
+import com.shivaay20005.shivaaymusic.ui.components.LevelUpDialog
 import com.shivaay20005.shivaaymusic.utils.gamification.LevelProgress
 import com.shivaay20005.shivaaymusic.viewmodels.GamificationViewModel
 
@@ -38,6 +39,15 @@ fun UserProfileScreen(
     val allBadges by viewModel.allBadges.collectAsState()
     val dailyQuests by viewModel.dailyQuests.collectAsState()
     val nextReward by viewModel.nextReward.collectAsState()
+    val levelUpEvent by viewModel.levelUpEvent.collectAsState()
+
+    // Show level-up dialog when event occurs
+    LevelUpDialog(
+        show = levelUpEvent != null,
+        newLevel = levelUpEvent?.newLevel ?: 1,
+        unlockedRewards = levelUpEvent?.unlockedRewards ?: emptyList(),
+        onDismiss = { viewModel.dismissLevelUpDialog() }
+    )
 
     Scaffold(
         topBar = {
@@ -117,6 +127,14 @@ fun UserProfileScreen(
                 userStats?.let { stats ->
                     StatsCard(stats = stats)
                 }
+            }
+
+            // Share Card Section
+            item {
+                ShareLevelCard(
+                    level = levelProgress?.currentLevel ?: 1,
+                    stats = userStats
+                )
             }
         }
     }
@@ -369,4 +387,84 @@ private fun Modifier.alpha(alpha: Float): Modifier {
 
 fun Modifier.graphicsLayer(block: androidx.compose.ui.graphics.GraphicsLayerScope.() -> Unit): Modifier {
     return androidx.compose.ui.graphics.graphicsLayer(block)
+}
+
+@Composable
+fun ShareLevelCard(
+    level: Int,
+    stats: com.shivaay20005.shivaaymusic.db.entities.UserStatsEntity?
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "📸 Share Your Progress",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Share your music journey with friends!",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Button(
+                onClick = {
+                    scope.launch {
+                        stats?.let { userStats ->
+                            try {
+                                val generator = com.shivaay20005.shivaaymusic.utils.gamification.ShareCardGenerator(context)
+                                val file = generator.generateLevelCard(
+                                    level = level,
+                                    username = "Music Enthusiast",
+                                    stats = userStats
+                                )
+                                
+                                // Share the file
+                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    file
+                                )
+                                
+                                val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "image/png"
+                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                
+                                context.startActivity(
+                                    android.content.Intent.createChooser(shareIntent, "Share your level")
+                                )
+                            } catch (e: Exception) {
+                                // Handle error silently
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Share Level Card")
+            }
+        }
+    }
 }

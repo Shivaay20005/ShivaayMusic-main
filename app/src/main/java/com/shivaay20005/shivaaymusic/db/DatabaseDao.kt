@@ -1391,4 +1391,11 @@ interface DatabaseDao {
 
     @Query("DELETE FROM daily_quests WHERE userId = :userId AND questDate < :beforeDate")
     suspend fun deleteOldQuests(userId: String, beforeDate: java.time.LocalDate)
+
+    // Count queries for gamification sync
+    @Query("SELECT COUNT(DISTINCT artist.id) FROM artist JOIN song_artist_map ON artist.id = song_artist_map.artistId JOIN song ON song_artist_map.songId = song.id WHERE song.inLibrary IS NOT NULL")
+    fun artistsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM playlist WHERE isEditable = 1 AND bookmarkedAt IS NOT NULL")
+    fun editablePlaylistsCount(): Flow<Int>
 }

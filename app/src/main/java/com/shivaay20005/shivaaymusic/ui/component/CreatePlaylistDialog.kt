@@ -24,9 +24,12 @@ import com.shivaay20005.innertube.YouTube
 import com.shivaay20005.shivaaymusic.LocalDatabase
 import com.shivaay20005.shivaaymusic.R
 import com.shivaay20005.shivaaymusic.db.entities.PlaylistEntity
+import com.shivaay20005.shivaaymusic.utils.gamification.GamificationIntegration
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun CreatePlaylistDialog(
@@ -35,6 +38,7 @@ fun CreatePlaylistDialog(
     allowSyncing: Boolean = true,
 ) {
     val database = LocalDatabase.current
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var syncedPlaylist by remember { mutableStateOf(false) }
     TextFieldDialog(
@@ -56,6 +60,17 @@ fun CreatePlaylistDialog(
                             isEditable = true,
                         )
                     )
+                }
+                
+                // Track gamification
+                try {
+                    val entryPoint = EntryPointAccessors.fromApplication(
+                        context.applicationContext,
+                        com.shivaay20005.shivaaymusic.di.GamificationEntryPoint::class.java
+                    )
+                    entryPoint.gamificationIntegration().onPlaylistCreated()
+                } catch (e: Exception) {
+                    // Silently fail
                 }
             }
         },

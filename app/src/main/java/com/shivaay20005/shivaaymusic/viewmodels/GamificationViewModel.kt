@@ -13,6 +13,7 @@ import com.shivaay20005.shivaaymusic.models.RewardDefinitions
 import com.shivaay20005.shivaaymusic.utils.gamification.GamificationEngine
 import com.shivaay20005.shivaaymusic.utils.gamification.LevelCalculator
 import com.shivaay20005.shivaaymusic.utils.gamification.LevelProgress
+import com.shivaay20005.shivaaymusic.utils.gamification.LevelUpResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -26,6 +27,10 @@ class GamificationViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val userId = GamificationEngine.DEFAULT_USER_ID
+
+    // Level up state for showing dialog
+    private val _levelUpEvent = MutableStateFlow<LevelUpResult?>(null)
+    val levelUpEvent: StateFlow<LevelUpResult?> = _levelUpEvent.asStateFlow()
 
     // User stats
     val userStats: StateFlow<UserStatsEntity?> = database.getUserStats(userId)
@@ -107,7 +112,20 @@ class GamificationViewModel @Inject constructor(
 
     fun testAddXp(amount: Long) {
         viewModelScope.launch {
-            gamificationEngine.addXp(userId, amount, "Test XP")
+            val result = gamificationEngine.addXp(userId, amount, "Test XP")
+            if (result.leveledUp) {
+                _levelUpEvent.value = result
+            }
+        }
+    }
+
+    fun dismissLevelUpDialog() {
+        _levelUpEvent.value = null
+    }
+
+    suspend fun trackLevelUp(result: LevelUpResult) {
+        if (result.leveledUp) {
+            _levelUpEvent.value = result
         }
     }
 }

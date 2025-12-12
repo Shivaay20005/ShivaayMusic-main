@@ -303,6 +303,49 @@ class GamificationEngine @Inject constructor(
 
         updateQuestProgress(userId, "discover_artist", 1)
     }
+
+    /**
+     * Sync artist count from database
+     */
+    suspend fun syncArtistCount(userId: String = DEFAULT_USER_ID) {
+        try {
+            // Count unique artists with at least one song in library
+            val artistCount = database.artistsCount().first()
+            
+            val stats = database.getUserStats(userId).first()
+                ?: UserStatsEntity(userId = userId)
+
+            if (artistCount > stats.uniqueArtists) {
+                updateStats(
+                    userId = userId,
+                    uniqueArtists = artistCount
+                )
+            }
+        } catch (e: Exception) {
+            // Silently fail
+        }
+    }
+
+    /**
+     * Sync playlist count from database
+     */
+    suspend fun syncPlaylistCount(userId: String = DEFAULT_USER_ID) {
+        try {
+            val playlistCount = database.editablePlaylistsCount().first()
+            
+            val stats = database.getUserStats(userId).first()
+                ?: UserStatsEntity(userId = userId)
+
+            if (playlistCount > stats.playlistsCreated) {
+                updateStats(
+                    userId = userId,
+                    playlistsCreated = playlistCount
+                )
+            }
+        } catch (e: Exception) {
+            // Silently fail
+        }
+    }
 }
 
 data class LevelUpResult(

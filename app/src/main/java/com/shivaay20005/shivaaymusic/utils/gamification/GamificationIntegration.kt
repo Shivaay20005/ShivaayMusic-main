@@ -90,6 +90,23 @@ class GamificationIntegration @Inject constructor(
             if (!isGamificationEnabled()) return@launch
             try {
                 gamificationEngine.initializeUser()
+                // Sync counts from database
+                syncCounts()
+            } catch (e: Exception) {
+                // Silently fail
+            }
+        }
+    }
+
+    /**
+     * Sync artist and playlist counts from database
+     */
+    fun syncCounts() {
+        scope.launch {
+            if (!isGamificationEnabled()) return@launch
+            try {
+                gamificationEngine.syncArtistCount()
+                gamificationEngine.syncPlaylistCount()
             } catch (e: Exception) {
                 // Silently fail
             }
