@@ -128,14 +128,26 @@ class MusicWidget : AppWidgetProvider() {
             val player = playerConnection?.player
 
             player?.let { it ->
+                // Set song title and artist
+                val title = it.mediaMetadata.title?.toString() ?: "No song playing"
+                val artist = it.mediaMetadata.artist?.toString() ?: "Unknown artist"
+                views.setTextViewText(R.id.widget_song_title, title)
+                views.setTextViewText(R.id.widget_artist_name, artist)
 
+                // Set play/pause icon
                 val playPauseIcon = if (it.playWhenReady) R.drawable.pause else R.drawable.play
                 views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
+                
+                // Set shuffle icon
                 val shuffleIcon =
                     if (it.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle
                 views.setImageViewResource(R.id.widget_shuffle, shuffleIcon)
+                
+                // Set like icon
                 val likeIcon = R.drawable.favorite
                 views.setImageViewResource(R.id.widget_like, likeIcon)
+                
+                // Set repeat mode color filter
                 if (it.repeatMode == Player.REPEAT_MODE_ONE) {
                     views.setInt(
                         R.id.widget_play_pause,
@@ -149,11 +161,19 @@ class MusicWidget : AppWidgetProvider() {
                         context.getColor(android.R.color.transparent)
                     )
                 }
+                
+                // Set progress and time
                 val currentPos = formatTime(it.currentPosition)
                 val duration = formatTime(it.duration)
                 val progress = if (it.duration > 0) {
                     (it.currentPosition * 100 / it.duration).toInt()
                 } else 0
+                
+                views.setTextViewText(R.id.widget_current_time, currentPos)
+                views.setTextViewText(R.id.widget_duration, duration)
+                views.setProgressBar(R.id.widget_progress_bar, 100, progress, false)
+                
+                // Load album art
                 val thumbnailUrl = it.mediaMetadata.artworkUri?.toString()
                 if (!thumbnailUrl.isNullOrEmpty()) {
                     CoroutineScope(Dispatchers.IO).launch {
@@ -174,6 +194,15 @@ class MusicWidget : AppWidgetProvider() {
                 } else {
                     views.setImageViewResource(R.id.widget_album_art, R.drawable.music_note)
                 }
+            } ?: run {
+                // No player available - set default values
+                views.setTextViewText(R.id.widget_song_title, "No song playing")
+                views.setTextViewText(R.id.widget_artist_name, "Open ShivaayMusic to play")
+                views.setTextViewText(R.id.widget_current_time, "0:00")
+                views.setTextViewText(R.id.widget_duration, "0:00")
+                views.setProgressBar(R.id.widget_progress_bar, 100, 0, false)
+                views.setImageViewResource(R.id.widget_album_art, R.drawable.music_note)
+                views.setImageViewResource(R.id.widget_play_pause, R.drawable.play)
             }
 
             views.setOnClickPendingIntent(

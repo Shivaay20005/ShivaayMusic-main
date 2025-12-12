@@ -50,7 +50,86 @@
             android:layout_weight="1"
             android:gravity="start"
             android:minHeight="@dimen/widget_album_size"
-            android:orientation="vertical" />
+            android:orientation="vertical"
+            android:paddingStart="@dimen/widget_small_margin"
+            android:paddingEnd="@dimen/widget_small_margin">
+
+            <!-- Song title -->
+            <TextView
+                android:id="@+id/widget_song_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="@string/song_title"
+                android:textColor="@color/Lights"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Artist name -->
+            <TextView
+                android:id="@+id/widget_artist_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/artist_name"
+                android:textColor="@color/Lights"
+                android:textSize="12sp"
+                android:alpha="0.8" />
+
+            <!-- Progress section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+
+                <!-- Progress bar -->
+                <ProgressBar
+                    android:id="@+id/widget_progress_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressTint="@color/Lights" />
+
+                <!-- Time labels -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/widget_current_time"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="0:00"
+                        android:textColor="@color/Lights"
+                        android:textSize="10sp"
+                        android:alpha="0.7" />
+
+                    <TextView
+                        android:id="@+id/widget_duration"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="0:00"
+                        android:textColor="@color/Lights"
+                        android:textSize="10sp"
+                        android:alpha="0.7" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <!-- Playback controls -->
         <LinearLayout
