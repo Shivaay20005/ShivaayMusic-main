@@ -82,7 +82,7 @@ fun GamificationSettings(
         SwitchPreference(
             title = { Text("Enable Gamification") },
             description = "Track XP, levels, and unlock rewards",
-            icon = { Icon(painterResource(R.drawable.star), null) },
+            icon = { Icon(painterResource(R.drawable.casino), null) },
             checked = gamificationEnabled,
             onCheckedChange = { }
         )
@@ -91,7 +91,7 @@ fun GamificationSettings(
         SwitchPreference(
             title = { Text("Show Level Badge") },
             description = "Display your level badge on profile",
-            icon = { Icon(painterResource(R.drawable.label), null) },
+            icon = { Icon(painterResource(R.drawable.bookmark), null) },
             checked = showLevelBadge,
             onCheckedChange = { },
             isEnabled = gamificationEnabled
@@ -101,7 +101,7 @@ fun GamificationSettings(
         SwitchPreference(
             title = { Text("Haptic Feedback") },
             description = "Vibrate on level up and achievements",
-            icon = { Icon(painterResource(R.drawable.vibration), null) },
+            icon = { Icon(painterResource(R.drawable.notification_on), null) },
             checked = gamificationHaptics,
             onCheckedChange = { },
             isEnabled = gamificationEnabled

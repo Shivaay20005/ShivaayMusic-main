@@ -36,6 +36,7 @@ import com.shivaay20005.shivaaymusic.ui.screens.settings.ContentSettings
 // Discord integration disabled
 // import com.shivaay20005.shivaaymusic.ui.screens.settings.DiscordLoginScreen
 // import com.shivaay20005.shivaaymusic.ui.screens.settings.DiscordSettings
+import com.shivaay20005.shivaaymusic.ui.screens.settings.GamificationSettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.PlayerSettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.PrivacySettings
 import com.shivaay20005.shivaaymusic.ui.screens.settings.SettingsScreen
