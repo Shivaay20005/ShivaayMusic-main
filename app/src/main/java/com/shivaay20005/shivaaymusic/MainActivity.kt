@@ -621,10 +621,17 @@ class MainActivity : ComponentActivity() {
                                 if (queryParam != null) {
                                     val searchQuery =
                                         withContext(Dispatchers.IO) {
+                                            // If query contains %, it's URL encoded and needs decoding
+                                            // Otherwise, it's already decoded or plain text
                                             if (queryParam.contains("%")) {
-                                                queryParam
+                                                try {
+                                                    URLDecoder.decode(queryParam, "UTF-8")
+                                                } catch (e: Exception) {
+                                                    // If decoding fails, use original query
+                                                    queryParam
+                                                }
                                             } else {
-                                                URLDecoder.decode(queryParam, "UTF-8")
+                                                queryParam
                                             }
                                         }
                                     onQueryChange(
@@ -639,8 +646,8 @@ class MainActivity : ComponentActivity() {
                                     Log.w("MainActivity", "Search query parameter is null")
                                 }
                             } catch (e: Exception) {
-                                // Handle any URL decoding or other exceptions
-                                Log.e("MainActivity", "Error processing search query: ${e.message}", e)
+                                // Handle any exceptions gracefully
+                                Log.e("MainActivity", "Error processing search query")
                                 onQueryChange(TextFieldValue())
                             }
                         } else if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route }) {
