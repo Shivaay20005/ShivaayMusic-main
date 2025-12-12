@@ -227,7 +227,7 @@ class MusicService :
                 R.string.music_player
             )
                 .apply {
-                    setSmallIcon(R.drawable.shivaaymusic_monochrome)
+                    setSmallIcon(R.drawable.ic_notification_icon)
                 },
         )
         player =
