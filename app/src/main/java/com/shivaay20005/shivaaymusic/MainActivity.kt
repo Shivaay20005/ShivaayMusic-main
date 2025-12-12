@@ -626,8 +626,9 @@ class MainActivity : ComponentActivity() {
                                             if (queryParam.contains("%")) {
                                                 try {
                                                     URLDecoder.decode(queryParam, "UTF-8")
-                                                } catch (e: Exception) {
-                                                    // If decoding fails, use original query
+                                                } catch (e: IllegalArgumentException) {
+                                                    // If decoding fails due to malformed URL encoding, use original query
+                                                    Log.w("MainActivity", "Failed to decode search query, using original")
                                                     queryParam
                                                 }
                                             } else {
