@@ -845,6 +845,11 @@ fun SettingsScreen(
             icon = { Icon(painterResource(R.drawable.security), null) },
             onClick = { navController.navigate("settings/privacy") },
         )
+        PreferenceEntry(
+            title = { Text("Gamification") },
+            icon = { Icon(painterResource(R.drawable.star), null) },
+            onClick = { navController.navigate("settings/gamification") },
+        )
         // Backup and Restore - Hidden as per user request
         // PreferenceEntry(
         //     title = { Text(stringResource(R.string.backup_restore)) },

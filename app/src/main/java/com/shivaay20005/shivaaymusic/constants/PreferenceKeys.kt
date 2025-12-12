@@ -97,6 +97,12 @@ val SongFilterKey = stringPreferencesKey("songFilter")
 val ArtistFilterKey = stringPreferencesKey("artistFilter")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 
+// Gamification Keys
+val GamificationEnabledKey = booleanPreferencesKey("gamificationEnabled")
+val ShowLevelBadgeKey = booleanPreferencesKey("showLevelBadge")
+val GamificationHapticsKey = booleanPreferencesKey("gamificationHaptics")
+val ShareRemindersKey = booleanPreferencesKey("shareReminders")
+
 
 val LastLikeSongSyncKey = longPreferencesKey("last_like_song_sync")
 val LastLibSongSyncKey = longPreferencesKey("last_library_song_sync")

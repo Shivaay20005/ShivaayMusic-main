@@ -69,6 +69,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("stats") {
         StatsScreen(navController)
     }
+    composable("profile") {
+        com.shivaay20005.shivaaymusic.ui.screens.profile.UserProfileScreen(navController)
+    }
     composable("account") {
         AccountScreen(navController, scrollBehavior)
     }
@@ -266,6 +269,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/privacy") {
         PrivacySettings(navController, scrollBehavior)
+    }
+    composable("settings/gamification") {
+        GamificationSettings(navController, scrollBehavior)
     }
     composable("settings/backup_restore") {
         BackupAndRestore(navController, scrollBehavior)

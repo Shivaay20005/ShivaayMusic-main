@@ -1345,4 +1345,57 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM user ORDER BY createdAt DESC")
     fun getAllUsers(): Flow<List<UserEntity>>
+
+    // Gamification Methods
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserStats(userStats: com.shivaay20005.shivaaymusic.db.entities.UserStatsEntity)
+
+    @Query("SELECT * FROM user_stats WHERE userId = :userId LIMIT 1")
+    fun getUserStats(userId: String): Flow<com.shivaay20005.shivaaymusic.db.entities.UserStatsEntity?>
+
+    @Update
+    suspend fun updateUserStats(userStats: com.shivaay20005.shivaaymusic.db.entities.UserStatsEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserLevel(userLevel: com.shivaay20005.shivaaymusic.db.entities.UserLevelEntity)
+
+    @Query("SELECT * FROM user_level WHERE userId = :userId LIMIT 1")
+    fun getUserLevel(userId: String): Flow<com.shivaay20005.shivaaymusic.db.entities.UserLevelEntity?>
+
+    @Update
+    suspend fun updateUserLevel(userLevel: com.shivaay20005.shivaaymusic.db.entities.UserLevelEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertUserAchievement(achievement: com.shivaay20005.shivaaymusic.db.entities.UserAchievementEntity)
+
+    @Query("SELECT * FROM user_achievements WHERE userId = :userId")
+    fun getUserAchievements(userId: String): Flow<List<com.shivaay20005.shivaaymusic.db.entities.UserAchievementEntity>>
+
+    @Query("SELECT COUNT(*) FROM user_achievements WHERE userId = :userId AND badgeKey = :badgeKey")
+    suspend fun hasAchievement(userId: String, badgeKey: String): Int
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertUserReward(reward: com.shivaay20005.shivaaymusic.db.entities.UserRewardEntity)
+
+    @Query("SELECT * FROM user_rewards WHERE userId = :userId")
+    fun getUserRewards(userId: String): Flow<List<com.shivaay20005.shivaaymusic.db.entities.UserRewardEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDailyQuest(quest: com.shivaay20005.shivaaymusic.db.entities.DailyQuestEntity)
+
+    @Query("SELECT * FROM daily_quests WHERE userId = :userId AND questDate = :questDate")
+    fun getDailyQuests(userId: String, questDate: java.time.LocalDate): Flow<List<com.shivaay20005.shivaaymusic.db.entities.DailyQuestEntity>>
+
+    @Update
+    suspend fun updateDailyQuest(quest: com.shivaay20005.shivaaymusic.db.entities.DailyQuestEntity)
+
+    @Query("DELETE FROM daily_quests WHERE userId = :userId AND questDate < :beforeDate")
+    suspend fun deleteOldQuests(userId: String, beforeDate: java.time.LocalDate)
+
+    // Count queries for gamification sync
+    @Query("SELECT COUNT(DISTINCT artist.id) FROM artist JOIN song_artist_map ON artist.id = song_artist_map.artistId JOIN song ON song_artist_map.songId = song.id WHERE song.inLibrary IS NOT NULL")
+    fun artistsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM playlist WHERE isEditable = 1 AND bookmarkedAt IS NOT NULL")
+    fun editablePlaylistsCount(): Flow<Int>
 }
