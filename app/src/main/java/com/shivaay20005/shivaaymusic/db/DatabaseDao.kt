@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.RoomWarnings
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
@@ -61,18 +62,22 @@ import java.util.Locale
 interface DatabaseDao {
     @Transaction
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL ORDER BY rowId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun songsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL ORDER BY inLibrary")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun songsByCreateDateAsc(): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL ORDER BY title")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun songsByNameAsc(): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL ORDER BY totalPlayTime")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun songsByPlayTimeAsc(): Flow<List<Song>>
 
     fun songs(
@@ -113,18 +118,22 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM song WHERE liked ORDER BY rowId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun likedSongsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM song WHERE liked ORDER BY likedDate")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun likedSongsByCreateDateAsc(): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM song WHERE liked ORDER BY title")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun likedSongsByNameAsc(): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM song WHERE liked ORDER BY totalPlayTime")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun likedSongsByPlayTimeAsc(): Flow<List<Song>>
 
     fun likedSongs(
@@ -169,10 +178,12 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT song.* FROM song JOIN song_album_map ON song.id = song_album_map.songId WHERE song_album_map.albumId = :albumId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumSongs(albumId: String): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId ORDER BY position")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun playlistSongs(playlistId: String): Flow<List<PlaylistSong>>
 
     @Transaction
@@ -180,24 +191,28 @@ interface DatabaseDao {
         "SELECT song.* FROM song_artist_map " +
                 "JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId ORDER BY inLibrary",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistSongsInAA(artistId: String): Flow<List<Song>>
 
     @Transaction
     @Query(
         "SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL ORDER BY inLibrary",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistSongsByCreateDateAsc(artistId: String): Flow<List<Song>>
 
     @Transaction
     @Query(
         "SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL ORDER BY title",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistSongsByNameAsc(artistId: String): Flow<List<Song>>
 
     @Transaction
     @Query(
         "SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL ORDER BY totalPlayTime",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistSongsByPlayTimeAsc(artistId: String): Flow<List<Song>>
 
     fun artistSongs(
@@ -220,6 +235,7 @@ interface DatabaseDao {
     @Query(
         "SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL LIMIT :previewSize",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistSongsPreview(
         artistId: String,
         previewSize: Int = 3,
@@ -256,6 +272,7 @@ interface DatabaseDao {
         LIMIT 100
     """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun quickPicks(now: Long = System.currentTimeMillis()): Flow<List<Song>>
 
     @Transaction
@@ -343,6 +360,7 @@ interface DatabaseDao {
         OFFSET :offset
     """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun mostPlayedSongs(
         fromTimeStamp: Long,
         limit: Int = 6,
@@ -380,6 +398,7 @@ interface DatabaseDao {
                      ON artist.id = artistId
     """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun mostPlayedArtists(
         fromTimeStamp: Long,
         limit: Int = 6,
@@ -420,6 +439,7 @@ interface DatabaseDao {
     LIMIT :limit OFFSET :offset
     """
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun mostPlayedAlbums(
         fromTimeStamp: Long,
         limit: Int = 6,
@@ -459,6 +479,7 @@ interface DatabaseDao {
         LIMIT 100
     """
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun forgottenFavorites(now: Long = System.currentTimeMillis()): Flow<List<Song>>
 
     @Transaction
@@ -476,6 +497,7 @@ interface DatabaseDao {
         OFFSET :offset
         """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun recommendedAlbum(
         now: Long = System.currentTimeMillis(),
         limit: Int = 5,
@@ -484,10 +506,12 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM song WHERE id = :songId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun song(songId: String?): Flow<Song?>
 
     @Transaction
     @Query("SELECT * FROM Song WHERE id = :songId LIMIT 1")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun getSongById(songId: String): Song?
 
     @Transaction
@@ -496,6 +520,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM song")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun allSongs(): Flow<List<Song>>
 
     @Transaction
@@ -525,6 +550,7 @@ interface DatabaseDao {
                       artistTotalPlayTime.totalPlayTime DESC
     """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun allArtistsByPlayTime(): Flow<List<Artist>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -585,24 +611,28 @@ interface DatabaseDao {
         WHERE songCount > 0
     """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistsByPlayTimeAsc(): Flow<List<Artist>>
 
     @Transaction
     @Query(
         "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistsBookmarkedByCreateDateAsc(): Flow<List<Artist>>
 
     @Transaction
     @Query(
         "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY name",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistsBookmarkedByNameAsc(): Flow<List<Artist>>
 
     @Transaction
     @Query(
         "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistsBookmarkedBySongCountAsc(): Flow<List<Artist>>
 
     @Transaction
@@ -625,6 +655,7 @@ interface DatabaseDao {
         WHERE bookmarkedAt IS NOT NULL
     """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artistsBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
 
     @Query("UPDATE artist SET songCount = :count WHERE id = :artistId")
@@ -680,30 +711,37 @@ interface DatabaseDao {
     }
 
     @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE id = :id")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun artist(id: String): Flow<Artist?>
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(1) FROM song WHERE song.albumId = album.id) AS songCount FROM album WHERE album.bookmarkedAt IS NOT NULL ORDER BY rowId DESC")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsInAA(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY rowId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsByCreateDateAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY title")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsByNameAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY year")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsByYearAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY songCount")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsBySongCountAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY duration")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsByLengthAsc(): Flow<List<Album>>
 
     @Transaction
@@ -718,26 +756,32 @@ interface DatabaseDao {
         ORDER BY SUM(song.totalPlayTime)
     """,
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsByPlayTimeAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY rowId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsLikedByCreateDateAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY title")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsLikedByNameAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY year")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsLikedByYearAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsLikedBySongCountAsc(): Flow<List<Album>>
 
     @Transaction
     @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY duration")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsLikedByLengthAsc(): Flow<List<Album>>
 
     @Transaction
@@ -752,6 +796,7 @@ interface DatabaseDao {
         ORDER BY SUM(song.totalPlayTime)
     """
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun albumsLikedByPlayTimeAsc(): Flow<List<Album>>
 
     fun albums(
@@ -818,20 +863,24 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY rowId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun playlistsByCreateDateAsc(): Flow<List<Playlist>>
 
     @Transaction
     @Query(
         "SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY lastUpdateTime",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun playlistsByUpdatedDateAsc(): Flow<List<Playlist>>
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY name")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun playlistsByNameAsc(): Flow<List<Playlist>>
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun playlistsBySongCountAsc(): Flow<List<Playlist>>
 
     fun playlists(
@@ -854,14 +903,17 @@ interface DatabaseDao {
     @Query(
         "SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE id = :playlistId",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun playlist(playlistId: String): Flow<Playlist?>
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isEditable AND bookmarkedAt IS NOT NULL ORDER BY rowId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun editablePlaylistsByCreateDateAsc(): Flow<List<Playlist>>
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE browseId = :browseId")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun playlistByBrowseId(browseId: String): Flow<Playlist?>
 
     @Transaction
@@ -893,6 +945,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM song WHERE title LIKE '%' || :query || '%' AND inLibrary IS NOT NULL LIMIT :previewSize")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun searchSongs(
         query: String,
         previewSize: Int = Int.MAX_VALUE,
@@ -902,6 +955,7 @@ interface DatabaseDao {
     @Query(
         "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE name LIKE '%' || :query || '%' AND songCount > 0 LIMIT :previewSize",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun searchArtists(
         query: String,
         previewSize: Int = Int.MAX_VALUE,
@@ -911,6 +965,7 @@ interface DatabaseDao {
     @Query(
         "SELECT * FROM album WHERE title LIKE '%' || :query || '%' AND EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) LIMIT :previewSize",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun searchAlbums(
         query: String,
         previewSize: Int = Int.MAX_VALUE,
@@ -920,6 +975,7 @@ interface DatabaseDao {
     @Query(
         "SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE name LIKE '%' || :query || '%' LIMIT :previewSize",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun searchPlaylists(
         query: String,
         previewSize: Int = Int.MAX_VALUE,
@@ -927,10 +983,12 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM event ORDER BY rowId DESC")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun events(): Flow<List<EventWithSong>>
 
     @Transaction
     @Query("SELECT * FROM event ORDER BY rowId ASC LIMIT 1")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun firstEvent(): Flow<EventWithSong>
 
     @Transaction
@@ -939,6 +997,7 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM search_history WHERE `query` LIKE :query || '%' ORDER BY id DESC")
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun searchHistory(query: String = ""): Flow<List<SearchHistory>>
 
     @Transaction
@@ -981,6 +1040,7 @@ interface DatabaseDao {
     @Query(
         "SELECT song.* FROM (SELECT * from related_song_map GROUP BY relatedSongId) map JOIN song ON song.id = map.relatedSongId where songId = :songId",
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun getRelatedSongs(songId: String): Flow<List<Song>>
 
     @Transaction
@@ -996,6 +1056,7 @@ interface DatabaseDao {
         WHERE songId = :songId
         """
     )
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     fun relatedSongs(songId: String): List<Song>
 
     @Transaction
