@@ -814,4 +814,7 @@
     <!-- Deep Link Strings -->
     <string name="now_playing_format">Now playing: %s</string>
     <string name="error_loading_content">Error loading content</string>
+    <string name="battery_optimization_title">Battery Optimization Required</string>
+    <string name="battery_optimization_message">To ensure seamless music playback in the background, ShivaayMusic requires battery optimization to be disabled. This is MANDATORY for the app to function correctly. Please allow this permission.</string>
+    <string name="battery_optimization_allow">Allow</string>
 </resources>

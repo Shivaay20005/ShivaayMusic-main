@@ -174,7 +174,7 @@ fun PlayerSettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.ignore_audio_focus_loss)) },
-            description = { Text(stringResource(R.string.ignore_audio_focus_loss_desc)) },
+            description = stringResource(R.string.ignore_audio_focus_loss_desc),
             icon = { Icon(painterResource(R.drawable.call), null) },
             checked = ignoreAudioFocusLoss,
             onCheckedChange = onIgnoreAudioFocusLossChange

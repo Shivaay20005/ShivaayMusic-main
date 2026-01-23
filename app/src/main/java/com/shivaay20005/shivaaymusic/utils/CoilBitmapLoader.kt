@@ -35,6 +35,7 @@ class CoilBitmapLoader(
                         .Builder(context)
                         .data(uri)
                         .allowHardware(false)
+                        .size(512, 512) // Resize to prevent OOM
                         .build(),
                 )
             if (result is ErrorResult) {

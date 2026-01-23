@@ -17,6 +17,7 @@ import android.os.Environment
 import android.os.IBinder
 import android.provider.MediaStore
 import android.provider.Settings
+import android.os.PowerManager
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -79,6 +80,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -348,6 +351,10 @@ class MainActivity : ComponentActivity() {
 
         intent?.let { handlevideoIdIntent(it) }
 
+        // Request to ignore battery optimizations for stable background playback
+        // Request to ignore battery optimizations for stable background playback
+        // checkBatteryOptimization() - Moved to Compose UI for better UX
+
         setContent {
             val dismissedVersion by rememberPreference(DismissedUpdateVersionKey, defaultValue = "")
             var showUpdateDialog by remember { mutableStateOf(false) }
@@ -481,9 +488,12 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     } else {
-                BoxWithConstraints(
-                    modifier =
-                        Modifier
+                        // Check for Battery Optimization Permission
+                        BatteryOptimizationCheck()
+                        
+                        BoxWithConstraints(
+                            modifier =
+                                Modifier
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.surface),
                 ) {
@@ -1604,6 +1614,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /* 
+    private fun checkBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+                try {
+                    val intent = Intent().apply {
+                        action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to open battery optimization settings", e)
+                }
+            }
+        }
+    }
+    */
+
+
     private fun handlevideoIdIntent(intent: Intent) {
         val uri = intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri() ?: return
         when {
@@ -2027,3 +2057,82 @@ fun logErrorToDownloads(context: Context, e: Exception) {
     }
 }
 
+
+@Composable
+fun BatteryOptimizationCheck() {
+    val context = LocalContext.current
+    var isOptimized by remember { mutableStateOf(true) } // Assume optimized (bad) initially
+
+    // Function to check status
+    fun checkStatus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val packageName = context.packageName
+            isOptimized = !powerManager.isIgnoringBatteryOptimizations(packageName)
+        } else {
+            isOptimized = false
+        }
+    }
+
+    // Check on Resume
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                checkStatus()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        // Initial check
+        checkStatus()
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    if (isOptimized) {
+        AlertDialog(
+            onDismissRequest = { 
+                // Prevent dismissal, it's mandatory
+            },
+            title = { 
+                Text(
+                    text = stringResource(R.string.battery_optimization_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                ) 
+            },
+            text = { 
+                Text(
+                    text = stringResource(R.string.battery_optimization_message),
+                    style = MaterialTheme.typography.bodyMedium
+                ) 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            try {
+                                val intent = Intent().apply {
+                                    action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                                    data = Uri.parse("package:${context.packageName}")
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.battery_optimization_allow),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        )
+    }
+}

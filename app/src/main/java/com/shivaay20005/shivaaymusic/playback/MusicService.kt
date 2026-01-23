@@ -1117,8 +1117,11 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        val isPlayerHandled = this::player.isInitialized
+        if (!isPlayerHandled || !player.playWhenReady || player.mediaItemCount == 0) {
+            stopSelf()
+        }
         super.onTaskRemoved(rootIntent)
-        stopSelf()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
