@@ -14,7 +14,6 @@ import 'firebase_options.dart'; // Import created options
 import 'package:shivaaymusic/ui/screens/Search/search_screen_controller.dart';
 import 'package:shivaaymusic/utils/get_localization.dart';
 import '/services/downloader.dart';
-import '/services/widget_service.dart';
 import '/services/piped_service.dart';
 import '/services/privacy_service.dart';
 import '/services/auth_service.dart';
@@ -280,7 +279,6 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
   Get.lazyPut(() => Downloader(), fenix: true);
-  Get.lazyPut(() => WidgetService(), fenix: true);
 
   // Listening Stats Service
   final statsService = ListeningStatsService();

@@ -97,15 +97,6 @@
         </intent-filter>
         </receiver>
 
-        <!-- ShivaayMusic Widget -->
-        <receiver android:name=".ShivaayMusicWidgetProvider" android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.shivaay20005.shivaaymusicflutter.UPDATE_WIDGET" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                       android:resource="@xml/shivaay_music_widget_info" />
-        </receiver>
 
         <!-- Default Notification Icon -->
         <meta-data

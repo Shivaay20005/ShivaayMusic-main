@@ -12,7 +12,6 @@ import '../screens/Playlist/playlist_screen_controller.dart';
 import '../widgets/snackbar.dart';
 import '/services/synced_lyrics_service.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
-import '/services/widget_service.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../services/windows_audio_service.dart';
 import '../../utils/helper.dart';
@@ -81,7 +80,6 @@ class PlayerController extends GetxController
   final GlobalKey<ScaffoldState> homeScaffoldkey = GlobalKey<ScaffoldState>();
 
   final buttonState = PlayButtonState.paused.obs;
-  final widgetService = Get.put(WidgetService());
 
   // track whether wakelock is currently enabled to avoid repeated calls
   bool _wakelockActive = false;
@@ -197,16 +195,8 @@ class PlayerController extends GetxController
       }
 
       final settings = Get.find<SettingsScreenController>();
-      // Keep the screen awake whenever playback is active and the setting is enabled.
       final shouldEnable = settings.keepScreenAwake.isTrue && isPlaying;
       _setWakelock(shouldEnable);
-      
-      // Notify widget of playback state change
-      if (isPlaying) {
-        widgetService.notifyPlay();
-      } else {
-        widgetService.notifyPause();
-      }
     });
   }
 
@@ -243,20 +233,6 @@ class PlayerController extends GetxController
         val.buffered = oldState.buffered;
         val.total = oldState.total;
       });
-      
-      // Update widget with progress information
-      if (currentSong.value != null) {
-        widgetService.updateWidget(
-          songTitle: currentSong.value!.title,
-          songArtist: currentSong.value!.artist ?? '',
-          isPlaying: buttonState.value == PlayButtonState.playing,
-          progress: oldState.total.inMilliseconds > 0 
-            ? position.inMilliseconds / oldState.total.inMilliseconds
-            : 0.0,
-          duration: oldState.total.inMilliseconds,
-          currentTime: position.inMilliseconds,
-        );
-      }
     });
   }
 
@@ -311,13 +287,6 @@ class PlayerController extends GetxController
         if (Get.find<SettingsScreenController>().playerUi.value == 1) {
           gesturePlayerVisibleState.value = 2;
         }
-        
-        // Notify widget of new song
-        widgetService.updateWidget(
-          songTitle: currentSong.value!.title,
-          songArtist: currentSong.value!.artist ?? '',
-          isPlaying: buttonState.value == PlayButtonState.playing,
-        );
       }
     });
   }

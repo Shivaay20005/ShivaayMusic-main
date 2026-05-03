@@ -32,7 +32,6 @@ import '/services/utils.dart';
 // import '/services/listening_stats_service.dart';
 import '../ui/screens/Settings/settings_screen_controller.dart';
 import '../ui/screens/Library/library_controller.dart';
-import '/services/widget_service.dart';
 // ignore: unused_import, implementation_imports, depend_on_referenced_packages
 import "package:media_kit/src/player/platform_player.dart" show MPVLogLevel;
 
@@ -211,21 +210,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         queueIndex: currentIndex,
       ));
 
-      // Update Home Screen Widget
-      if (GetPlatform.isAndroid) {
-        try {
-          final item = mediaItem.value;
-          if (item != null) {
-            Get.find<WidgetService>().updateWidget(
-              songTitle: item.title,
-              songArtist: item.artist ?? '',
-              isPlaying: playing,
-            );
-          }
-        } catch (e) {
-          // Service might not be ready yet
-        }
-      }
       //print("set ${playbackState.value.queueIndex},${event.currentIndex}");
     }, onError: (Object e, StackTrace st) async {
       if (e is PlayerException) {
@@ -544,19 +528,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
         mediaItem.add(currentSong);
         final streamInfo = await futureStreamInfo;
-
-         // Update Home Screen Widget
-        if (GetPlatform.isAndroid) {
-          try {
-            Get.find<WidgetService>().updateWidget(
-              songTitle: currentSong.title,
-              songArtist: currentSong.artist ?? '',
-              isPlaying: _player.playing,
-            );
-          } catch (e) {
-            printERROR("WidgetService not found during update: $e");
-          }
-        }
         if (songIndex != currentIndex) {
           return;
         } else if (!streamInfo.playable) {
@@ -1189,7 +1160,7 @@ class MediaLibrary {
       await box.close();
     }
 
-    if (libId == "LIBRP") {
+    if (libId == "LIBRP" || libId == "LIBFAV") {
       return songs.reversed.toList();
     }
 

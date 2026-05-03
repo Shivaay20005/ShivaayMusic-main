@@ -7,6 +7,5 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 class MainActivity : AudioServiceFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        flutterEngine.plugins.add(WidgetService())
     }
 }
