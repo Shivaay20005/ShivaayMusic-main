@@ -86,7 +86,7 @@ class CombinedLibraryController extends GetxController
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(vsync: this, length: 4, initialIndex: 1);
+    tabController = TabController(vsync: this, length: 4, initialIndex: 0);
   }
 
   @override

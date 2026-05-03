@@ -51,7 +51,7 @@ class SearchScreen extends StatelessWidget {
     // On Android/iOS, the parent scaffold already shows the custom AppHeaderBar.
     // Avoid double top padding which creates a large gap.
     final topPadding =
-        (GetPlatform.isAndroid || GetPlatform.isIOS) ? 15.0 : (context.isLandscape ? 30.0 : 25.0);
+        (GetPlatform.isAndroid || GetPlatform.isIOS) ? 10.0 : (context.isLandscape ? 30.0 : 25.0);
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Obx(

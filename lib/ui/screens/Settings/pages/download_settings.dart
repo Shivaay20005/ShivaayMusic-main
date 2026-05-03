@@ -5,6 +5,7 @@ import '../../../widgets/cust_switch.dart';
 import '../settings_screen_controller.dart';
 import '../../../widgets/export_file_dialog.dart';
 import '../../Home/home_screen_controller.dart';
+import '../../Library/library_combined.dart';
 
 class DownloadSettingsPage extends StatelessWidget {
   const DownloadSettingsPage({super.key});
@@ -74,6 +75,12 @@ class DownloadSettingsPage extends StatelessWidget {
                 final homeScreenController = Get.find<HomeScreenController>();
                 if (settingsController.isBottomNavBarEnabled.isTrue) {
                   homeScreenController.onBottonBarTabSelected(2);
+                  // Switch to Songs tab (index 1) in CombinedLibrary
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    if (Get.isRegistered<CombinedLibraryController>()) {
+                      Get.find<CombinedLibraryController>().tabController.animateTo(1);
+                    }
+                  });
                 } else {
                   homeScreenController.onSideBarTabSelected(1);
                 }

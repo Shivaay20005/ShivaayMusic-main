@@ -9,6 +9,19 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#21 Update - 1.0.3 - 2026-05-04
+-------------------
+[Android & UI Refinement]
+- **Widget Removal**: Completely removed all legacy Android home screen widget code, native services, and configuration files to improve app stability and reduce package size.
+- **Notification Icon Refinement**: Re-scaled the system notification icon to a 48dp square (1:1 aspect ratio) for better clarity and visibility in the status bar.
+- **Settings Scrolling**: Increased bottom padding in the Settings screen to 250px, ensuring no content is hidden behind the mini-player and allowing deeper scrolling.
+- **Explore Tab Default**: Changed the default landing tab for the "Explore" (Combined Library) section to "Playlists" for better content discovery.
+
+[Fixes & Navigation]
+- **Favorites Sorting**: Implemented "Newest First" sorting for Liked Songs (Favorites), ensuring recently added tracks appear at the top of the library.
+- **View Downloads Logic**: Updated the "View Downloads" button in Settings to explicitly navigate to the "Songs" tab within the library for instant access to offline tracks.
+- **Compilation Fix**: Resolved missing imports and unresolved reference errors in `download_settings.dart` and `player_controller.dart`.
+
 #20 Update - 1.0.3 - 2026-05-03
 -------------------
 [Android 13+ Stability]
