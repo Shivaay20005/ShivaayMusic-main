@@ -1,0 +1,124 @@
+
+===================================================================
+FIREBASE & GOOGLE SIGN-IN SETUP GUIDE - ShivaayMusic
+===================================================================
+Last Updated: 2026-01-30
+Author: Antigravity Agent (ShivaayMusic Team)
+
+This document explains the complete configuration and setup process for Google Sign-In authentication in the ShivaayMusic Flutter application.
+
+-------------------------------------------------------------------
+1. SHA-1 Fingerprints Generation
+-------------------------------------------------------------------
+We generated the SHA-1 fingerprints required for Firebase and Google OAuth using the following command in the `android` directory:
+> gradlew signingReport
+
+The following keys were identified and registered:
+
+[DEBUG KEY (For Development)]
+SHA-1: B8:27:12:A1:22:64:A6:9C:6E:F6:7C:21:2B:AD:1C:11:AE:39:A6:05
+Store: C:\Users\shiva\.android\debug.keystore
+Alias: AndroidDebugKey
+
+[RELEASE KEY (For Production/Play Store)]
+SHA-1: BA:C4:29:C3:BB:E5:17:67:A4:1E:2D:62:96:78:4B:26:B8:74:CB:FE
+Store: C:\Users\shiva\Documents\ShivaayMusic-Windows-1\android\app\upload-keystore.jks
+Alias: upload
+
+-------------------------------------------------------------------
+2. Firebase Console Configuration
+-------------------------------------------------------------------
+Location: Firebase Console -> Project Settings -> General -> Your Apps
+
+1. Added SHA-1 Fingerprints:
+   - Both Debug and Release SHA-1 keys were added to the Android App configuration.
+   - This allows Firebase to verify the authenticity of the app requests.
+
+2. Enabled Google Sign-In:
+   - Location: Authentication -> Sign-in method
+   - Provider: Google
+   - Status: Enabled
+   - Support Email: Set to shivaay20005...
+
+-------------------------------------------------------------------
+3. Google Cloud Console / OAuth Setup
+-------------------------------------------------------------------
+For Google Sign-In to work on Android, specific OAuth 2.0 Client IDs are required in the Google Cloud Console.
+
+1. OAuth Consent Screen:
+   - Configured for "External" user type.
+   - App Name: ShivaayMusic
+   - User Support Email: Configured.
+   - Scopes: email, profile, openid.
+
+2. OAuth Client IDs Created:
+   
+   A. Android Client (Debug/Release):
+      - Package Name: com.shivaay20005.shivaaymusicflutter
+      - SHA-1: B8:27:12:A1:22:64:A6:9C:6E:F6:7C:21:2B:AD:1C:11:AE:39:A6:05
+   
+   B. Web Client (Required for token exchange):
+      - Name: ShivaayMusic Web Client
+      - Client ID: 468199347944-edp0pgj7mddkl2rrvttlf6pshgvhdssr.apps.googleusercontent.com
+      - Note: Even for Android apps, a Web Client ID is sometimes needed by the plugin to communicate with Google's backend.
+
+-------------------------------------------------------------------
+4. Configuration Files
+-------------------------------------------------------------------
+[google-services.json]
+- Location: android/app/google-services.json
+- Status: UPDATED
+- Content: This file was replaced with the latest version containing:
+    - `oauth_client` array populated with client_id and Android info.
+    - `client_info` with correct package name.
+    - `api_key` for Firebase services.
+
+IMPORTANT: Never delete this file. If you regenerate keys or change settings in Firebase, you must download a new version and replace this file.
+
+-------------------------------------------------------------------
+5. Code Integration Steps
+-------------------------------------------------------------------
+
+[Dependencies Update]
+- File: pubspec.yaml
+- Added: google_sign_in: ^6.2.2
+
+[Backend Logic (AuthService)]
+- File: lib/services/auth_service.dart
+- Updates:
+    - Imported `google_sign_in`.
+    - Initialized `GoogleSignIn _googleSignIn = GoogleSignIn();`
+    - Implemented `signInWithGoogle()`:
+        1. Triggers native Google Sign-In flow.
+        2. Retrieves `accessToken` and `idToken`.
+        3. Creates `GoogleAuthProvider.credential`.
+        4. Signs in to Firebase with `signInWithCredential`.
+        5. Syncs user data (Display Name, Email, Photo) to Firestore 'users' collection.
+    - Updated `signOut()` to call `_googleSignIn.signOut()` ensuring complete logout.
+
+[Frontend UI (LoginScreen)]
+- File: lib/ui/screens/Auth/login_screen.dart
+- Updates:
+    - Added "OR" divider with visual styling.
+    - Added "Continue with Google" button.
+    - Start loading state indicator during sign-in.
+    - Handles success/failure snacksbars.
+    - On success, navigates to Home screen.
+
+-------------------------------------------------------------------
+Troubleshooting Common Issues
+-------------------------------------------------------------------
+1. "Google Sign-In is not enabled":
+   - Go to Firebase Console -> Authentication -> Sign-in method -> Google. Toggle it ON.
+
+2. "Developer Error" / Login Fails silently:
+   - Usually means SHA-1 mismatch. Run `gradlew signingReport` again and verify the key matches what is in Firebase.
+   - Ensure `google-services.json` is in `android/app/` and is the latest version.
+
+3. "PlatformException(sign_in_failed, ...)"
+   - Check internet connection.
+   - Ensure you built the app (`flutter run`) after adding the new keys and json file. Sometimes a `flutter clean` is needed.
+
+-------------------------------------------------------------------
+End of Guide
+===================================================================

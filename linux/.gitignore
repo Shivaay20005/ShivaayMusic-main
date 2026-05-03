@@ -1,0 +1,87 @@
+flutter/ephemeral
+
+# Build outputs
+/build/
+/cmake-build-*/
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ld
+*.lds
+*.ldscript
+*.map
+*.so
+*.so.*
+*.dylib
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.ipa
+*.bin
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+
+# Make
+*.mk
+
+# Ninja
+.ninja_log
+.ninja_deps
+
+# Autotools
+autom4te.cache/
+config.log
+config.status
+configure
+libtool
+
+# Debian
+*.deb
+
+# Red Hat
+*.rpm
+
+# AppImage
+*.AppImage
+
+# Snap
+*.snap
+
+# Flatpak
+*.flatpak
+
+# Package files
+*.tar.gz
+*.zip

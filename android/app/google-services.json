@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "468199347944",
+    "project_id": "shivaaymusicflutter",
+    "storage_bucket": "shivaaymusicflutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468199347944:android:f3fad429dde1b3bc901b5d",
+        "android_client_info": {
+          "package_name": "com.shivaay20005.shivaaymusicflutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "468199347944-qippe0dq5fjjpqpdo03qukqeqr7ucplp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shivaay20005.shivaaymusicflutter",
+            "certificate_hash": "d922b207a7ede703a8a505f59a6b78c8991815b3"
+          }
+        },
+        {
+          "client_id": "468199347944-u8k8m980b3u9vrun3cb038k1ph36rt8s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAk30q8mKTCUGfRAd1yKtbwkl3oRF4R_o8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "468199347944-edp0pgj7mddkl2rrvttlf6pshgvhdssr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
