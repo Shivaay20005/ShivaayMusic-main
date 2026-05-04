@@ -24,6 +24,7 @@ import '/services/listening_stats_service.dart';
 import 'utils/app_link_controller.dart';
 import '/services/audio_handler.dart';
 import '/services/music_service.dart';
+import '/services/audio_booster_controller.dart';
 import '/ui/home.dart';
 import '/ui/screens/Auth/login_screen.dart';
 import '/ui/player/player_controller.dart';
@@ -279,6 +280,7 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
   Get.lazyPut(() => Downloader(), fenix: true);
+  Get.lazyPut(() => AudioBoosterController(), fenix: true);
 
   // Listening Stats Service
   final statsService = ListeningStatsService();

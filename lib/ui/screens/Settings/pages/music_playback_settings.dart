@@ -6,6 +6,7 @@ import 'package:shivaaymusic/services/music_service.dart';
 import '../../../widgets/cust_switch.dart';
 import '../settings_screen_controller.dart';
 import '/ui/player/player_controller.dart';
+import 'package:shivaaymusic/services/audio_booster_controller.dart';
 
 class MusicPlaybackSettingsPage extends StatelessWidget {
   const MusicPlaybackSettingsPage({super.key});
@@ -125,6 +126,107 @@ class MusicPlaybackSettingsPage extends StatelessWidget {
                       onChanged: settingsController.toggleSmartPrefetch),
                 )),
           ],
+
+          const Divider(),
+          _buildSectionHeader(context, "Audio Booster"),
+          Obx(() {
+            final booster = Get.find<AudioBoosterController>();
+            return Column(
+              children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  title: const Text("Enable Booster"),
+                  subtitle: Text("Unleash the full power of your speakers. Use with caution!",
+                      style: Theme.of(context).textTheme.bodyMedium),
+                  trailing: CustSwitch(
+                    value: booster.isBoosterEnabled.value,
+                    onChanged: booster.toggleBooster,
+                  ),
+                ),
+                if (booster.isBoosterEnabled.value) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("Bass Boost"),
+                            Text("${(booster.bassBoostLevel.value / 10).toStringAsFixed(0)}%"),
+                          ],
+                        ),
+                        Slider(
+                          value: booster.bassBoostLevel.value,
+                          min: 0,
+                          max: 1000,
+                          activeColor: Colors.blueAccent,
+                          onChanged: booster.setBassBoost,
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("Virtualizer (Surround)"),
+                            Text("${(booster.virtualizerLevel.value / 10).toStringAsFixed(0)}%"),
+                          ],
+                        ),
+                        Slider(
+                          value: booster.virtualizerLevel.value,
+                          min: 0,
+                          max: 1000,
+                          activeColor: Colors.deepPurpleAccent,
+                          onChanged: booster.setVirtualizer,
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("Extra Gain (Loudness)"),
+                            Text("${(100 + (booster.loudnessGain.value / 2)).toStringAsFixed(0)}%"),
+                          ],
+                        ),
+                        Slider(
+                          value: booster.loudnessGain.value,
+                          min: 0,
+                          max: 400,
+                          activeColor: Colors.redAccent,
+                          onChanged: booster.setLoudnessGain,
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("Pitch Control"),
+                            Text("${booster.pitch.value.toStringAsFixed(2)}x"),
+                          ],
+                        ),
+                        Slider(
+                          value: booster.pitch.value,
+                          min: 0.5,
+                          max: 2.0,
+                          activeColor: Colors.tealAccent,
+                          onChanged: booster.setPitch,
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              booster.resetToDefault();
+                            },
+                            icon: const Icon(Icons.restore),
+                            label: const Text("Reset to Default"),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }),
 
           const Divider(),
           _buildSectionHeader(context, "Player Behavior"),

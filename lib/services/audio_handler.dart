@@ -20,10 +20,10 @@ import 'package:rxdart/rxdart.dart';
 import '/models/album.dart';
 import '../models/playlist.dart';
 import '/services/equalizer.dart';
+import '/services/booster_service.dart';
 import '/services/stream_service.dart';
 import '/models/sm_streaming_data.dart';
 import '/ui/player/player_controller.dart';
-import '../ui/screens/Home/home_screen_controller.dart';
 import '/services/background_task.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../utils/helper.dart';
@@ -171,6 +171,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     _player.androidAudioSessionIdStream.listen((int? id) {
       if (id != null) {
         EqualizerService.initAudioEffect(id);
+        BoosterService.initEffects(id);
       }
     });
   }
@@ -791,6 +792,25 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
       case 'toggleQueueLoopMode':
         queueLoopModeEnabled = extras!['enable'];
+        break;
+
+      case 'toggleBooster':
+        final enable = extras!['enable'] as bool;
+        BoosterService.setEnabled(enable);
+        break;
+
+      case 'updateBoosterLevels':
+        final bass = (extras!['bass'] as double).toInt();
+        final virt = (extras['virt'] as double).toInt();
+        final gain = (extras['gain'] as double).toInt(); // 0 to 2000
+        BoosterService.setBassLevel(bass);
+        BoosterService.setVirtualizerLevel(virt);
+        BoosterService.setLoudnessGain(gain);
+        break;
+
+      case 'setPitch':
+        final pitch = extras!['pitch'] as double;
+        _player.setPitch(pitch);
         break;
 
       case 'clearQueue':

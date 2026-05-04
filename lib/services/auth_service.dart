@@ -371,7 +371,7 @@ class AuthService extends GetxService {
     } catch (e) {
       isLoading.value = false;
       // Detailed error logging for debugging
-      print("❌ CRITICAL Google Sign-In Error: $e");
+      debugPrint("❌ CRITICAL Google Sign-In Error: $e");
       
       String errorMsg = e.toString();
       if (errorMsg.contains("12500")) {
