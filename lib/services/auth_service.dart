@@ -43,7 +43,9 @@ class AuthService extends GetxService {
     
     // Initialize GoogleSignIn only on Mobile platforms
     if (!Platform.isWindows) {
-       _googleSignIn = GoogleSignIn();
+       _googleSignIn = GoogleSignIn(
+         serverClientId: "468199347944-u8k8m980b3u9vrun3cb038k1ph36rt8s.apps.googleusercontent.com",
+       );
     }
     
     Get.put(CloudService()); // Register CloudService
@@ -369,13 +371,20 @@ class AuthService extends GetxService {
     } catch (e) {
       isLoading.value = false;
       // Detailed error logging for debugging
-      debugPrint("❌ Google Sign-In Error: $e");
-      if (e.toString().contains("network_error")) {
-        return {'success': false, 'message': 'Network error. Check your connection.'};
+      print("❌ CRITICAL Google Sign-In Error: $e");
+      
+      String errorMsg = e.toString();
+      if (errorMsg.contains("12500")) {
+        errorMsg = "Error 12500: Internal error or missing Support Email in Firebase Console.";
+      } else if (errorMsg.contains("10")) {
+        errorMsg = "Error 10: SHA-1 mismatch. Check if the certificate registered in Firebase matches your build.";
+      } else if (errorMsg.contains("network_error")) {
+        errorMsg = "Network error. Check your connection.";
       }
+      
       return {
         'success': false,
-        'message': 'Error: $e', // Show actual error temporarily for debugging
+        'message': errorMsg,
       };
     }
   }

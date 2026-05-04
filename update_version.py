@@ -15,7 +15,7 @@ def validate_version(version_str):
     pattern = r'^(\d+)\.(\d+)\.(\d+)\+(\d+)$'
     match = re.match(pattern, version_str)
     if not match:
-        print(f"❌ Error: Invalid version format '{version_str}'. expected format: '1.0.2+3'")
+        print(f"❌ Error: Invalid version format '{version_str}'. expected format: '1.0.4+4'")
         return None
     return {
         'full': version_str,
@@ -51,7 +51,7 @@ def main():
     if len(sys.argv) > 1:
         raw_version = sys.argv[1]
     else:
-        raw_version = input("Enter new version (e.g., 1.0.2+3): ").strip()
+        raw_version = input("Enter new version (e.g., 1.0.4+4): ").strip()
     
     # 2. Parse version
     v = validate_version(raw_version)

@@ -65,6 +65,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   bool loudnessNormalizationEnabled = false;
   // var networkErrorPause = false;
   bool isSongLoading = true;
+  bool _isPrefetching = false;
+  int? _lastPrefetchedIndex;
   final _initCompleter = Completer<void>();
 
   // list of shuffled queue songs ids
@@ -257,8 +259,53 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
                   (duration.inMilliseconds - playerDurationOffset)) {
             await _triggerNext();
           }
+
+          // Smart Pre-fetch logic
+          try {
+            final appPrefsBox = Hive.box("AppPrefs");
+            final isSmartPrefetchEnabled = appPrefsBox.get("isSmartPrefetchEnabled") ?? false;
+            if (isSmartPrefetchEnabled && duration != null && value.inSeconds > 0) {
+              final remaining = duration.inSeconds - value.inSeconds;
+              // Start pre-fetching when 30 seconds left or 80% through
+              if ((remaining <= 30 || value.inSeconds > duration.inSeconds * 0.8) && 
+                  _lastPrefetchedIndex != currentIndex) {
+                _prefetchNextSong();
+              }
+            }
+          } catch (e) {
+            // Silently ignore settings check errors
+          }
       }
     });
+  }
+
+  Future<void> _prefetchNextSong() async {
+    if (_isPrefetching || currentIndex == null) return;
+    
+    final nextIndex = _getNextSongIndex();
+    if (nextIndex == currentIndex || nextIndex < 0 || nextIndex >= queue.value.length) return;
+    
+    _isPrefetching = true;
+    _lastPrefetchedIndex = currentIndex;
+    
+    try {
+      final nextSong = queue.value[nextIndex];
+      printINFO("Smart Pre-fetch: Warming up next song -> ${nextSong.title}");
+      
+      // This will fetch the URL and put it into Hive SongsUrlCache
+      final streamInfo = await checkNGetUrl(nextSong.id);
+      
+      if (streamInfo.playable && _playList.children.length == 1) {
+        // If only one song in playlist, we can add the next one to let just_audio buffer it
+        final nextSource = _createAudioSource(nextSong..extras!['url'] = streamInfo.audio!.url);
+        await _playList.add(nextSource);
+        printINFO("Smart Pre-fetch: Added to playlist for buffering -> ${nextSong.title}");
+      }
+    } catch (e) {
+      printERROR("Smart Pre-fetch error: $e");
+    } finally {
+      _isPrefetching = false;
+    }
   }
 
   Future<void> _triggerNext() async {

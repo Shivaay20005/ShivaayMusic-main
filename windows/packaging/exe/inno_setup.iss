@@ -1,6 +1,6 @@
 [Setup]
 AppId=53484956-4141-5980-8105-374300000000
-AppVersion=1.0.2
+AppVersion=1.0.4
 AppName=ShivaayMusic
 AppVerName=ShivaayMusic
 AppPublisher=shivaay20005

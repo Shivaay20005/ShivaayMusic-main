@@ -9,6 +9,25 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#22 Update - 1.0.4 - 2026-05-04
+-------------------
+[Features & Optimization]
+- **Smart Pre-fetch**: Implemented intelligent audio buffering. The app now pre-fetches the next 1-2 song stream URLs and starts buffering when the current track is near completion (80%+). This ensures gapless playback even in unstable network conditions (Metro/Weak Signal).
+- **Cache Management**: Added a new "Clear Cache" feature in Music & Playback settings. Users can now see real-time app cache size and clean it with one tap to free up storage.
+- **Smart Cleaning**: Enhanced the cache cleaner to individually delete unused files while safely skipping the currently playing track to avoid playback interruptions.
+- **Visual Hierarchy**: Redesigned Settings headers with primary color accents, bold typography, and improved spacing to make sections easily distinguishable.
+- **Notification Logo Refinement**: Increased the height and scaling of the `ic_shivaay_logo` in system notifications for better visibility and a more premium look.
+
+[Security & Infrastructure]
+- **Permanent Signing**: Migrated to a dedicated, persistent keystore system using the original debug signature. This prevents "Package Conflict" errors during future updates, even across different devices/installations.
+- **Google Sign-In Fix**: Optimized `AuthService` with an explicit `serverClientId` and detailed error logging to resolve Google Login issues on release builds.
+- **ABI Split Support**: Now building optimized, architecture-specific APKs (arm64, v7a, x64) to reduce download size and improve performance.
+- **Custom APK Naming**: Implemented a naming convention for generated APKs (e.g., `ShivaayMusic-v1.0.4-arm64-v8a-release.apk`) for better file identification and professionalism.
+
+[UI & Fixes]
+- **Search Screen Layout**: Corrected padding and alignment issues in the Search screen caused by the voice search integration, ensuring a perfectly centered and clean interface.
+- **Settings Default**: Set "Smart Pre-fetch" to be disabled by default to give users full control over data usage.
+
 #21 Update - 1.0.3 - 2026-05-04
 -------------------
 [Android & UI Refinement]

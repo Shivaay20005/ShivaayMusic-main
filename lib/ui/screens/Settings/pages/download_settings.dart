@@ -30,8 +30,11 @@ class DownloadSettingsPage extends StatelessWidget {
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 8),
             title: Text("autoDownFavSong".tr),
-            subtitle: Text("autoDownFavSongDes".tr,
+            subtitle: Opacity(
+              opacity: 0.7,
+              child: Text("autoDownFavSongDes".tr,
                 style: Theme.of(context).textTheme.bodyMedium),
+            ),
             trailing: Obx(
               () => CustSwitch(
                   value: settingsController.autoDownloadFavoriteSongEnabled.value,

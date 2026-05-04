@@ -185,3 +185,7 @@ buildNumber.properties
 *.vss
 *.vsscc
 *.vssettings
+
+# Force include signing files (Original Debug Key)
+!android/key.properties
+!android/app/shivaay_debug.keystore

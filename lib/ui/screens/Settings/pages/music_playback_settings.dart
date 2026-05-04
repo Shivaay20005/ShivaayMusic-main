@@ -76,6 +76,35 @@ class MusicPlaybackSettingsPage extends StatelessWidget {
                       onChanged: settingsController.toggleCachingSongsValue),
                 )),
             ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              title: const Text("Clear Cache"),
+              subtitle: Obx(() => Text("Used Space: ${settingsController.cacheSize.value}",
+                  style: Theme.of(context).textTheme.bodyMedium)),
+              trailing: const Icon(Icons.delete_outline),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("Clear Cache"),
+                    content: const Text("This will delete all cached song data to free up space. Downloads will NOT be affected."),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          settingsController.clearCache();
+                          Get.back();
+                        },
+                        child: const Text("Clear", style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 title: Text("skipSilence".tr),
                 subtitle: Text("skipSilenceDes".tr,
@@ -84,6 +113,16 @@ class MusicPlaybackSettingsPage extends StatelessWidget {
                   () => CustSwitch(
                       value: settingsController.skipSilenceEnabled.value,
                       onChanged: settingsController.toggleSkipSilence),
+                )),
+            ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                title: const Text("Smart Pre-fetch"),
+                subtitle: Text("Automatically buffers the next 1-2 songs for gapless playback in weak network areas.",
+                    style: Theme.of(context).textTheme.bodyMedium),
+                trailing: Obx(
+                  () => CustSwitch(
+                      value: settingsController.isSmartPrefetchEnabled.value,
+                      onChanged: settingsController.toggleSmartPrefetch),
                 )),
           ],
 

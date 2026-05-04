@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -49,8 +50,11 @@ class SettingsScreenController extends GetxController {
   final keepScreenAwake = false.obs;
   final restorePlaybackSession = false.obs;
   final cacheHomeScreenData = true.obs;
+  final isSmartPrefetchEnabled = false.obs;
+  final cacheSize = "0 MB".obs;
+  Timer? _cacheTimer;
   // Get version dynamically from package info (from pubspec.yaml)
-  final currentVersion = "V1.0.2".obs;
+  final currentVersion = "V1.0.4".obs;
 
   @override
   void onInit() {
@@ -87,7 +91,7 @@ class SettingsScreenController extends GetxController {
       currentVersion.value = "V${packageInfo.version}";
     } catch (e) {
       // Fallback to default version if package info fails
-      currentVersion.value = "V1.0.2";
+      currentVersion.value = "V1.0.4";
     }
   }
 
@@ -164,6 +168,22 @@ class SettingsScreenController extends GetxController {
     }
     autoDownloadFavoriteSongEnabled.value =
         setBox.get("autoDownloadFavoriteSongEnabled") ?? false;
+    isSmartPrefetchEnabled.value = setBox.get("isSmartPrefetchEnabled") ?? false;
+    updateCacheSize();
+    _startCacheTimer();
+  }
+
+  void _startCacheTimer() {
+    _cacheTimer?.cancel();
+    _cacheTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      updateCacheSize();
+    });
+  }
+
+  @override
+  void onClose() {
+    _cacheTimer?.cancel();
+    super.onClose();
   }
 
   void setAppLanguage(String? val) {
@@ -327,6 +347,52 @@ class SettingsScreenController extends GetxController {
     autoDownloadFavoriteSongEnabled.value = val;
   }
 
+  void toggleSmartPrefetch(bool val) {
+    setBox.put("isSmartPrefetchEnabled", val);
+    isSmartPrefetchEnabled.value = val;
+  }
+
+  Future<void> updateCacheSize() async {
+    try {
+      final cacheDir = (await getTemporaryDirectory()).path;
+      final dir = Directory("$cacheDir/cachedSongs/");
+      if (await dir.exists()) {
+        int totalSize = 0;
+        await for (var file in dir.list(recursive: true)) {
+          if (file is File) {
+            totalSize += await file.length();
+          }
+        }
+        cacheSize.value = "${(totalSize / (1024 * 1024)).toStringAsFixed(2)} MB";
+      } else {
+        cacheSize.value = "0 MB";
+      }
+    } catch (e) {
+      cacheSize.value = "Unknown";
+    }
+  }
+
+  Future<void> clearCache() async {
+    try {
+      final cacheDir = (await getTemporaryDirectory()).path;
+      final dir = Directory("$cacheDir/cachedSongs/");
+      if (await dir.exists()) {
+        final List<FileSystemEntity> files = dir.listSync(recursive: true);
+        for (final file in files) {
+          try {
+            if (file is File) await file.delete();
+          } catch (e) {
+            // Skip files that are currently in use by the player
+            printINFO("Skipping file in use: ${file.path}");
+          }
+        }
+        updateCacheSize();
+      }
+    } catch (e) {
+      printERROR("Error clearing cache: $e");
+    }
+  }
+
   void toggleBackgroundPlay(bool val) {
     setBox.put('backgroundPlayEnabled', val);
     backgroundPlayEnabled.value = val;
@@ -398,6 +464,7 @@ class SettingsScreenController extends GetxController {
     keepScreenAwake.value = GetPlatform.isDesktop ? true : false;
     restorePlaybackSession.value = false;
     cacheHomeScreenData.value = true;
+    isSmartPrefetchEnabled.value = false;
 
     // 3. Reset Privacy Service State
     if (Get.isRegistered<PrivacyService>()) {
