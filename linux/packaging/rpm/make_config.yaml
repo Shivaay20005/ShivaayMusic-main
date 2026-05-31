@@ -1,0 +1,25 @@
+icon: assets/icons/icon.png
+summary: An application to stream Music
+group: Application/Multimedia
+vendor: shivaay20005
+packager: shivaay20005
+license: Proprietary
+url: https://github.com/shivaay20005/ShivaayMusic-Windows-release
+
+requires:
+  - mpv-libs
+  - libappindicator
+
+display_name: ShivaayMusic
+
+keywords:
+  - Music
+  - Streaming
+  - Flutter
+
+generic_name: Music Application
+
+categories:
+  - Music
+
+startup_notify: true

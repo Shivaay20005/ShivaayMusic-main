@@ -1,0 +1,99 @@
+# 🏛️ ShivaayMusic Architecture Guide
+
+This document provides a highly detailed, tree-like breakdown of the *ShivaayMusic* Application Architecture. The app uses **Flutter** for UI, **GetX** for Reactive State Management, **Hive** for fast offline local-storage, and **Firebase** for cloud synchronization.
+
+---
+
+## 🌲 Complete Project Directory Tree
+
+```text
+lib/
+├── main.dart                      # The Engine Core. Initializes Hive boxes, injects Firebase Services, checks Maintenance mode, and boots the App.
+├── base_class/                    # Abstraction layer for data sources.
+│   └── music_services.dart        # Base API structure used for fetching raw music data from YouTube/Piped streams.
+├── mixins/                        # Reusable behavioral mixins (e.g., repeating code injected into controllers).
+│   └── logger_mixin.dart          # Centralized error and log printing utilities.
+├── models/                        # Object Models and Hive Adapters (Translates raw JSON -> Dart Objects).
+│   ├── listening_stat.dart        # How user listening time/history is tracked.
+│   ├── music_room.dart            # Real-time WebRTC/Firestore multi-user session models.
+│   ├── playlist.dart              # Music playlist structures.
+│   └── sm_streaming_data.dart     # Defines stream quality and raw URL metadata.
+├── native_bindings/               # Platform-specific hooks for Windows/Android hardware operations.
+├── services/                      # Application-wide Singleton Services (GetxService - Always Alive).
+│   ├── audio_handler.dart         # CRITICAL: Background audio processor (just_audio + audio_service). Survives UI death.
+│   ├── auth_service.dart          # Firebase Auth logic, Google Sign-In, and Silent Cloud Restore hooks.
+│   ├── cloud_service.dart         # Bi-directional Firestore sync (Playlists, Favorites, Settings).
+│   ├── listening_stats_service.dart # Background tracker collecting user playback behavior for "Made For You" algorithms.
+│   └── privacy_service.dart       # Biometric/PIN Local lock and secure session handler.
+├── ui/                            # ALL User Interface Components (Domain-Driven Design).
+│   ├── player/                    # The Media Player Sub-System.
+│   │   ├── player_controller.dart # Holds Audio queue state, plays/pauses songs, connects UI to AudioHandler.
+│   │   └── components/            # Visual parts of the player: Mini-player, Full-screen Player, Lyric Views.
+│   ├── screens/                   # Distinct App Pages (Each generally paired with a GetX Controller).
+│   │   ├── Album/ & Artists/      # Detailed pages for Album metadata and Artist catalogs.
+│   │   ├── Auth/                  # Login, Sign-up, and Forgot Password UI.
+│   │   ├── Home/                  # The Home Tab (Discover blocks, Quick picks, Made for You row).
+│   │   ├── Library/               # User's offline collection: Liked Songs, Downloads, Custom Playlists.
+│   │   ├── MusicRoom/             # Collaborative live-listening chat architecture.
+│   │   ├── Search/                # Global search bar logic and autocomplete.
+│   │   └── Settings/              # App preferences (Theme, Data Saver, Backups).
+│   ├── utils/                     # UI-specific Helper Functions (Themes, Dimens, Global Colors).
+│   └── widgets/                   # Highly Reusable Custom UI Components.
+│       ├── quickpickswidget.dart  # Standard horizontal scrolling list of songs.
+│       ├── songinfo_bottom_sheet.dart # The sophisticated 3-dot "Options" menu for managing any song.
+│       └── shimmer_widgets/       # Animated grey-loading skeleton screens (e.g., HomeShimmer).
+└── utils/                         # Global backend helpers.
+    └── ext.dart                   # Utility Extensions (e.g., Time formatting, String manipulations).
+```
+
+---
+
+## ⚙️ Core Workflows Explained (Kaise Kya Ho Raha Hai)
+
+### 1. The Audio Playback Lifecycle (`audio_handler.dart` + `player_controller.dart`)
+- **Action**: User clicks a song on the Home Screen.
+- **Controller**: `player_controller.dart` catches the event, packages the data into a *MediaItem*, and pushes it to the music queue.
+- **Background**: It talks directly to `MyAudioHandler` running inside `audio_handler.dart`.
+- **System**: The Android/Windows System detects the Audio Handler and creates the Notification Panel (or Quick Settings). The native process physically plays the music via `just_audio`. Because it's isolated, even if the user minimizes or closes the UI, the music keeps spinning.
+
+### 2. State Management & Reactivity (GetX)
+- Each screen has two components: **The View** (`home_screen.dart`) and **The Brain** (`home_screen_controller.dart`).
+- When `home_screen.dart` builds, it relies on `Obx()` (Observers). 
+- If `home_screen_controller` fetches a new YouTube playlist asynchronously, it updates its `RxList`. `Obx` immediately catches this modification and repaints the screen dynamically without needing `setState()`.
+
+### 3. Data Persistence (Hive + Firebase)
+- **Local First**: Every setting, "Favorite" action, and recent search is saved instantly to local `Hive` boxes (No-SQL Dart Database). This is why the app feels blazingly fast and offline-ready.
+- **Cloud Invisible**: Background services (`cloud_service.dart`) spy on local changes. When a song is "Liked", `CloudService` immediately merges that specific ID up into Firebase Firestore.
+- **Restoration**: Upon login, `AuthService` waits 3 seconds and silently triggers `restoreFavorites()`. The liked songs drift right back into the local `Hive`, triggering an app-wide reactive UI refresh.
+
+### 4. Background Services Initialization (`main.dart`)
+- `main()` natively forces database initialization (`initHive`) before drawing any UI.
+- It triggers non-blocking asynchronous requests for heavy metrics like `ListeningStatsService` to ensure the core UI doesn't hang.
+- Lastly, it mounts global observers like the `MaintenanceOverlay` and `Lock Screen Overlay`. If Cloud signals system maintenance, it traps the interface globally natively.
+
+---
+
+## 📡 API & Streaming Backend (Data Fetching Pipeline)
+
+### How Music is Found and Streamed
+- **Data Scraping (`music_services.dart`)**: ShivaayMusic relies primarily on YouTube as its backbone for limitless songs. It connects safely using highly abstracted `Piped API` endpoints or raw YouTube Music scrapers to bypass geographical blocks or ADs.
+- **Data Format (`sm_streaming_data.dart`)**: Instead of downloading entire song files instantly, these services provide `.m4a` and `128kbps/320kbps` encrypted stream links directly passed to the `audio_handler`. 
+
+---
+
+## 💾 Local Storage Schema (The Hive Boxes)
+
+ShivaayMusic extensively uses `Hive` to achieve 0ms load times and full offline capabilities without SQL boilerplate. Here are the core local boxes managing the app:
+
+1. **`AppPrefs`**: Master config box holding Settings (ThemeModeType, StreamingQuality, BackupTimes).
+2. **`LIBFAV`**: Storing raw parsed JSON for every User-Liked Song. Keeps the "Loved Songs" tab accessible without internet.
+3. **`ListeningHistory`**: A rolling ledger tracking every song played. Fed directly into the "Made For You" analytic engine.
+4. **`LibraryPlaylists`**: Handles Custom User-Made Playlists logic.
+5. **`searchQuery`**: Simple string arrays powering fast auto-complete when the search page opens.
+
+---
+
+## 🔒 Security & Privacy Flow
+
+- **App Security (`privacy_service.dart`)**: Connects to Android Biometrics and Windows Hello. It uses `LifecycleObservers` to detect if the app goes to the background. When the user returns, a native Lock Screen Overlay automatically triggers over the app route.
+- **Firebase Guard**: User Cloud Data (Favorites, Playlists) is backed by `Firebase Firestore` with strict security rules (`request.auth != null`) enforcing that absolutely no data is intercepted externally.

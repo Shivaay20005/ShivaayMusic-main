@@ -1,0 +1,132 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- AUTH HELPERS ---
+    
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+    
+    // Admin Check (Exact Email Match for Safety)
+    function isAdmin() {
+      return isLoggedIn() && request.auth.token.email != null && (
+        request.auth.token.email == 'shivaay20005@gmail.com' || 
+        request.auth.token.email == 'Shivaay20005@gmail.com' ||
+        request.auth.token.email == 'priyanshuy715@gmail.com'
+      );
+    }
+    
+    function isOwner(userId) {
+      return isLoggedIn() && request.auth.uid == userId;
+    }
+
+    // --- RULES ---
+
+    // 1. SYSTEM CONFIG (Maintenance Mode)
+    match /system/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 2. ALERTS (Broadcasts)
+    match /alerts/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // 3. EVENTS (NEW: Fun Zone/Confetti ke liye zaroori hai)
+    match /events/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. ADMIN SETTINGS
+    match /settings/admin {
+      allow read, write: if isAdmin();
+    }
+
+    // 5. USER DATA
+    match /users/{userId}/{document=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // 6. STATISTICS
+    match /stats/{document=**} {
+      allow read: if isAdmin();
+      allow create: if isLoggedIn(); 
+      allow update, delete: if isAdmin();
+    }
+
+    // 7. MESSAGES & POLLS
+    match /messages/{messageId} {
+      allow read: if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update, delete: if isAdmin();
+    }
+    
+    // 8. MUSIC ROOMS (Collaborative Listening Feature)
+    match /music_rooms/{roomId} {
+      // Anyone authenticated can read rooms
+      allow read: if isLoggedIn();
+      
+      // Anyone authenticated can create a room
+      allow create: if isLoggedIn() &&
+                       request.resource.data.hostId == request.auth.uid;
+      
+      // Only host can delete the room
+      allow delete: if isLoggedIn() &&
+                       request.auth.uid == resource.data.hostId;
+      
+      // Host can update room, participants can update their presence, 
+      // or new users can join by adding their ID to participantIds
+      allow update: if isLoggedIn() &&
+                       (request.auth.uid == resource.data.hostId ||
+                        request.auth.uid in resource.data.participantIds ||
+                        (request.resource.data.participantIds.size() <= resource.data.maxParticipants &&
+                         request.resource.data.participantIds.hasAll(resource.data.participantIds) &&
+                         request.auth.uid in request.resource.data.participantIds));
+      
+      // Participants Subcollection
+      match /participants/{userId} {
+        // Anyone in the room can read participants
+        allow read: if isLoggedIn();
+        
+        // Users can only write their own participant document
+        allow write: if isLoggedIn() &&
+                        request.auth.uid == userId;
+        
+        // Host can remove participants
+        allow delete: if isLoggedIn() &&
+                         (request.auth.uid == userId ||
+                          request.auth.uid == get(/databases/$(database)/documents/music_rooms/$(roomId)).data.hostId);
+      }
+      
+      // Messages Subcollection
+      match /messages/{messageId} {
+        // Anyone in the room can read messages
+        allow read: if isLoggedIn();
+        
+        // Users can only create messages with their own userId
+        allow create: if isLoggedIn() &&
+                         request.resource.data.userId == request.auth.uid &&
+                         request.resource.data.timestamp == request.time;
+        
+        // Host can delete messages (for room cleanup)
+        allow delete: if isLoggedIn() &&
+                         request.auth.uid == get(/databases/$(database)/documents/music_rooms/$(roomId)).data.hostId;
+        
+        // No one can update messages
+        allow update: if false;
+      }
+    }
+    
+    // 9. FALLBACK
+    match /{document=**} {
+       allow read, write: if false; 
+    }
+  }
+}

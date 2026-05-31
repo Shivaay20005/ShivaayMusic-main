@@ -1,0 +1,439 @@
+
+HOW TO UPDATE THIS CHANGELOG
+============================
+1. Whenever you make significant changes to the code, new features, or bug fixes, open this file.
+2. Add a new section at the top with the current Date (YYYY-MM-DD) and Version Number.
+3. List your changes in bullet points under categories like [Features], [Fixes], [installer], etc.
+4. Be specific so you remember what changed when you look back.
+5. Save this file before committing to Git.
+
+===================================================================
+
+#23 Update - 1.0.5 - 2026-05-31
+-------------------
+[Fixes]
+- **Search Results Fix**: Updated the music service to handle YouTube Music API's new `itemSectionRenderer` response structure. This restores the ability to correctly fetch and display categorized search results (Songs, Videos, Albums, Artists) that were previously missing.
+
+===================================================================
+
+#22 Update - 1.0.4 - 2026-05-04
+-------------------
+[Features & Optimization]
+- **Smart Pre-fetch**: Implemented intelligent audio buffering. The app now pre-fetches the next 1-2 song stream URLs and starts buffering when the current track is near completion (80%+). This ensures gapless playback even in unstable network conditions (Metro/Weak Signal).
+- **Cache Management**: Added a new "Clear Cache" feature in Music & Playback settings. Users can now see real-time app cache size and clean it with one tap to free up storage.
+- **Smart Cleaning**: Enhanced the cache cleaner to individually delete unused files while safely skipping the currently playing track to avoid playback interruptions.
+- **Visual Hierarchy**: Redesigned Settings headers with primary color accents, bold typography, and improved spacing to make sections easily distinguishable.
+- **Notification Logo Refinement**: Increased the height and scaling of the `ic_shivaay_logo` in system notifications for better visibility and a more premium look.
+
+[Security & Infrastructure]
+- **Permanent Signing**: Migrated to a dedicated, persistent keystore system using the original debug signature. This prevents "Package Conflict" errors during future updates, even across different devices/installations.
+- **Google Sign-In Fix**: Optimized `AuthService` with an explicit `serverClientId` and detailed error logging to resolve Google Login issues on release builds.
+- **ABI Split Support**: Now building optimized, architecture-specific APKs (arm64, v7a, x64) to reduce download size and improve performance.
+- **Custom APK Naming**: Implemented a naming convention for generated APKs (e.g., `ShivaayMusic-v1.0.4-arm64-v8a-release.apk`) for better file identification and professionalism.
+
+[UI & Fixes]
+- **Search Screen Layout**: Corrected padding and alignment issues in the Search screen caused by the voice search integration, ensuring a perfectly centered and clean interface.
+- **Settings Default**: Set "Smart Pre-fetch" to be disabled by default to give users full control over data usage.
+
+#21 Update - 1.0.3 - 2026-05-04
+-------------------
+[Android & UI Refinement]
+- **Widget Removal**: Completely removed all legacy Android home screen widget code, native services, and configuration files to improve app stability and reduce package size.
+- **Notification Icon Refinement**: Re-scaled the system notification icon to a 48dp square (1:1 aspect ratio) for better clarity and visibility in the status bar.
+- **Settings Scrolling**: Increased bottom padding in the Settings screen to 250px, ensuring no content is hidden behind the mini-player and allowing deeper scrolling.
+- **Explore Tab Default**: Changed the default landing tab for the "Explore" (Combined Library) section to "Playlists" for better content discovery.
+
+[Fixes & Navigation]
+- **Favorites Sorting**: Implemented "Newest First" sorting for Liked Songs (Favorites), ensuring recently added tracks appear at the top of the library.
+- **View Downloads Logic**: Updated the "View Downloads" button in Settings to explicitly navigate to the "Songs" tab within the library for instant access to offline tracks.
+- **Compilation Fix**: Resolved missing imports and unresolved reference errors in `download_settings.dart` and `player_controller.dart`.
+
+#20 Update - 1.0.3 - 2026-05-03
+-------------------
+[Android 13+ Stability]
+- **Background Crash Fix**: Resolved critical crashes on Android 13/14 by implementing isolate-aware Hive initialization in the background service.
+- **Foreground Service Hardening**: Updated service flags to prevent the OS from aggressively killing the app during background pauses.
+- **Permissions Pass**: Added mandatory `POST_NOTIFICATIONS` and `READ_MEDIA_AUDIO` permissions for Android 13 compatibility.
+
+[Fixes]
+- **JNI Binding Correction**: Fixed a package-name mismatch in the native Equalizer bindings that caused initialization failures on some devices.
+
+[UX & Experience]
+- **Auto Battery Optimization Request**: Added a startup popup to request "Ignore Battery Optimization" automatically.
+- **Settings Toggle**: Added a prominent toggle in 'Music & Playback' settings to manage battery optimization status manually.
+
+
+#19 Update - 1.0.2 - 2026-04-11
+-------------------
+[Windows Build]
+- **Release EXE Build Restored**: Resolved Windows release build failures and successfully generated the executable output.
+
+[Fixes]
+- **Firebase SDK Extraction Build Break**: Stabilized Windows CMake/Firebase build path after archive extraction failures during plugin setup.
+- **Speech Plugin Registrant Compile Error**: Fixed `SpeechToTextWindowsRegisterWithRegistrar` identifier error caused by header include-guard collision in Windows speech plugin headers.
+- **Windows Packaging Reliability**: Confirmed successful release artifact generation at `build/windows/x64/runner/Release/shivaaymusic.exe`.
+
+#18 Update - 1.0.2 - 2026-04-11
+-------------------
+[Fixes]
+- **Login Flow Unstuck**: Fixed issue where login showed success but UI remained on Login screen by hardening auth-root routing and success-path navigation handling.
+- **Home Content Type Safety**: Resolved crash `type 'Playlist' is not a subtype of type 'MediaItem'` by replacing unsafe casts with safe MediaItem filtering in Quick Picks logic.
+- **First Load Network Stability**: Improved startup resilience with bounded request timeouts, controlled retry for Home fetch, and safer initialization ordering in music service calls.
+- **Service Initialization Guard**: Added request gating to ensure API calls wait for MusicService initialization, reducing false startup network failures.
+- **Auth Error Messaging**: Added clearer network/timeout login messages for email and Google sign-in flows.
+
+#17 Update - 1.0.2 - 2026-04-10
+-------------------
+[Features]
+- **Settings Incognito Indicator**: Added a clear Incognito badge next to the Settings title so privacy mode status is visible directly inside the Settings screen.
+- **Profile Privacy UX**: Enhanced the Profile page with an improved Incognito section and stronger active-state visuals.
+
+[Fixes]
+- **Header Cleanup**: Removed Incognito indicator from the global app title to avoid clutter and keep top navigation cleaner.
+- **Theme Compatibility Pass**: Reworked Incognito badge and related privacy UI colors to be theme-aware across light, dark, and dynamic theme modes.
+- **Search Input Theme Fix**: Replaced hardcoded search-field focus color with theme color tokens for better visibility consistency.
+
+#16 Update - 1.0.2 - 2026-04-10
+-------------------
+[Fixes]
+- **Mini Player Swipe Smoothing**: Reworked swipe-down dismissal so the mini player fades and slides out smoothly instead of feeling laggy or abrupt.
+- **Mini Player Restore Fix**: Fixed the issue where the mini player would not return after playing the next song unless the app was restarted.
+
+- **Typography Standarization**: Improved title formatting for home screen sections, ensuring bold, properly localized, and consistently spaced headers.
+
+#15 Update - 1.0.2 - 2026-04-10
+-------------------
+[Fixes]
+- **Home Skeleton Freeze Mitigation**: Hardened Home screen loading flow to avoid permanent skeleton state when cache/network parsing fails.
+- **Home Startup Rollback (Made For You)**: Temporarily removed eager "Made For You" loading from Home startup path to restore faster initial content rendering.
+- **Android Render Stability**: Disabled Impeller in Android Manifest for better compatibility on affected devices showing BLASTBufferQueue/pipeline stalls.
+- **Search Screen Compile Fix**: Fixed parentheses/widget tree errors in Search screen that caused hot-reload/analyzer failures.
+
+[UI & Experience]
+- **Voice Search Feedback Improved**: Added a visible `Listening...` banner with animated voice bars below the search box while mic is active.
+
+#14 Update - 1.0.2 - 2026-04-10
+-------------------
+[Features]
+- **Android Voice Search (Mic in Search Box)**: Added microphone-based speech input in the Search screen so users can speak song names directly.
+- **Live Query Fill + Auto Search**: Recognized speech now fills the search field in real time, and final recognized speech automatically submits search.
+
+[Android]
+- **Microphone Permission Added**: Added `android.permission.RECORD_AUDIO` in AndroidManifest for voice input support.
+
+[Dependencies]
+- **Speech-to-Text Integration**: Added `speech_to_text: ^7.0.0` and connected it to Search controller logic.
+
+[Implementation Note]
+- **API Compatibility**: For `speech_to_text v7.3.0`, use `listenOptions: SpeechListenOptions(...)` in `SpeechToText.listen` instead of deprecated direct params.
+
+#13 Update - 1.0.2 - 2026-04-08
+-------------------
+[Admin & Security]
+- **Administrative Bypass System**: Implemented a secure, case-insensitive master email bypass (`Shivaay20005@gmail.com`). The developer now retains full access to the app even during global maintenance or force-update modes.
+- **Hidden Command Center**: Moved the admin panel access to a discreet 10-tap sequence on the version number in the "About" section, keeping advanced tools hidden from regular users.
+- **User Verification (Blue Tick)**: Launched a centralized verification dashboard. Admins can now manually award "Blue Tick" badges to users, which appear prominently on their profile sections.
+- **Database Quick Look**: Integrated real-time user statistics into the command center, displaying total registered users and a feed of recent sign-ups.
+- **Master Admin Auto-Promotion**: Configured the auth system to automatically grant Admin and Verified status to the master developer account upon login.
+
+[UI & Experience]
+- **Grid Layout Refinement**: Restored and optimized the 4-row grid layout for "Discover" and "Made For You" sections on the Home screen for a more premium visual balance.
+
+#12 Update - 1.0.2 - 2026-04-08
+-------------------
+[Fixes]
+- **Update Link Fix**: Resolved issue where the "UPDATE NOW" button on the Force Update screen was unresponsive.
+    - Added package visibility queries to AndroidManifest.xml for Android 11+ compatibility.
+    - Implemented a centralized `launchUrlSafe` utility to handle all external links robustly.
+    - Applied the fix project-wide (Settings, About Page, Community Links, etc.) to ensure reliable browser launching.
+
+#11 Update - 1.0.2 - 2026-04-07
+-------------------
+[UI & Experience]
+- **Made For You Redesign**: Enlarged the recommendation section from a small 4-row grid to a prominent 2-row layout for better visibility.
+- **Label Fixed**: Corrected the "Made For You" title which was showing as "madeforyou" due to missing localization strings.
+
+[Stability & Persistence]
+- **Background Music Room**: Finalized the background persistence logic for Music Rooms.
+- **Host Migration**: Robust seniority-based host migration is now fully active.
+
+#10 Update - 2026-04-07
+-------------------
+
+[Music Room Evolution]
+- **Persistent Background Sessions**: Modified PopScope to allow users to navigate away from the Music Room without ending the session. The room now remains active as a background service.
+- **Seniority-Based Host Migration**: Implemented automatic admin transfer. If the Host leaves or disconnects, the oldest participant (based on join time) is promoted to Host.
+- **Autonomous Room Maintenance**: Added a "Zombie" check. If a Host is inactive for >70s, the room automatically migrates to a new host to prevent "Dead Rooms".
+- **Live Participants List**: Added a premium real-time participants bottom sheet with role badges (Host/Listener) and join timestamps.
+- **Optimized Chat Only Mode**: Disabled automatic music synchronization to provide a lean, distraction-free chat-focused experience inside rooms.
+- **Cross-Platform UI (Android/Windows)**: 
+    - Optimized chat input for Windows: Removed floating Android offsets to provide a native, bottom-docked desktop typing experience.
+    - Added wide-input support for Desktop screens.
+    - Implemented `WidgetsBindingObserver` to ensure clean room exit when the app is "Cleared from Recents" (Android) or Window is closed (Windows).
+
+[Fixes]
+- **Red Screen Null Safety**: Added strict null-checks during room initialization to prevent "Red Screen" crashes while Firestore data is loading.
+- **Compilation Fixes**: Resolved missing `Material` and `Navigator` imports in `MusicRoomService`.
+- **Keyboard Offset Glitches**: Fixed input box positioning during keyboard transitions on Android 12+ devices.
+
+===================================================================
+
+#9 Update - 2026-04-06
+-------------------
+
+[Features]
+- **Splash Screen Branding**: Embedded "ShivaayMusic" text dynamically into the root Splash Screen logo. Ensured proper paddings and contrast for seamless load screens across all supported Android architectures.
+
+[Fixes]
+- **Android 12+ Native Splash Screens**: Solved severe distortion/magnification bugs occurring on API 31+ devices. Re-scaled `splash_logo` and mapped transparent boundary pads to respect Android OS's mandatory circular icon restraints.
+- **Robust IPC / Zombie Service Extinction**: Restructured background Dart exit sequence in `audio_handler.dart`. `stop()` events and metadata clearance requests are now fire-and-forget, circumventing process SIGKILL interruptions that formerly resulted in "Pinned Media Controls" freezing.
+- **Library ID Restoration Bug (CloudSync)**: Fixed Hive mapping glitch within `CloudService` preventing offline Favorites and Listening History data from persisting across logins (Mapped `id` to `videoId`).
+
+===================================================================
+
+#8 Update - 2026-04-06
+-------------------
+
+[Features]
+- **"Made For You" Recommendations Engine**: Integrated ListeningStatsService to analyze listening habits (top played songs over 7 days). The engine automatically fetches related content via Youtube/Piped APIs to populate a personalized "Made For You" row on the Home Screen.
+- **Silent Background Restoration**: Added lightweight sync logic to auth_service. Upon user login, "Favorites" (Liked Songs) and "Search History" are now silently restored from Firestore in the background, eliminating the need for manual restore while avoiding previous black-screen login hangs.
+- **Bi-Directional Favorite Sync**: Loved songs now sync in real-time to the Firestore Database instead of relying only on explicit backups.
+- **UI State Refreshing**: Loved songs explicitly repaint heart badges seamlessly across all components (Player UI, Home screen, Bottom Sheets) instantly upon cloud restoration.
+
+[Fixes]
+- **Gitignore & Secrets Management**: Streamlined `.gitignore` configurations to properly isolate and secure local keys, environment binaries, and sensitive manifests before pushing.
+- **Manifest & App Icon Synchronization**: Corrected and verified AndroidManifest integrations alongside App Icon scaling/display fixes to ensure universally clean app launching visual states.
+- **"Zombie" Background Player Fix (Critical)**: Diagnosed and fixed a persistent media player glitch on Android 13+. Overrode onTaskRemoved securely inside audio_handler to bypass Android's 10ms quick SIGKILL. Forced an immediate stop() to safely eliminate ghost "Active App" control panes in the Notification Shade.
+- **Startup Grey Overlay Crash**: Resolved a fatal full-screen transparent grey layer bug impacting Home Screen renderings. main.dart blocked PrivacyService instantiation by improperly awaiting ListeningStatsService. Fixed using non-blocking asynchronous load mechanisms.
+- **API Real-Time Hooking**: Removed null media item states from audio handler to prevent NullPointerExceptions in the Kotlin background service runner.
+
+===================================================================
+
+#7 Update - 2026-02-02
+-------------------
+
+[Music Room Improvements]
+- **Chat Interface Fix**: Fixed message input box not visible on Android devices - now always appears above the mini-player.
+- **Navigation Fix**: Resolved issue where switching bottom navigation tabs while in Music Room would get stuck. Now properly returns to Home/Search/Settings.
+- **Layout Refactor**: Refactored Music Room screen from Stack to Column layout for more reliable rendering across different screen sizes.
+
+[Authentication & Login Fixes]
+- **Faster Login**: Removed artificial delays during login/signup - users now reach Home screen instantly after authentication.
+- **First-Time Login Fix**: Fixed app getting stuck on "Setting up your music space" screen during first-time login/signup.
+- **Smooth Navigation**: Added 100ms state settlement delay before navigation to ensure smooth transitions.
+
+[Security & Permissions]
+- **Firestore Permissions Fix**: Resolved `[cloud_firestore/permission-denied]` error that occurred after signing out.
+- **Stream Cleanup**: Implemented proper cleanup of Firestore subscriptions to prevent memory leaks and permission errors.
+- **Added Missing Import**: Fixed `StreamSubscription` import issue causing build failures.
+
+[Stability & Crash Fixes]
+- **Queue Management**: Fixed `NoSuchMethodError` crash when signing out with empty music queue.
+- **Range Error Fix**: Resolved `RangeError` in queue clearing logic during sign-out.
+- **Null Safety**: Improved audio queue handling with better null-safety checks throughout.
+
+[Code Quality]
+- **Removed Dead Code**: Cleaned up confusing `isInitializing` toggle logic that was no longer needed.
+- **Build Reliability**: Enhanced build process reliability by fixing missing imports and compilation errors.
+- **Cleanup**: Fixed 18+ lint warnings, removed unused imports, and suppressed debug print warnings in utility scripts.
+- **Performance**: Optimized animation logic (removed TweenSequence crash) and widget rebuilds.
+
+[Player & UI Improvements]
+- **Like Animation**: Implemented Instagram-style heart animation on Album Art. Double-tapping now visualizes hearts on touch location AND immediately adds the song to Favorites.
+- **Interaction Fixes**: Resolved conflict between single tap (Lyrics) and double tap (Like), and fixed gesture detection on Windows.
+- **Lyrics Support**: Added Android-like behavior on Windows where Plain Lyrics are automatically displayed if Synced Lyrics are unavailable.
+- **Mini Player**: Added capability to stop playback by swiping down on the mini player.
+
+===================================================================
+
+#6 Update - 2026-01-30
+-------------------
+
+[Deep Linking & Android Integration]
+- **Critical Fix for App Links**:
+    - Resolved issue where generic 'https' links were forcing Chrome to open instead of the App (Verified on Debug & Release).
+    - Updated `AndroidManifest.xml` with specialized Intent Filters for `shivaaymusic.dpdns.org`.
+    - Regenerated Android Debug Key and configured SHA-256 signatures on the server (`assetlinks.json`) to support local development testing without reinstalling Release builds.
+    - Verified proper handling of `android.intent.action.VIEW` for deep deep-linking.
+
+===================================================================
+
+#5 Update - 2026-01-30
+-------------------
+
+[New Features]
+- **Google Sign-In Authentication**: 
+    - Implemented complete Google Sign-In integration with Firebase Authentication
+    - Added beautiful "Continue with Google" button on Login Screen with premium UI design
+    - Integrated OAuth 2.0 Client IDs for both Debug and Release builds
+    - Proper error handling for various authentication scenarios
+    - Auto sign-out from Google when user logs out from app
+    - See FIREBASE_SETUP.txt for complete setup documentation
+- **Authentication UI Enhancement**:
+    - Added elegant "OR" divider between email login and Google Sign-In
+    - Implemented Google logo display with fallback icon support
+    - Loading states for both email and Google authentication methods
+
+[Configuration]
+- **Firebase Setup**:
+    - Configured OAuth Consent Screen for external users
+    - Created Android OAuth Client ID with Debug SHA-1 fingerprint
+    - Created Android OAuth Client ID with Release SHA-1 fingerprint  
+    - Created Web OAuth Client ID for Android Google Sign-In support
+    - Updated google-services.json with OAuth client configurations
+- **Dependencies**:
+    - Added google_sign_in: ^6.2.2 package for Google authentication
+
+[Backend Changes]
+- **AuthService Updates**:
+    - Added signInWithGoogle() method with comprehensive error handling
+    - Integrated GoogleSignIn instance management
+    - Updated signOut() to properly disconnect Google Sign-In sessions
+    - Implemented proper user data sync to Firestore for Google sign-ins
+
+[Windows Compatibility]
+- **Platform-Specific Logic**: 
+    - Disabled Google Sign-In button on Windows (currently supported on Mobile/Web only via plugin).
+    - Prevented `MissingPluginException` crashes by conditionally initializing Google Sign-In only on non-Windows platforms.
+    - Implemented robust platform checks in `AuthService`.
+
+[Fixes]
+- **Logout Security**: 
+    - Now automatically stops playback and clears the song queue (`AudioHandler.stop()` & `PlayerController.clearQueue()`) when user signs out.
+
+[Web Support & PWA]
+- **Complete Web Player**: 
+    - Enabled Flutter Web support, turning the app into a full-featured website.
+    - Updated `index.html` with professional meta tags, loading indicator, and Google Sign-In support.
+    - Configured `manifest.json` for PWA installation (Install to Desktop/Mobile).
+    - Fixed Web-specific crashes related to Hive, PathProvider, and File System access.
+
+[Deep Linking]
+- **Share Logic**:
+    - Updated Share URL to `https://shivaaymusic.com/track/{id}`.
+- **App Links**:
+    - Implemented Deep Linking logic to handle `/track/{id}` URLs.
+    - When clicked, the app opens and automatically plays the shared song.
+    - If app is not installed, the link opens the Web Player (same URL works on both).
+    - Updated `AndroidManifest.xml` to intercept `shivaaymusic.com` links.
+
+===================================================================
+
+#4 Update - 2026-01-29
+-------------------
+
+[Fixes & Improvements]
+- **Windows Downloads**: Fixed critical issue where song download paths were invalid or empty, causing the app to freeze.
+    - Implemented robust path sanitization for Windows filenames.
+    - Disabled metadata tagging (`AudioTags.write`) on Windows to prevent file locking and corruption during downloads.
+    - Added "Open Folder", "Edit", and "Reset" buttons to Download Settings for better control.
+    - Fixed Navigation Black Screen bug when clicking "View Downloads" from Settings.
+- **Home Screen**:
+    - Updated default Home Content Count to **11**.
+    - Set default Discover Content type to **Based on Last Interaction (BOLI)**.
+- **App Lock**: Fixed App Lock toggle issues on Android and Windows. Enabled correct `AudioServiceFragmentActivity` on Android for Biometric/PIN dialog support and properly integrated Windows Hello.
+- **Incognito Mode**: Fixed Incognito Mode logic. It now correctly prevents listening history and search queries from being saved when enabled.
+- **UI/Theming**: Resolved Light Mode visibility issues.
+    - Settings pages (Personalisation, Content, Music & Playback, Download, Backup & Restore, About) now use dark text/icons on light backgrounds.
+    - Fixed invisible Headers in Settings sections.
+- **Error Handling**: Added visible error feedback (Red Text) on the Lock Screen if authentication fails.
+- **Performance**: Optimized app size by enabling resource shrinking and minification on Android.
+
+#3 Update - 2026-01-26
+-------------------
+
+[Infrastructure & Automation]
+- **CI/CD Workflow**: Implemented a comprehensive GitHub Actions workflow (`.github/workflows/build_and_release.yml`).
+    - **Android**: Automates builds for Universal, ARM 32-bit, and ARM 64-bit APKs.
+    - **Windows**: builds Release Executable, generates Portable ZIP, and compiles `ShivaayMusic_Setup.exe` (Inno Setup).
+    - **Releases**: Automatically drafts GitHub Releases with all artifacts on version tag push.
+
+[App Lock & Security]
+- **Improvements**: Enhanced logic to support **Windows PIN/Password** fallback (no biometric lock-out).
+- **Stability**: Fixed "Infinite Loop" on resume; now requires manual "Unlock" tap.
+- **Privacy Settings**: Added dedicated "Privacy & Security" section with history clearing.
+- **Admin Panel**: Revamped Command Center with "Users & Stats", Live Polls, and maintenance controls. Secured admin verification.
+
+#2 Update - 2026-01-28
+- 🚀 Force Update Support: Added minimum version enforcement.
+- 🚧 Maintenance Mode: Added global server-side maintenance lock.
+- 🔒 Firebase Security: Implemented complete Firestore security rules.
+- 🛠️ Build Fixes: Resolved permissions and CI/CD GitHub Secrets issues.
+- 🐛 Backup/Restore: Improved backup reliability and permission handling.
+- ✨ UI/UX: Added Maintenance & Lock overlays.
+- 🐛 **CRITICAL FIX**: Resolved "Black Screen" issue after login (App lifecycle optimization).
+- ✨ **Feature Restored**: Restored **Live Polls** & **Broadcast Messages** support via Admin Panel.
+- 🔧 **Stability**: Improved app initialization logic to prevent race conditions.
+- 🌐 **Localization**: Temporarily disabled Hindi language support to ensure UI consistency.
+
+
+[UI & Design - Material 3]
+- **Aesthetic Overhaul**: Upgraded to **Material 3** with premium rounded corners and modern ripples while maintaining the signature Dark Theme.
+- **Light Mode**: Re-designed as a clean **Monochrome/Black & White** theme (removed purple accent) for a sharper look.
+- **App Header**: Replaced custom header with standard `AppBar` to fix touch/click issues on the "Share" button (Android).
+- **Settings UI**: Replaced "Caret Down" icon with "Chevron Right" (`>`) for better navigation cues.
+- **Update Check**: Enabled automatic update checking for GitHub releases.
+- **Navigation**:
+    - **Explore Tab**: Rebranded "Library" to "Explore" with compass icons.
+    - **Sidebar**: Added "Library" tab, updated icons to Circular Arrows, and fixed active indicators.
+- **Fixes**: Resolved invisible icons in Light Mode and Settings headers.
+
+[Cloud Sync & User Profile]
+- **Full Sync**: History, Playlists, Favorites, and Settings now sync via Firebase Firestore.
+- **Smart Restore**: Preferences restore immediately upon login.
+- **Silent Restore**: Suppressed the "Restored from Cloud" popup notification; restoration now happens seamlessly in the background.
+- **Profile**: Auto-syncs Google Avatar; falls back to "Full Name" display if no photo exists.
+
+[Performance & Android]
+- **Optimization**: Switched to `const` constructors for static widgets.
+- **Android Notification**: Fixed "White Square" icon issue with a new transparent logo resource.
+- **Build**: Fixed Gradle desugaring issues (Java/Kotlin 17).
+- **Language**: Restricted to **English Only** to prevent localization crashes; added auto-repair for stuck languages.
+
+
+[Privacy & Security]
+- **App Lock**: Fixed Biometric App Lock crash on newer Android versions.
+- **Settings**: Added dedicating "Privacy & Security" settings section with history clearing options.
+
+[Visual Fixes]
+- **About Page**: completely revamped with helpful links:
+    - **Check for Updates**: One-click check for latest releases.
+    - **Rate Us**: Quick link to star the repo.
+    - **Website**: Official ShivaayMusic website.
+    - **GitHub**: Source code repository.
+    - **Changelog**: View latest updates.
+    - **Donate**: Support the developer.
+- **Light Mode Visibility**: Fixed invisible icons and text in the Player and Playlist badges by correctly applying specific Theme styling for Monochrome Light mode.
+- **App Header (Android)**: Replaced custom header with standard `AppBar` to fix touch/click issues on the "Share" button. Increased Logo size for better brand visibility.
+- **Login UI**: Enhanced visibility of the "Create Account" section. Added a premium semi-transparent filled button with better contrast styling (White text/icon) to make registration clearer.
+- **Startup Flicker**: Eliminated the 1-2 second "Login Screen" flash on startup. App now opens instantly to Home if previously logged in.
+- **SnackBar**: Fixed "Black Box" issue in Light Mode where toast messages (like Sleep Timer confirmation) were invisible (Black Text on Black Background). Now enforces **White Text** for high contrast.
+
+[Fixes]
+- **Settings Navigation**: Fixed a critical bug on Android where tapping "Settings" would incorrectly open the "Explore" tab.
+
+[Windows Integration]
+- **Media Controls**: Fixed "Unknown App" label (set `AppUserModelID`).
+- **Taskbar**: Fixed missing icon in system tray.
+
+#1 Update - 2026-01-25
+-------------------
+
+[Installer & Packaging - Inno Setup]
+- **Unique AppId**: Generated a custom, secure GUID based on Developer Name (SHIVAAY) and Phone Number to prevent conflicts with other applications.
+- **Smart Launch Aliases**: Added Registry keys to allow launching the app via `Win+R` using multiple commands:
+    * `shivaay`
+    * `shivaaymusic`
+    * `shivaay music`
+- **Clean UI**: Implemented `InitializeWizard` logic to hide rapid file names (e.g., .dll extraction) during installation for a cleaner, professional look.
+- **Advanced Uninstall**: Added logic to prompt user during uninstallation to remove all offline data and cache ("Do you also want to delete all offline songs...?").
+- **Uninstall Icon**: Fixed Control Panel icon to show the App's logo instead of the default installer icon.
+- **Security**: Added "PrivilegesRequired=lowest" to allow installation without Admin rights (installs to AppData).
+
+[Git & Version Control]
+- **Branch Strategy**: Created a new `secret` branch for full source code backups.
+- **Configuration**: Updated `.gitignore` in `secret` branch to INCLUDE sensitive configuration files (key.properties, google-services.json, keystores) for easy environment setup on new machines.
+- **Master Branch**: Kep the `master` branch clean and safe for public/production release.
+
+[Application]
+- Build: Windows Release build (x64) verified.
