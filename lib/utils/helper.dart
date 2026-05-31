@@ -175,11 +175,10 @@ void sortArtist(
   }
 }
 
-/// Return true if new version available
 Future<bool> newVersionCheck(String currentVersion) async {
   try {
     final tags = (await Dio()
-            .get("https://api.github.com/repos/shivaay20005/ShivaayMusic-Windows-release/tags"))
+            .get("https://api.github.com/repos/Shivaay20005/ShivaayMusic/tags"))
         .data;
     final availableVersion = tags[0]['name'] as String;
     
