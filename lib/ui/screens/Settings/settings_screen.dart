@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 import 'settings_screen_controller.dart';
@@ -207,6 +208,39 @@ class SettingsScreen extends StatelessWidget {
                     title: "about".tr,
                     icon: Icons.info,
                     onTap: () => Get.to(() => const AboutSettingsPage()),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Help & Support Tile
+                  _buildSettingsTile(
+                    context,
+                    title: "Help & Support",
+                    icon: Icons.help_outline,
+                    onTap: () {
+                      Get.defaultDialog(
+                        title: "Report an Issue",
+                        content: Column(
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.email, color: Colors.red),
+                              title: const Text("Via Email"),
+                              onTap: () {
+                                Get.back();
+                                launchUrl(Uri.parse("mailto:lava.blaze.5g.pro@gmail.com?subject=ShivaayMusic Bug Report"));
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.code, color: Colors.blueGrey),
+                              title: const Text("Via GitHub"),
+                              onTap: () {
+                                Get.back();
+                                launchUrl(Uri.parse("https://github.com/Shivaay20005"), mode: LaunchMode.externalApplication);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

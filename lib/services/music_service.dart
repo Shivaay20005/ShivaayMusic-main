@@ -298,8 +298,8 @@ class MusicServices extends getx.GetxService {
         'watchNextTabbedResultsRenderer'
       ]);
 
-      lyricsBrowseId = getTabBrowseId(watchNextRenderer, 1);
-      relatedBrowseId = getTabBrowseId(watchNextRenderer, 2);
+      lyricsBrowseId = getTabBrowseId(watchNextRenderer, 'Lyrics');
+      relatedBrowseId = getTabBrowseId(watchNextRenderer, 'Related');
       if (onlyRelated) {
         return {
           'lyrics': lyricsBrowseId,

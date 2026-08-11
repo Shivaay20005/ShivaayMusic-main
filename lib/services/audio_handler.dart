@@ -741,10 +741,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final oldIndex = extras!['oldIndex'];
         int newIndex = extras['newIndex'];
 
-        if (oldIndex < newIndex) {
-          newIndex--;
-        }
-
         final currentQueue = queue.value;
         final currentItem = currentQueue[currentIndex];
         final item = currentQueue.removeAt(

@@ -9,6 +9,17 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#24 Update - 1.0.6 - 2026-08-11
+-------------------
+[Features]
+- **Help & Support**: Added a new "Help & Support" button in the Settings menu (under About). Users can now directly report bugs or issues to the developer via Email (pre-filled subject & address) or directly via a Telegram profile link.
+
+[Fixes]
+- **YouTube API Tab Fix**: Fixed a critical issue where the homescreen and recommendations (Up Next queue) stopped updating. This was caused by YouTube Music adding a new "Comments" tab, which broke the hardcoded tab indexing. The app now dynamically parses tabs by title.
+- **Flutter Deprecation Fixes**: Resolved `flutter analyze` warnings by migrating deprecated `onReorder` callbacks to `onReorderItem` in ReorderableListViews (`modification_list.dart` & `up_next_queue.dart`), and adjusted the `audio_handler.dart` logic accordingly.
+
+===================================================================
+
 #23 Update - 1.0.5 - 2026-05-31
 -------------------
 [Fixes]
