@@ -226,15 +226,15 @@ class SettingsScreen extends StatelessWidget {
                               title: const Text("Via Email"),
                               onTap: () {
                                 Get.back();
-                                launchUrl(Uri.parse("mailto:lava.blaze.5g.pro@gmail.com?subject=ShivaayMusic Bug Report"));
+                                launchUrl(Uri.parse("mailto:shivaay20005@gmail.com?subject=ShivaayMusic Bug Report"));
                               },
                             ),
                             ListTile(
-                              leading: const Icon(Icons.code, color: Colors.blueGrey),
-                              title: const Text("Via GitHub"),
+                              leading: const Icon(Icons.telegram, color: Colors.blue),
+                              title: const Text("Via Telegram"),
                               onTap: () {
                                 Get.back();
-                                launchUrl(Uri.parse("https://github.com/Shivaay20005"), mode: LaunchMode.externalApplication);
+                                launchUrl(Uri.parse("https://t.me/Shivaay20005"), mode: LaunchMode.externalApplication);
                               },
                             ),
                           ],

@@ -365,16 +365,16 @@ class SongInfoBottomSheet extends StatelessWidget {
                     IconButton(
                       splashRadius: 10,
                       onPressed: () {
-                        launchUrl(Uri.parse(
-                            "https://youtube.com/watch?v=${song.id}"));
+                        launchUrlSafe(
+                            "https://youtube.com/watch?v=${song.id}");
                       },
                       icon: const Icon(Ionicons.logo_youtube),
                     ),
                     IconButton(
                       splashRadius: 10,
                       onPressed: () {
-                        launchUrl(Uri.parse(
-                            "https://music.youtube.com/watch?v=${song.id}"));
+                        launchUrlSafe(
+                            "https://music.youtube.com/watch?v=${song.id}");
                       },
                       icon: const Icon(Ionicons.play_circle),
                     )

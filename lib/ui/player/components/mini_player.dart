@@ -40,9 +40,20 @@ class MiniPlayer extends StatelessWidget {
               playerController.playerPanelMinHeight.value = 0.0;
             },
             child: Container(
-            height: playerController.playerPanelMinHeight.value,
-            width: size.width,
-            color: Theme.of(context).bottomSheetTheme.backgroundColor,
+            height: 70,
+            width: size.width - 16 - (!isWideScreen && Get.find<SettingsScreenController>().isBottomNavBarEnabled.isTrue ? 98 : 16),
+            margin: const EdgeInsets.only(left: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).bottomSheetTheme.backgroundColor ?? Theme.of(context).primaryColor,
+              borderRadius: BorderRadius.circular(35),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                )
+              ],
+            ),
             child: Center(
               child: Column(
                 children: [

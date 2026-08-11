@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shivaaymusic/utils/helper.dart';
 
 class NewVersionDialog extends StatelessWidget {
   const NewVersionDialog({super.key});
@@ -72,12 +73,10 @@ class NewVersionDialog extends StatelessWidget {
         FilledButton.icon(
           onPressed: () async {
             Navigator.of(context).pop();
-            final url = Uri.parse(
-              'https://github.com/Shivaay20005/ShivaayMusic-Windows-release/releases/latest',
-            );
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url, mode: LaunchMode.externalApplication);
-            } else {
+            final url = 'https://github.com/Shivaay20005/ShivaayMusic-Windows-release/releases/latest';
+            try {
+              await launchUrlSafe(url);
+            } catch(e) {
               Get.snackbar(
                 'Error',
                 'Could not open download page',

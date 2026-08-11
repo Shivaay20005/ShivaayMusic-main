@@ -400,7 +400,7 @@ class HomeScreenController extends GetxController {
       // Set miniplayer height accordingly
       if (!playerCon.initFlagForPlayer) {
         if (isHomeOnTop) {
-          playerCon.playerPanelMinHeight.value = 75.0;
+          playerCon.playerPanelMinHeight.value = 75.0 + 86.0 + Get.mediaQuery.viewPadding.bottom;
         } else {
           Future.delayed(
               isResultScreenOnTop

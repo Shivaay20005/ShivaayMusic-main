@@ -159,6 +159,7 @@ class PlayerController extends GetxController
       playerPaneOpacity.value = 1 - (x * 5);
       isPlayerpanelTopVisible.value = true;
     } else if (x > 0.2) {
+      playerPaneOpacity.value = 0.0;
       isPlayerpanelTopVisible.value = false;
     }
 

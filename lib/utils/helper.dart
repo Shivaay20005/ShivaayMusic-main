@@ -4,19 +4,37 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shivaaymusic/ui/navigator.dart';
 import 'package:shivaaymusic/ui/widgets/sort_widget.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
+class MyInAppBrowser extends InAppBrowser {
+  @override
+  void onLoadStart(url) {
+    debugPrint("InAppBrowser started loading: $url");
+  }
+
+  @override
+  void onLoadStop(url) {
+    debugPrint("InAppBrowser stopped loading: $url");
+  }
+}
 
 Future<void> launchUrlSafe(String url) async {
   if (url.isEmpty) return;
   final Uri uri = Uri.parse(url);
-  try {
-    // We try to launch as external application by default for better compatibility
+  
+  // No try-catch fallback! If native plugin is missing, it will throw a visible error.
+  if (uri.scheme == 'http' || uri.scheme == 'https') {
+    final browser = MyInAppBrowser();
+    await browser.openUrlRequest(
+      urlRequest: URLRequest(url: WebUri(url)),
+      settings: InAppBrowserClassSettings(
+        browserSettings: InAppBrowserSettings(
+          hideUrlBar: false,
+        ),
+      ),
+    );
+  } else {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } catch (e) {
-    debugPrint('SafeLaunch Error: $e');
-    // Final fallback attempt
-    try {
-      await launchUrl(uri);
-    } catch (_) {}
   }
 }
 

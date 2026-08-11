@@ -29,14 +29,18 @@ class Home extends StatelessWidget {
     final homeScreenController = Get.find<HomeScreenController>();
     final size = MediaQuery.of(context).size;
     final isWideScreen = size.width > 800;
-    if (!playerController.initFlagForPlayer &&
-        settingsScreenController.isBottomNavBarEnabled.isFalse) {
-      if (isWideScreen) {
-        playerController.playerPanelMinHeight.value =
-            105 + Get.mediaQuery.padding.bottom;
+    if (!playerController.initFlagForPlayer) {
+      if (settingsScreenController.isBottomNavBarEnabled.isFalse) {
+        if (isWideScreen) {
+          playerController.playerPanelMinHeight.value =
+              105 + Get.mediaQuery.padding.bottom;
+        } else {
+          playerController.playerPanelMinHeight.value =
+              75 + Get.mediaQuery.padding.bottom;
+        }
       } else {
         playerController.playerPanelMinHeight.value =
-            75 + Get.mediaQuery.padding.bottom;
+            75.0 + 86.0 + Get.mediaQuery.viewPadding.bottom;
       }
     }
     return KeyboardShortcuts(
@@ -66,6 +70,7 @@ class Home extends StatelessWidget {
         },
         child: Obx(
           () => Scaffold(
+              extendBody: true,
               bottomNavigationBar: settingsScreenController
                       .isBottomNavBarEnabled.isTrue
                   ? ScrollToHideWidget(
@@ -185,6 +190,7 @@ class Home extends StatelessWidget {
                   : null,
               drawerScrimColor: Colors.transparent,
               body: Obx(() => SlidingUpPanel(
+                    color: Colors.transparent,
                     onPanelSlide: playerController.panellistener,
                     controller: playerController.playerPanelController,
                     minHeight: playerController.playerPanelMinHeight.value,
@@ -193,7 +199,16 @@ class Home extends StatelessWidget {
                     onSwipeUp: () {
                       playerController.playerPanelController.open();
                     },
-                    panel: const Player(),
+                    panel: Obx(() {
+                      final opacity = (1.0 - playerController.playerPaneOpacity.value).clamp(0.0, 1.0);
+                      return IgnorePointer(
+                        ignoring: opacity == 0.0,
+                        child: Opacity(
+                          opacity: opacity,
+                          child: const Player(),
+                        ),
+                      );
+                    }),
                     body: const ScreenNavigation(),
                     header: !isWideScreen
                         ? InkWell(

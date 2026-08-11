@@ -226,7 +226,7 @@ class SettingsScreenController extends GetxController {
     }
     if (!Get.find<PlayerController>().initFlagForPlayer) {
       playerCon.playerPanelMinHeight.value =
-          val ? 75.0 : 75.0 + Get.mediaQuery.viewPadding.bottom;
+          val ? 75.0 + 86.0 + Get.mediaQuery.viewPadding.bottom : 75.0 + Get.mediaQuery.viewPadding.bottom;
     }
     setBox.put("isBottomNavBarEnabled", val);
   }
