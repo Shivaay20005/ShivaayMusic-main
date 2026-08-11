@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/downloader.dart';
 import '../screens/Playlist/playlist_screen_controller.dart';

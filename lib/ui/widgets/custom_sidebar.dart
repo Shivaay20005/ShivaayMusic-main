@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shivaaymusic/utils/helper.dart';
 
 /// Custom animated sidebar with configurable logo size and title
@@ -189,7 +188,7 @@ class _CustomSideBarAnimatedState extends State<CustomSideBarAnimated>
                                 cursor: SystemMouseCursors.click,
                                 child: GestureDetector(
                                   onTap: () async {
-                                    final url = 'https://t.me/Shivaay20005';
+                                    const url = 'https://t.me/Shivaay20005';
                                     await launchUrlSafe(url);
                                   },
                                   child: Container(

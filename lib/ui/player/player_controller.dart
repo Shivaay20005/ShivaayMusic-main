@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import '../../models/playling_from.dart';
 import '../../services/downloader.dart';
 import '../screens/Playlist/playlist_screen_controller.dart';
@@ -56,8 +56,52 @@ class PlayerController extends GetxController
   final progressBarStatus = ProgressBarState(
           buffered: Duration.zero, current: Duration.zero, total: Duration.zero)
       .obs;
-
   final currentSongIndex = (0).obs;
+
+  // Video Mode State
+  final isVideoMode = false.obs;
+  final isVideoInitializing = false.obs;
+  final videoModeId = "".obs;
+  
+  Future<void> toggleVideoMode() async {
+    if (isVideoMode.value) {
+      // Switch back to Audio
+      isVideoMode.value = false;
+      _audioHandler.play(); // Resume background audio
+    } else {
+      // Switch to Video
+      if (currentSong.value == null) return;
+      isVideoMode.value = true;
+      isVideoInitializing.value = true;
+      _audioHandler.pause(); // Pause background audio so video can play its own audio
+      
+      try {
+        final yt = YoutubeExplode();
+        // Search for the actual music video to bypass YouTube's Art Track embed blocks
+        final query = "${currentSong.value!.title} ${currentSong.value!.artist} music video";
+        final searchResults = await yt.search.search(query);
+        
+        String targetVideoId = currentSong.value!.id;
+        
+        // Find the first actual video (not playlist or channel)
+        final videoResults = searchResults.whereType<Video>();
+        if (videoResults.isNotEmpty) {
+           targetVideoId = videoResults.first.id.value;
+        } else if (searchResults.isNotEmpty) {
+           targetVideoId = searchResults.first.id.value;
+        }
+        
+        videoModeId.value = targetVideoId;
+        
+        yt.close();
+      } catch(e) {
+        videoModeId.value = currentSong.value!.id;
+      }
+      
+      isVideoInitializing.value = false;
+    }
+  }
+
   final isFirstSong = true;
   final isLastSong = true;
   final isQueueLoopModeEnabled = false.obs;
@@ -96,8 +140,37 @@ class PlayerController extends GetxController
 
   @override
   onInit() {
-    _init();
     super.onInit();
+    _init();
+    
+    // Auto-update video when song changes if in Video Mode
+    ever(currentSong, (song) async {
+      if (song != null && isVideoMode.value) {
+        _audioHandler.pause(); // Ensure background audio stays paused
+        isVideoInitializing.value = true;
+        
+        try {
+          final yt = YoutubeExplode();
+          final query = "${song.title} ${song.artist} music video";
+          final searchResults = await yt.search.search(query);
+          
+          String targetVideoId = song.id;
+          final videoResults = searchResults.whereType<Video>();
+          if (videoResults.isNotEmpty) {
+             targetVideoId = videoResults.first.id.value;
+          } else if (searchResults.isNotEmpty) {
+             targetVideoId = searchResults.first.id.value;
+          }
+          
+          videoModeId.value = targetVideoId;
+          yt.close();
+        } catch(e) {
+          videoModeId.value = song.id;
+        }
+        
+        isVideoInitializing.value = false;
+      }
+    });
   }
 
   @override
@@ -595,7 +668,7 @@ class PlayerController extends GetxController
   }
 
   Future<void> play() async {
-    await _audioHandler.play();
+    await _audioHandler.play(); // Always keep audio handler in sync
     
     // Sync with room if in room mode and is host
     if (isInRoomMode.value && isRoomHost.value && roomService != null) {
@@ -632,11 +705,14 @@ class PlayerController extends GetxController
 
   void playPause() {
     if (initFlagForPlayer) return;
+    
     _audioHandler.playbackState.value.playing ? pause() : play();
+    
     // for gesture player
     if (Get.find<SettingsScreenController>().playerUi.value == 1) {
-      gesturePlayerVisibleState.value =
-          _audioHandler.playbackState.value.playing ? 0 : 1;
+      final isPlaying = _audioHandler.playbackState.value.playing;
+          
+      gesturePlayerVisibleState.value = isPlaying ? 0 : 1;
       gesturePlayerStateAnimationController?.reset();
       gesturePlayerStateAnimationController?.forward();
     }

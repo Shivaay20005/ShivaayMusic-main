@@ -9,6 +9,20 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#25 Update - 1.0.7 - 2026-08-11
+-------------------
+[Features]
+- **Native YouTube Player**: Integrated `InAppWebView` directly into the app (both Full Screen and Mini Player) for native video playback.
+- **Aggressive Ad & UI Blocking**: Added custom JavaScript injection to automatically hide YouTube ads, watermarks, UI controls, and the "Tap to unmute" overlay.
+- **Custom Branding**: Added a "SHIVAAY MUSIC" watermark overlay to the player for custom branding.
+- **Full Screen Controls**: Integrated native HTML5 Fullscreen functionality triggered by taps, with back button support.
+
+[Fixes]
+- **APK Build Fix**: Resolved `PathExistsException` and Kotlin plugin compilation errors during release APK build by downgrading/pinning `package_info_plus` to v8.0.2.
+- **Flutter Analyze Clean up**: Fixed all remaining flutter analyze warnings across the project (removed unused imports, added missing `const` modifiers).
+
+===================================================================
+
 #24 Update - 1.0.6 - 2026-08-11
 -------------------
 [Features]

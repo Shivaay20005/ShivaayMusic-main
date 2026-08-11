@@ -13,6 +13,7 @@ import 'albumart_lyrics.dart';
 import 'backgroud_image.dart';
 import 'lyrics_switch.dart';
 import 'player_control.dart';
+import 'song_video_switch.dart';
 
 /// Standard player widget
 ///
@@ -143,7 +144,14 @@ class StandardPlayer extends StatelessWidget {
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const LyricsSwitch(),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SongVideoSwitch(),
+                            SizedBox(width: 10),
+                            LyricsSwitch(),
+                          ],
+                        ),
                         ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 500),
                             child: AlbumArtNLyrics(

@@ -14,6 +14,7 @@ import '../../widgets/song_download_btn.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/mini_player_progress_bar.dart';
 import 'animated_play_button.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
@@ -39,11 +40,13 @@ class MiniPlayer extends StatelessWidget {
               playerController.clearQueue();
               playerController.playerPanelMinHeight.value = 0.0;
             },
-            child: Container(
-            height: 70,
-            width: size.width - 16 - (!isWideScreen && Get.find<SettingsScreenController>().isBottomNavBarEnabled.isTrue ? 98 : 16),
-            margin: const EdgeInsets.only(left: 16),
-            decoration: BoxDecoration(
+            child: Align(
+              alignment: Alignment.center,
+              child: Container(
+              height: 70,
+              width: size.width - 32, // Perfect pill spanning the width nicely
+              margin: EdgeInsets.zero,
+              decoration: BoxDecoration(
               color: Theme.of(context).bottomSheetTheme.backgroundColor ?? Theme.of(context).primaryColor,
               borderRadius: BorderRadius.circular(35),
               boxShadow: [
@@ -115,15 +118,128 @@ class MiniPlayer extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            playerController.currentSong.value != null
-                                ? ImageWidget(
-                                    size: 50,
-                                    song: playerController.currentSong.value!,
-                                  )
-                                : const SizedBox(
+                            Obx(() {
+                              if (playerController.isVideoMode.value) {
+                                if (playerController.isVideoInitializing.value) {
+                                  return const SizedBox(
                                     height: 50,
                                     width: 50,
+                                    child: Center(child: CircularProgressIndicator()),
+                                  );
+                                }
+                                
+                                final videoId = playerController.videoModeId.value;
+                                final url = "https://m.youtube.com/watch?v=$videoId";
+                                
+                                return SizedBox(
+                                  height: 50,
+                                  width: 50,
+                                  child: InAppWebView(
+                                    initialUrlRequest: URLRequest(url: WebUri(url)),
+                                    initialSettings: InAppWebViewSettings(
+                                      mediaPlaybackRequiresUserGesture: false,
+                                      allowsInlineMediaPlayback: true,
+                                      transparentBackground: true,
+                                      disableContextMenu: true,
+                                      supportZoom: false,
+                                    ),
+                                    onProgressChanged: (controller, progress) async {
+                                      if (progress > 10) {
+                                        await controller.evaluateJavascript(source: """
+                                          if (!document.getElementById('aggressive-css')) {
+                                              var style = document.createElement('style');
+                                              style.id = 'aggressive-css';
+                                              style.innerHTML = `
+                                                ytm-header-bar, ytm-item-section-renderer, ytm-pivot-bar-renderer, ytm-app-promo-renderer, .page-container, ytm-single-column-watch-next-results-renderer, dialog, .consent-bump,
+                                                .ytp-chrome-top, .ytp-watermark, .ytp-youtube-button, .ytp-unmute-box, .ytp-spinner, .ytp-ce-element, a[href*="youtube.com/watch"], .icon-youtube, .ytm-watermark {
+                                                    display: none !important;
+                                                    opacity: 0 !important;
+                                                    pointer-events: none !important;
+                                                }
+                                                
+                                                html, body, ytm-app, ytm-watch, .player-container, .player-size, #player-control-container, ytm-custom-control, .html5-video-player {
+                                                    width: 100vw !important;
+                                                    height: 100vh !important;
+                                                    max-width: 100% !important;
+                                                    max-height: 100% !important;
+                                                    margin: 0 !important;
+                                                    padding: 0 !important;
+                                                    background-color: transparent !important;
+                                                }
+                                                
+                                                video {
+                                                    width: 100vw !important;
+                                                    height: 100vh !important;
+                                                    object-fit: cover !important;
+                                                    border-radius: 10px !important;
+                                                    background-color: black !important;
+                                                }
+                                                body { overflow: hidden !important; }
+                                                
+                                                .shivaay-watermark {
+                                                    position: fixed !important;
+                                                    top: 5px !important;
+                                                    right: 5px !important;
+                                                    color: rgba(255, 255, 255, 0.6) !important;
+                                                    font-size: 8px !important;
+                                                    font-family: sans-serif !important;
+                                                    font-weight: 800 !important;
+                                                    z-index: 2147483647 !important;
+                                                    pointer-events: none !important;
+                                                }
+                                              `;
+                                              document.documentElement.appendChild(style);
+                                          }
+                                        """);
+                                      }
+                                    },
+                                    onLoadStop: (controller, url) async {
+                                      await controller.evaluateJavascript(source: """
+                                        if (!document.querySelector('.shivaay-watermark')) {
+                                            var wm = document.createElement('div');
+                                            wm.className = 'shivaay-watermark';
+                                            wm.innerText = 'SHIVAAY MUSIC';
+                                            document.body.appendChild(wm);
+                                        }
+                                      
+                                        setInterval(function() {
+                                          var vid = document.querySelector('video');
+                                          if (vid) {
+                                              if (vid.muted) vid.muted = false;
+                                          }
+                                          
+                                          var unmuteBtn = document.querySelector('.ytp-unmute-box') || document.querySelector('.ytp-unmute');
+                                          if (unmuteBtn) {
+                                              unmuteBtn.click();
+                                              unmuteBtn.style.display = 'none';
+                                          }
+                                          
+                                          var skipBtn = document.querySelector('.ytp-ad-skip-button') || document.querySelector('.ytp-ad-skip-button-modern');
+                                          if (skipBtn) skipBtn.click();
+                                          
+                                          var adPlayer = document.querySelector('.ad-showing');
+                                          if (adPlayer && vid) {
+                                              if (vid.duration > 0 && vid.currentTime < vid.duration - 1) {
+                                                  vid.currentTime = vid.duration;
+                                              }
+                                          }
+                                        }, 1000);
+                                      """);
+                                    },
                                   ),
+                                );
+                              } else if (playerController.currentSong.value != null) {
+                                return ImageWidget(
+                                  size: 50,
+                                  song: playerController.currentSong.value!,
+                                );
+                              } else {
+                                return const SizedBox(
+                                  height: 50,
+                                  width: 50,
+                                );
+                              }
+                            }),
                           ],
                         ),
                         const SizedBox(
@@ -525,6 +641,7 @@ class MiniPlayer extends StatelessWidget {
               ),
             ),
           ),
+          ), // Close Align
         ),
       ),
       );

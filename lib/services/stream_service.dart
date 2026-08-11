@@ -4,9 +4,10 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 class StreamProvider {
   final bool playable;
   final List<Audio>? audioFormats;
+  final List<VideoFormat>? videoFormats; // Add this
   final String statusMSG;
   StreamProvider(
-      {required this.playable, this.audioFormats, this.statusMSG = ""});
+      {required this.playable, this.audioFormats, this.videoFormats, this.statusMSG = ""});
 
   static Future<StreamProvider> fetch(String videoId) async {
     final yt = YoutubeExplode();
@@ -14,6 +15,25 @@ class StreamProvider {
     try {
       final res = await yt.videos.streamsClient.getManifest(videoId);
       final audio = res.audioOnly;
+      final muxed = res.muxed; // Get audio+video streams
+      final videoOnly = res.videoOnly;
+      
+      final List<VideoFormat> availableVideoFormats = [];
+      
+      // Add muxed streams (has both audio and video)
+      availableVideoFormats.addAll(muxed.map((e) => VideoFormat(
+          quality: e.videoQuality.name,
+          url: e.url.toString(),
+          hasAudio: true)));
+          
+      // Add video-only streams if no muxed streams are found
+      if (availableVideoFormats.isEmpty) {
+        availableVideoFormats.addAll(videoOnly.map((e) => VideoFormat(
+            quality: e.videoQuality.name,
+            url: e.url.toString(),
+            hasAudio: false)));
+      }
+      
       return StreamProvider(
           playable: true,
           statusMSG: "OK",
@@ -27,7 +47,8 @@ class StreamProvider {
                   loudnessDb: e.loudnessDb,
                   url: e.url.toString(),
                   size: e.size.totalBytes))
-              .toList());
+              .toList(),
+          videoFormats: availableVideoFormats);
     } catch (e) {
       if (e is SocketException) {
         return StreamProvider(
@@ -79,12 +100,25 @@ class StreamProvider {
       audioFormats?.lastWhere((item) => item.itag == 249 || item.itag == 139,
           orElse: () => audioFormats!.first);
 
+  VideoFormat? get highestQualityVideo {
+    if (videoFormats == null || videoFormats!.isEmpty) return null;
+    
+    // Prefer 360p or 480p for faster loading, fallback to lowest quality
+    final preferred = videoFormats!.where((v) => v.quality.contains('360') || v.quality.contains('480')).toList();
+    if (preferred.isNotEmpty) {
+      return preferred.last; // Last is usually the better of the preferred if sorted by lowest to highest
+    }
+    return videoFormats!.first; 
+  }
+
   Map<String, dynamic> get smStreamingData {
     return {
       "playable": playable,
       "statusMSG": statusMSG,
       "lowQualityAudio": lowQualityAudio?.toJson(),
-      "highQualityAudio": highestQualityAudio?.toJson()
+      "highQualityAudio": highestQualityAudio?.toJson(),
+      "highestQualityVideoUrl": highestQualityVideo?.url,
+      "videoHasAudio": highestQualityVideo?.hasAudio ?? false
     };
   }
 }
@@ -94,17 +128,19 @@ class Audio {
   final Codec audioCodec;
   final int bitrate;
   final int duration;
-  final int size;
   final double loudnessDb;
   final String url;
-  Audio(
-      {required this.itag,
-      required this.audioCodec,
-      required this.bitrate,
-      required this.duration,
-      required this.loudnessDb,
-      required this.url,
-      required this.size});
+  final int size;
+
+  Audio({
+    required this.itag,
+    required this.audioCodec,
+    required this.bitrate,
+    required this.duration,
+    required this.loudnessDb,
+    required this.url,
+    required this.size,
+  });
 
   Map<String, dynamic> toJson() => {
         "itag": itag,
@@ -129,3 +165,10 @@ class Audio {
 }
 
 enum Codec { mp4a, opus }
+
+class VideoFormat {
+  final String quality;
+  final String url;
+  final bool hasAudio;
+  VideoFormat({required this.quality, required this.url, required this.hasAudio});
+}

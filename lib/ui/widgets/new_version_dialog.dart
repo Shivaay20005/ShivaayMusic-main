@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shivaaymusic/utils/helper.dart';
 
 class NewVersionDialog extends StatelessWidget {
@@ -73,7 +72,7 @@ class NewVersionDialog extends StatelessWidget {
         FilledButton.icon(
           onPressed: () async {
             Navigator.of(context).pop();
-            final url = 'https://github.com/Shivaay20005/ShivaayMusic-Windows-release/releases/latest';
+            const url = 'https://github.com/Shivaay20005/ShivaayMusic-Windows-release/releases/latest';
             try {
               await launchUrlSafe(url);
             } catch(e) {
