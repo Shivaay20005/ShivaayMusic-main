@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -9,6 +8,7 @@ import '../../widgets/songinfo_bottom_sheet.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../player_controller.dart';
 import '../../../services/downloader.dart';
+import '../../screens/Settings/settings_screen_controller.dart';
 import 'albumart_lyrics.dart';
 import 'backgroud_image.dart';
 import 'lyrics_switch.dart';
@@ -27,13 +27,15 @@ class StandardPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
+    final controlSurface = theme.colorScheme.onSurface.withValues(
+      alpha: theme.brightness == Brightness.dark ? 0.16 : 0.08,
+    );
     final PlayerController playerController = Get.find<PlayerController>();
 
-    double playerArtImageSize =
-        size.width - 60; //((size.height < 750) ? 90 : 60);
-    //playerArtImageSize = playerArtImageSize > 350 ? 350 : playerArtImageSize;
     final spaceAvailableForArtImage =
         size.height - (70 + Get.mediaQuery.padding.bottom + 330);
+    double playerArtImageSize = (size.width - 60).clamp(220.0, 430.0);
     playerArtImageSize = playerArtImageSize > spaceAvailableForArtImage
         ? spaceAvailableForArtImage
         : playerArtImageSize;
@@ -56,7 +58,15 @@ class StandardPlayer extends StatelessWidget {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Theme.of(context).primaryColor.withValues(alpha: 0.72),
+                        Theme.of(context).primaryColor.withValues(alpha: 0.88),
+                        Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.98),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -144,14 +154,21 @@ class StandardPlayer extends StatelessWidget {
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SongVideoSwitch(),
-                            SizedBox(width: 10),
-                            LyricsSwitch(),
-                          ],
-                        ),
+                        Obx(() {
+                          final showVideo = Get.find<SettingsScreenController>()
+                              .showVideoOption
+                              .value;
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (showVideo) ...[
+                                const SongVideoSwitch(),
+                                const SizedBox(width: 10),
+                              ],
+                              const LyricsSwitch(),
+                            ],
+                          );
+                        }),
                         ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 500),
                             child: AlbumArtNLyrics(
@@ -170,7 +187,7 @@ class StandardPlayer extends StatelessWidget {
                             Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white24,
+                                  color: controlSurface,
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                                 child: Material(
@@ -223,7 +240,7 @@ class StandardPlayer extends StatelessWidget {
                             Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white24,
+                                  color: controlSurface,
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                                 child: Material(
@@ -377,17 +394,19 @@ class StandardPlayer extends StatelessWidget {
         /// Contains [Minimize button], Playing from [Album name], [More button] for current song context
         Padding(
             padding: EdgeInsets.only(
-                top: Get.mediaQuery.padding.top + 20, left: 10, right: 10),
+                top: Get.mediaQuery.padding.top + 14, left: 14, right: 14),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 /// Minimize button
                 IconButton(
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 28,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
                   onPressed: playerController.playerPanelController.close,
                 ),
 
@@ -417,10 +436,12 @@ class StandardPlayer extends StatelessWidget {
 
                 /// More button for current song context
                 IconButton(
-                  icon: const Icon(
-                    Icons.more_vert,
-                    size: 25,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
+                  icon: const Icon(Icons.more_vert_rounded, size: 25),
                   onPressed: () {
                     showModalBottomSheet(
                       constraints: const BoxConstraints(maxWidth: 500),

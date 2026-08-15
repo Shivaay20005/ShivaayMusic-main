@@ -16,6 +16,7 @@ import 'package:shivaaymusic/ui/navigator.dart';
 import 'package:shivaaymusic/services/music_room_service.dart';
 import '../../widgets/content_list_widget.dart';
 import '../../widgets/quickpickswidget.dart';
+import '../../widgets/home_song_feed.dart';
 import '../../widgets/shimmer_widgets/home_shimmer.dart';
 import 'home_screen_controller.dart';
 import '../Settings/settings_screen.dart';
@@ -32,6 +33,7 @@ class HomeScreen extends StatelessWidget {
         Get.find<SettingsScreenController>();
 
     return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         // Custom header bar is intended only for Android/iOS.
         appBar: (GetPlatform.isAndroid || GetPlatform.isIOS)
             ? const AppHeaderBar()
@@ -50,15 +52,13 @@ class HomeScreen extends StatelessWidget {
                                 Get.mediaQuery.padding.bottom
                             : playerController.playerPanelMinHeight.value),
                     child: SizedBox(
-                      height: 60,
-                      width: 60,
+                        height: 62,
+                        width: 62,
                       child: FittedBox(
                         child: FloatingActionButton(
                             focusElevation: 0,
-                            shape: const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(14))),
-                            elevation: 0,
+                            shape: const CircleBorder(),
+                            elevation: 6,
                             onPressed: () async {
                               if (homeScreenController.tabIndex.value == 2) {
                                 showDialog(
@@ -106,6 +106,107 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ));
+  }
+}
+
+class _HomeDiscoveryHeader extends StatelessWidget {
+  const _HomeDiscoveryHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12
+        ? 'Good morning'
+        : hour < 18
+            ? 'Good afternoon'
+            : 'Good evening';
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, right: 4, bottom: 18),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 17, 18, 17),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              scheme.secondary.withValues(alpha: 0.25),
+              scheme.primary.withValues(alpha: 0.10),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(
+            color: scheme.secondary.withValues(alpha: 0.17),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: scheme.secondary.withValues(alpha: 0.10),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    greeting,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.66),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Your soundtrack is ready.',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Fresh songs, familiar favorites, and new discoveries.',
+                    maxLines: 2,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.66),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              height: 62,
+              width: 62,
+              decoration: BoxDecoration(
+                color: scheme.secondary,
+                borderRadius: BorderRadius.circular(21),
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.secondary.withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 7),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.graphic_eq_rounded,
+                size: 31,
+                color: scheme.onSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -210,6 +311,7 @@ class Body extends StatelessWidget {
                         final items = homeScreenController
                                 .isContentFetched.value
                             ? [
+                                const _HomeDiscoveryHeader(),
                                 Obx(() {
                                   final scrollController = ScrollController();
                                   homeScreenController.contentScrollControllers
@@ -224,16 +326,23 @@ class Body extends StatelessWidget {
                                     homeScreenController),
                                 ...getWidgetList(
                                     homeScreenController.fixedContent,
-                                    homeScreenController)
+                                    homeScreenController),
+                                Obx(
+                                  () => HomeSongFeed(
+                                    songs: homeScreenController.homeSongFeed.toList(),
+                                    isLoadingMore: homeScreenController.isLoadingMore.value,
+                                  ),
+                                ),
                               ]
                             : [const HomeShimmer()];
                         return ListView.builder(
-                          // Add bottom padding so last sections (e.g. New Release)
-                          // don't get hidden behind the mini-player / bottom UI.
+                          controller: homeScreenController.homeFeedScrollController,
+                          physics: const BouncingScrollPhysics(),
+                          // Add bottom padding so the last song rows stay above the mini-player / navigation.
                           padding: EdgeInsets.only(
                             top: topPadding,
                             bottom: playerController.playerPanelMinHeight.value +
-                                120,
+                                140,
                           ),
                           itemCount: items.length,
                           itemBuilder: (context, index) => items[index],

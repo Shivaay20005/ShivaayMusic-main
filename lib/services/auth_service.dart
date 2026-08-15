@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,12 +19,15 @@ class AuthService extends GetxService {
   // Native GoogleSignIn plugin (Only for Android/iOS)
   // On Windows, we use FirebaseAuth directly.
   late final GoogleSignIn _googleSignIn; 
-  StreamSubscription<DocumentSnapshot>? _userStatusSubscription; 
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userStatusSubscription;
+  StreamSubscription<User?>? _authSubscription;
+  String? _lastHandledUid;
+  bool _authStateResolved = false;
 
   final Rx<User?> _firebaseUser = Rx<User?>(null);
-  
-  // UI State Flag to prevent Black Screen
-  final RxBool isInitializing = false.obs;
+
+  // Keeps the root auth gate on a stable loading frame while Firebase restores its session.
+  final RxBool isInitializing = true.obs;
   
   User? get currentUser => _firebaseUser.value;
   bool get isAuthenticated => _firebaseUser.value != null;
@@ -40,60 +43,79 @@ class AuthService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    
-    // Initialize GoogleSignIn only on Mobile platforms
-    if (!Platform.isWindows) {
-       _googleSignIn = GoogleSignIn(
-         serverClientId: "468199347944-u8k8m980b3u9vrun3cb038k1ph36rt8s.apps.googleusercontent.com",
-       );
-    }
-    
-    Get.put(CloudService()); // Register CloudService
-    _firebaseUser.value = _auth.currentUser;
-    
-    // Listen to auth state changes
-    _auth.authStateChanges().listen((User? user) {
-      _firebaseUser.value = user;
-      if (user != null) {
-        _saveUserDataToHive(user);
-        _loadUserDataFromHive();
-        // Auto-Sync User Data structure (Metadata only)
-        _syncUserToFirestore(user); 
-        _listenToUserStatus(user.uid); 
-        
-        // Note: Full Data Restore is now MANUAL via Settings -> Backup & Restore
-        // We removed auto-restore to prevent Login Black Screen issues.
-        
-        // HOWEVER: We silent-sync lightweight stuff like Favorites & Search History
-        Future.delayed(const Duration(seconds: 3), () async {
-          try {
-            if (Get.isRegistered<CloudService>()) {
-               final cloud = Get.find<CloudService>();
-               await cloud.restoreFavorites();
-               await cloud.restoreSearchHistory();
-               
-               // Update UI if user is on library screen
-               if (Get.isRegistered<PlayerController>()) {
-                  Get.find<PlayerController>().update(); // Triggers UI redraw for heart icons
-               }
-            }
-          } catch (e) {
-             debugPrint("Silent Sync Error: $e");
-          }
-        });
 
-        // Explicit navigation removed to let main.dart Obx handle routing.
-        // This avoids double-navigation black screen issues.
-        
-      } else {
-        _clearUserDataFromHive();
-        userName.value = '';
-        userEmail.value = '';
-      }
-    });
-    
-    // Load saved user data on init
+    if (!Platform.isWindows) {
+      _googleSignIn = GoogleSignIn(
+        // This is the type-3 client generated in android/app/google-services.json.
+        serverClientId: "468199347944-u8k8m980b3u9vrun3cb038k1ph36rt8s.apps.googleusercontent.com",
+      );
+    }
+
+    Get.put(CloudService(), permanent: true);
     _loadUserDataFromHive();
+    _firebaseUser.value = _auth.currentUser;
+
+    _authSubscription = _auth.authStateChanges().listen((user) {
+      _authStateResolved = true;
+      _handleAuthState(user);
+    });
+    if (_auth.currentUser != null) {
+      _handleAuthState(_auth.currentUser);
+    } else {
+      // Give Firebase a short window to emit its persisted session before
+      // showing LoginScreen. This avoids a cold-start login flash.
+      Future<void>.delayed(const Duration(milliseconds: 1200), () {
+        if (!_authStateResolved) isInitializing.value = false;
+      });
+    }
+  }
+
+  void _handleAuthState(User? user) {
+    if (user == null) {
+      _lastHandledUid = null;
+      _userStatusSubscription?.cancel();
+      _firebaseUser.value = null;
+      _clearUserDataFromHive();
+      isInitializing.value = false;
+      return;
+    }
+
+    if (_lastHandledUid == user.uid && isInitializing.isFalse) return;
+    final prefs = Hive.box('AppPrefs');
+    final previousDataUid = prefs.get('cloudUserId')?.toString();
+    final switchedAccount = previousDataUid != null && previousDataUid != user.uid;
+    prefs.put('cloudUserId', user.uid);
+    _lastHandledUid = user.uid;
+    _firebaseUser.value = user;
+    final localClear = switchedAccount
+        ? _clearAccountOwnedData()
+        : Future<void>.value();
+    _saveUserDataToHive(user);
+    _loadUserDataFromHive();
+    _listenToUserStatus(user.uid);
+    isInitializing.value = false;
+
+    // Never block auth routing on Firestore. Restore only after Home has mounted.
+    unawaited(_syncUserToFirestore(user));
+    unawaited(_restoreUserDataWhenReady(user.uid, localClear));
+  }
+
+  Future<void> _restoreUserDataWhenReady(
+    String uid,
+    Future<void> localClear,
+  ) async {
+    await localClear;
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    if (_auth.currentUser?.uid != uid || !Get.isRegistered<CloudService>()) return;
+
+    try {
+      await Get.find<CloudService>().restoreAllDataFromCloud();
+      if (Get.isRegistered<PlayerController>()) {
+        Get.find<PlayerController>().update();
+      }
+    } catch (e) {
+      debugPrint('Deferred cloud restore failed: $e');
+    }
   }
 
   // Monitor User Status (Ban)
@@ -389,6 +411,13 @@ class AuthService extends GetxService {
     }
   }
 
+  @override
+  void onClose() {
+    _authSubscription?.cancel();
+    _userStatusSubscription?.cancel();
+    super.onClose();
+  }
+
   /// Sign out
   Future<void> signOut() async {
     try {
@@ -467,6 +496,22 @@ class AuthService extends GetxService {
   }
 
   /// Clear user data from Hive
+  Future<void> _clearAccountOwnedData() async {
+    const boxNames = [
+      'LIBFAV',
+      'LIBRP',
+      'LibraryArtists',
+      'LibraryPlaylists',
+      'searchQuery',
+      'ListeningHistory',
+      'ListeningStats',
+    ];
+    for (final name in boxNames) {
+      final box = Hive.isBoxOpen(name) ? Hive.box(name) : await Hive.openBox(name);
+      await box.clear();
+    }
+  }
+
   void _clearUserDataFromHive() {
     final box = Hive.box('AppPrefs');
     box.delete('userId');

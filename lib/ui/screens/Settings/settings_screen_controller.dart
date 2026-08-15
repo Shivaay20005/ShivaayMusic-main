@@ -49,6 +49,7 @@ class SettingsScreenController extends GetxController {
   final backgroundPlayEnabled = true.obs;
   final keepScreenAwake = false.obs;
   final restorePlaybackSession = false.obs;
+  final showVideoOption = false.obs;
   final cacheHomeScreenData = true.obs;
   final isSmartPrefetchEnabled = false.obs;
   final cacheSize = "0 MB".obs;
@@ -77,6 +78,8 @@ class SettingsScreenController extends GetxController {
       }
     });
   }
+
+  Future<void> reloadFromStorage() => _setInitValue();
 
   get currentVision => currentVersion.value;
   get isCurrentPathsupportDownDir {
@@ -132,14 +135,16 @@ class SettingsScreenController extends GetxController {
         : (setBox.get("loudnessNormalizationEnabled") ?? false);
     autoOpenPlayer.value = (setBox.get("autoOpenPlayer") ?? true);
     restorePlaybackSession.value =
-        setBox.get("restrorePlaybackSession") ?? false;
+        setBox.get("restorePlaybackSession", defaultValue:
+            setBox.get("restrorePlaybackSession") ?? false);
+    showVideoOption.value = setBox.get("showVideoOption") ?? false;
     cacheHomeScreenData.value = setBox.get("cacheHomeScreenData") ?? true;
     streamingQuality.value =
         AudioQuality.values[setBox.get('streamingQuality') ?? AudioQuality.High.index];
     playerUi.value = isDesktop ? 0 : (setBox.get('playerUi') ?? 0);
     backgroundPlayEnabled.value = setBox.get("backgroundPlayEnabled") ?? true;
     keepScreenAwake.value =
-        setBox.get("keepScreenAwake") ?? GetPlatform.isDesktop ? true : false;
+        setBox.get("keepScreenAwake") ?? (GetPlatform.isDesktop ? true : false);
     
     // Now _supportDir is guaranteed to be initialized
     final defaultDownloadPath = "$_supportDir/Music";
@@ -324,8 +329,18 @@ class SettingsScreenController extends GetxController {
   }
 
   void toggleRestorePlaybackSession(bool val) {
+    setBox.put("restorePlaybackSession", val);
+    // Keep the legacy key for one release so older sessions still migrate cleanly.
     setBox.put("restrorePlaybackSession", val);
     restorePlaybackSession.value = val;
+  }
+
+  void toggleShowVideoOption(bool val) {
+    setBox.put("showVideoOption", val);
+    showVideoOption.value = val;
+    if (!val && Get.isRegistered<PlayerController>()) {
+      Get.find<PlayerController>().disableVideoMode();
+    }
   }
 
   Future<void> toggleCacheHomeScreenData(bool val) async {
@@ -463,6 +478,8 @@ class SettingsScreenController extends GetxController {
     backgroundPlayEnabled.value = true;
     keepScreenAwake.value = GetPlatform.isDesktop ? true : false;
     restorePlaybackSession.value = false;
+    showVideoOption.value = false;
+    setBox.put("showVideoOption", false);
     cacheHomeScreenData.value = true;
     isSmartPrefetchEnabled.value = false;
 

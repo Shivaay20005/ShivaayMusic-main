@@ -55,10 +55,14 @@ service cloud.firestore {
     }
 
     // 6. STATISTICS
+    // New listening statistics live below users/{uid}/listening_stats and are
+    // already protected by the owner-only users rule above.
+    // Keep legacy top-level stats private while old clients are phased out.
+    match /stats/{userId}/{document=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
     match /stats/{document=**} {
-      allow read: if isAdmin();
-      allow create: if isLoggedIn(); 
-      allow update, delete: if isAdmin();
+      allow read, write: if false;
     }
 
     // 7. MESSAGES & POLLS

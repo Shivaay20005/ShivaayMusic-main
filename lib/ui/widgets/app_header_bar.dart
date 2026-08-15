@@ -12,24 +12,24 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
     final titleColor = Theme.of(context).textTheme.titleLarge?.color;
 
     return AppBar(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
-      scrolledUnderElevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.2),
-      titleSpacing: 16,
+      scrolledUnderElevation: 0,
+      titleSpacing: 14,
+      toolbarHeight: 72,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
             'assets/icons/icon.png',
-            width: GetPlatform.isAndroid ? 56 : 45,
-            height: GetPlatform.isAndroid ? 60 : 48,
+            width: GetPlatform.isAndroid ? 48 : 42,
+            height: GetPlatform.isAndroid ? 52 : 44,
           ),
           const SizedBox(width: 12),
           Text(
             'ShivaayMusic',
             style: GoogleFonts.dancingScript(
-              fontSize: 28,
+              fontSize: 26,
               fontWeight: FontWeight.w900,
               color: titleColor,
             ),
@@ -38,10 +38,15 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
+          style: IconButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.07),
+            foregroundColor: titleColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          ),
           icon: Icon(
             Icons.share_rounded,
             color: titleColor,
-            size: 24,
+            size: 22,
           ),
           tooltip: "Share",
           onPressed: () => _onSharePressed(context),
@@ -87,5 +92,5 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(72);
 }

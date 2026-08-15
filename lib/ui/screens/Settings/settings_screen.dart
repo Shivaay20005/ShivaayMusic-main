@@ -12,6 +12,7 @@ import 'pages/backup_restore_settings.dart';
 import 'pages/privacy_settings.dart';
 import 'pages/about_settings.dart';
 import 'pages/profile_settings.dart';
+import 'pages/listening_stats_page.dart';
 import 'package:shivaaymusic/ui/navigator.dart';
 import 'package:shivaaymusic/utils/helper.dart';
 import 'package:shivaaymusic/services/music_room_service.dart';
@@ -138,15 +139,13 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(height: 10),
 
                   // Listening Stats Tile
-                  /*
                   _buildSettingsTile(
                     context,
                     title: "listeningStats".tr,
                     icon: Icons.bar_chart_rounded,
-                    onTap: () => Get.to(() => const StatsScreen()),
+                    onTap: () => Get.to(() => const ListeningStatsPage()),
                   ),
                   const SizedBox(height: 10),
-                  */
 
                   // Appearance Tile
                   _buildSettingsTile(

@@ -1,5 +1,4 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:audio_service/audio_service.dart';
 // import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
@@ -116,6 +115,33 @@ Future<void> backgroundCallback(Uri? uri) async {
   }*/
 }
 
+class _AuthLoadingScreen extends StatelessWidget {
+  const _AuthLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/icons/imagelogo.png', width: 92, height: 92),
+            const SizedBox(height: 22),
+            CircularProgressIndicator(color: theme.colorScheme.secondary),
+            const SizedBox(height: 16),
+            Text(
+              'Setting up your music space…',
+              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -132,27 +158,11 @@ class MyApp extends StatelessWidget {
         title: 'ShivaayMusic',
         home: Obx(() {
           if (authService.isInitializing.value) {
-            return const Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                     CircularProgressIndicator(),
-                     SizedBox(height: 20),
-                     Text("Setting up your music space..."),
-                  ],
-                ),
-              ),
-            );
+            return const _AuthLoadingScreen();
           }
-          return StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            initialData: FirebaseAuth.instance.currentUser,
-            builder: (context, snapshot) {
-              final user = snapshot.data ?? authService.currentUser;
-              return user != null ? const Home() : const LoginScreen();
-            },
-          );
+          return authService.currentUser != null
+              ? const Home()
+              : const LoginScreen();
         }),
         debugShowCheckedModeBanner: false,
         translations: Languages(),

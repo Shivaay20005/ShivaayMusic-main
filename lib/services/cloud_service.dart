@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import '../models/playlist.dart';
+import '../models/listening_stat.dart';
 
 import '../ui/screens/Library/library_controller.dart';
 import 'package:shivaaymusic/ui/utils/theme_controller.dart';
@@ -210,6 +211,8 @@ class CloudService extends GetxService {
       await _syncPlaylists();
       await syncFavorites();
       await syncSearchHistory();
+      await _syncArtistFavourites();
+      await _syncListeningStats();
       
       Get.snackbar(
         "Cloud Sync",
@@ -232,12 +235,14 @@ class CloudService extends GetxService {
       await _restorePlaylists();
       await restoreFavorites();
       await restoreSearchHistory();
+      await _restoreArtistFavourites();
+      await _restoreListeningStats();
 
       // Refresh Controllers to reflect changes
       if (Get.isRegistered<SettingsScreenController>()) {
         final settings = Get.find<SettingsScreenController>();
         // Re-init values from Hive
-        settings.onInit(); 
+        await settings.reloadFromStorage();
       }
       
       if (Get.isRegistered<ThemeController>()) {
@@ -278,6 +283,9 @@ class CloudService extends GetxService {
       'skipSilenceEnabled': box.get('skipSilenceEnabled'),
       'loudnessNormalizationEnabled': box.get('loudnessNormalizationEnabled'),
       'autoOpenPlayer': box.get('autoOpenPlayer'),
+      'restorePlaybackSession': box.get('restorePlaybackSession',
+          defaultValue: box.get('restrorePlaybackSession') ?? false),
+      'showVideoOption': box.get('showVideoOption', defaultValue: false),
       'lastSynced': FieldValue.serverTimestamp(),
     };
 
@@ -309,7 +317,17 @@ class CloudService extends GetxService {
       if (data.containsKey('streamingQuality')) box.put('streamingQuality', data['streamingQuality']);
       if (data.containsKey('noOfHomeScreenContent')) box.put('noOfHomeScreenContent', data['noOfHomeScreenContent']);
       if (data.containsKey('cacheSongs')) box.put('cacheSongs', data['cacheSongs']);
-      // ... Add other keys as needed
+      if (data.containsKey('restorePlaybackSession')) {
+        box.put('restorePlaybackSession', data['restorePlaybackSession']);
+        box.put('restrorePlaybackSession', data['restorePlaybackSession']);
+      }
+      if (data.containsKey('showVideoOption')) {
+        box.put('showVideoOption', data['showVideoOption']);
+      }
+      if (data.containsKey('loudnessNormalizationEnabled')) {
+        box.put('loudnessNormalizationEnabled', data['loudnessNormalizationEnabled']);
+      }
+      if (data.containsKey('autoOpenPlayer')) box.put('autoOpenPlayer', data['autoOpenPlayer']);
       
       printINFO("CloudSync: Settings restored.");
     }
@@ -325,7 +343,10 @@ class CloudService extends GetxService {
     // For simplicity, let's limit to last 200 items or use a chunked approach.
     // Given the constraints, let's save the last 100 items for now in a single doc.
     
-    final recentHistory = historyList.take(100).toList();
+    final recentHistory = historyList
+        .take(100)
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
     
     await _firestore
         .collection('users')
@@ -442,7 +463,9 @@ class CloudService extends GetxService {
 
   Future<void> syncFavorites() async {
     final box = await Hive.openBox('LIBFAV');
-    final favoritesList = box.values.map((e) => e as Map).toList();
+    final favoritesList = box.values
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
     
     await _firestore
         .collection('users')
@@ -480,7 +503,7 @@ class CloudService extends GetxService {
 
   Future<void> syncSearchHistory() async {
     final queryBox = await Hive.openBox("searchQuery");
-    final queries = queryBox.values.toList();
+    final queries = queryBox.values.map((e) => e.toString()).toList();
     
     await _firestore
         .collection('users')
@@ -512,6 +535,98 @@ class CloudService extends GetxService {
         }
         printINFO("CloudSync: Search History restored.");
       }
+    }
+  }
+
+  Future<void> syncHistory() async {
+    if (_user != null) await _syncHistory();
+  }
+
+  Future<void> syncArtistFavourites() async {
+    if (_user != null) await _syncArtistFavourites();
+  }
+
+  Future<void> syncListeningStats() async {
+    if (_user != null) await _syncListeningStats();
+  }
+
+  Future<void> _syncArtistFavourites() async {
+    final box = await Hive.openBox('LibraryArtists');
+    final artists = box.values
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+    await _firestore
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('data')
+        .doc('artist_favourites')
+        .set({'items': artists}, SetOptions(merge: true));
+  }
+
+  Future<void> _restoreArtistFavourites() async {
+    final doc = await _firestore
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('data')
+        .doc('artist_favourites')
+        .get();
+    final items = doc.data()?['items'];
+    if (items is! List) return;
+
+    final box = await Hive.openBox('LibraryArtists');
+    for (final item in items) {
+      if (item is Map && item['browseId'] != null) {
+        await box.put(item['browseId'].toString(), Map<String, dynamic>.from(item));
+      }
+    }
+  }
+
+  Future<void> _syncListeningStats() async {
+    final box = await Hive.openBox<ListeningStatDay>('ListeningStats');
+    final statsRef = _firestore
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('listening_stats');
+    final batch = _firestore.batch();
+    for (final stat in box.values) {
+      batch.set(statsRef.doc(stat.date), {
+        'date': stat.date,
+        'totalSeconds': stat.totalSeconds,
+        'songStats': stat.songStats,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+    await batch.commit();
+  }
+
+  Future<void> _restoreListeningStats() async {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('listening_stats')
+        .get();
+    if (snapshot.docs.isEmpty) return;
+
+    final box = await Hive.openBox<ListeningStatDay>('ListeningStats');
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final rawStats = data['songStats'];
+      final songStats = <String, int>{};
+      if (rawStats is Map) {
+        rawStats.forEach((key, value) {
+          final seconds = value is num ? value.toInt() : int.tryParse('$value');
+          if (seconds != null) songStats[key.toString()] = seconds;
+        });
+      }
+      final date = data['date']?.toString() ?? doc.id;
+      await box.put(
+        date,
+        ListeningStatDay(
+          date: date,
+          totalSeconds: (data['totalSeconds'] as num?)?.toInt() ?? 0,
+          songStats: songStats,
+        ),
+      );
     }
   }
 }

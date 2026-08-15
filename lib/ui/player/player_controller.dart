@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter_lyric/lyric_ui/ui_netease.dart';
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';
@@ -63,6 +64,15 @@ class PlayerController extends GetxController
   final isVideoInitializing = false.obs;
   final videoModeId = "".obs;
   
+  void disableVideoMode() {
+    if (isVideoMode.value) {
+      isVideoMode.value = false;
+      isVideoInitializing.value = false;
+      videoModeId.value = '';
+      unawaited(_audioHandler.play());
+    }
+  }
+
   Future<void> toggleVideoMode() async {
     if (isVideoMode.value) {
       // Switch back to Audio
@@ -373,9 +383,12 @@ class PlayerController extends GetxController
   }
 
   Future<void> _restorePrevSession() async {
-    final restrorePrevSessionEnabled =
-        Hive.box("AppPrefs").get("restrorePlaybackSession") ?? false;
-    if (restrorePrevSessionEnabled) {
+    final prefs = Hive.box("AppPrefs");
+    final restorePrevSessionEnabled = prefs.get(
+      "restorePlaybackSession",
+      defaultValue: prefs.get("restrorePlaybackSession") ?? false,
+    );
+    if (restorePrevSessionEnabled == true) {
       final prevSessionData = await Hive.openBox("prevSessionData");
       if (prevSessionData.keys.isNotEmpty) {
         final songList = (prevSessionData.get("queue") as List)
@@ -612,12 +625,13 @@ class PlayerController extends GetxController
       playerPanelController.open();
     }
     final miniPlayerHeight = isWideScreen ? 105.0 : 75.0;
-    final shouldUsePaddedHeight =
-        Get.find<SettingsScreenController>().isBottomNavBarEnabled.isFalse ||
-            getCurrentRouteName() != '/homeScreen';
-    final targetMinHeight = shouldUsePaddedHeight
-        ? miniPlayerHeight + Get.mediaQuery.viewPadding.bottom
-        : miniPlayerHeight;
+    final isBottomNavEnabled =
+        Get.find<SettingsScreenController>().isBottomNavBarEnabled.isTrue;
+    final isHomeOnTop = getCurrentRouteName() == '/homeScreen';
+    
+    final targetMinHeight = isBottomNavEnabled && isHomeOnTop
+        ? miniPlayerHeight + 86.0 + Get.mediaQuery.viewPadding.bottom
+        : miniPlayerHeight + Get.mediaQuery.viewPadding.bottom;
 
     // Recover mini-player visibility after swipe-to-dismiss stop.
     if (initFlagForPlayer || playerPanelMinHeight.value <= 0.0) {
@@ -896,6 +910,10 @@ class PlayerController extends GetxController
       } catch (e) {}
     }
     recentItem = mediaItem;
+    if (Get.isRegistered<CloudService>()) {
+      unawaited(Get.find<CloudService>().syncHistory());
+      unawaited(Get.find<CloudService>().syncListeningStats());
+    }
   }
 
   Future<void> showLyrics() async {

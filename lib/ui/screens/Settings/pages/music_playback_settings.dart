@@ -265,6 +265,19 @@ class MusicPlaybackSettingsPage extends StatelessWidget {
               )),
           ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              title: const Text("Show video option in player"),
+              subtitle: const Text(
+                "Keep this off for audio-only playback. Turn it on to show the Song/Video switch.",
+              ),
+              trailing: Obx(
+                () => CustSwitch(
+                  value: settingsController.showVideoOption.value,
+                  onChanged: settingsController.toggleShowVideoOption,
+                ),
+              )),
+
+          ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               title: Text("stopMusicOnTaskClear".tr),
               subtitle: Text("stopMusicOnTaskClearDes".tr,
                   style: Theme.of(context).textTheme.bodyMedium),

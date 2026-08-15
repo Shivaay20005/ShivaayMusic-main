@@ -13,26 +13,23 @@ This document explains the complete configuration and setup process for Google S
 We generated the SHA-1 fingerprints required for Firebase and Google OAuth using the following command in the `android` directory:
 > gradlew signingReport
 
-The following keys were identified and registered:
+The currently verified Android certificate registered in Firebase Console is:
 
-[DEBUG KEY (For Development)]
-SHA-1: B8:27:12:A1:22:64:A6:9C:6E:F6:7C:21:2B:AD:1C:11:AE:39:A6:05
-Store: C:\Users\shiva\.android\debug.keystore
-Alias: AndroidDebugKey
+[REGISTERED ANDROID CERTIFICATE]
+SHA-1: D9:22:B2:07:A7:ED:E7:03:A8:A5:05:F5:9A:6B:78:C8:99:18:15:B3
+Package: com.shivaay20005.shivaaymusicflutter
 
-[RELEASE KEY (For Production/Play Store)]
-SHA-1: BA:C4:29:C3:BB:E5:17:67:A4:1E:2D:62:96:78:4B:26:B8:74:CB:FE
-Store: C:\Users\shiva\Documents\ShivaayMusic-Windows-1\android\app\upload-keystore.jks
-Alias: upload
+This SHA-1 matches the certificate hash in `android/app/google-services.json`:
+`d922b207a7ede703a8a505f59a6b78c8991815b3`.
+
+Do not label this certificate as Debug or Release unless the exact APK signing report confirms that classification. If a different signing key is used for another build variant, register that key's SHA-1 separately in Firebase Console.
 
 -------------------------------------------------------------------
 2. Firebase Console Configuration
 -------------------------------------------------------------------
 Location: Firebase Console -> Project Settings -> General -> Your Apps
 
-1. Added SHA-1 Fingerprints:
-   - Both Debug and Release SHA-1 keys were added to the Android App configuration.
-   - This allows Firebase to verify the authenticity of the app requests.
+1. Added the verified Android SHA-1 fingerprint shown above to the Android App configuration. This allows Firebase to verify requests from the APK signed with that certificate.
 
 2. Enabled Google Sign-In:
    - Location: Authentication -> Sign-in method
@@ -53,9 +50,9 @@ For Google Sign-In to work on Android, specific OAuth 2.0 Client IDs are require
 
 2. OAuth Client IDs Created:
    
-   A. Android Client (Debug/Release):
+   A. Android Client (Verified Firebase certificate):
       - Package Name: com.shivaay20005.shivaaymusicflutter
-      - SHA-1: B8:27:12:A1:22:64:A6:9C:6E:F6:7C:21:2B:AD:1C:11:AE:39:A6:05
+      - SHA-1: D9:22:B2:07:A7:ED:E7:03:A8:A5:05:F5:9A:6B:78:C8:99:18:15:B3
    
    B. Web Client (Required for token exchange):
       - Name: ShivaayMusic Web Client
@@ -120,5 +117,9 @@ Troubleshooting Common Issues
    - Ensure you built the app (`flutter run`) after adding the new keys and json file. Sometimes a `flutter clean` is needed.
 
 -------------------------------------------------------------------
-End of Guide
-===================================================================
+6. Verified build-signing note (2026-08-15)
+-------------------------------------------------------------------
+The Firebase Console screenshot supplied for this project shows SHA-1:
+  D9:22:B2:07:A7:ED:E7:03:A8:A5:05:F5:9A:6B:78:C8:99:18:15:B3
+
+It matches the Android certificate hash in `android/app/google-services.json`, so the current Google Sign-In certificate configuration is consistent. The old B8:27... and BA:C4... values were stale documentation and have been removed. The Dart flow uses the type-3 client present in the checked-in JSON and avoids competing post-login route replacement.

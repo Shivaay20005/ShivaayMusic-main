@@ -9,6 +9,32 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#26 Update - 1.0.7 - 2026-08-15
+-------------------
+[UI & Experience]
+- **Theme Contrast Pass**: Improved light, dark, and dynamic theme contrast for icons, cards, player actions, navigation, search controls, and authentication loading states.
+- **Player Refresh**: Improved the “Keep the music going” section with a stronger visual surface and a one-tap Play all action.
+- **Video Visibility Setting**: Added “Show video option in player” under Player and Audio settings. It is disabled by default, and the Song/Video switch appears only when enabled.
+- **Search Discovery**: Added mood, language, genre, style, new-release, and trending-song shortcuts for faster discovery.
+- **Listening Stats**: Added a Listening Stats page showing 30-day listening time, active days, and top tracks.
+
+[Authentication & Stability]
+- **Cold-Start Session Restore**: Added a short Firebase auth-state settling window to prevent a false login screen after the app is removed from recents and reopened.
+- **Google Login Black Screen Fix**: Removed competing manual Home navigation after login/signup so the root Firebase auth gate owns Login/Home routing.
+- **Deferred Cloud Restore**: Firestore restore now runs after Home is mounted and cannot block the first authenticated frame.
+- **Account Isolation**: Local favourites, history, artists, playlists, and statistics are cleared when a different Firebase account is detected before restoring that account’s cloud data.
+
+[Firebase & Persistence]
+- **Cloud Data Coverage**: Added cloud persistence for followed artists, listening statistics, video visibility, corrected playback restore settings, recent history, and existing favourites/search history/playlists.
+- **Hive Key Fixes**: Normalized the settings box name to `AppPrefs` and migrated the legacy `restrorePlaybackSession` key to `restorePlaybackSession`.
+- **Firestore Rules**: Declared Rules version 2 and protected legacy top-level statistics while keeping new user-scoped statistics owner-only.
+- **Firebase Documentation**: Corrected the stale SHA-1 documentation. The verified `D9:22:B2:07:A7:ED:E7:03:A8:A5:05:F5:9A:6B:78:C8:99:18:15:B3` fingerprint matches `google-services.json`.
+
+[Artists & Library]
+- **Artist Favourites**: Followed artists now sync to the signed-in user’s Firestore data and restore across devices.
+
+===================================================================
+
 #25 Update - 1.0.7 - 2026-08-11
 -------------------
 [Features]

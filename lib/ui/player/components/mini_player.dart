@@ -43,18 +43,25 @@ class MiniPlayer extends StatelessWidget {
             child: Align(
               alignment: Alignment.center,
               child: Container(
-              height: 70,
-              width: size.width - 32, // Perfect pill spanning the width nicely
-              margin: EdgeInsets.zero,
+              height: 78,
+              width: size.width - 24,
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-              color: Theme.of(context).bottomSheetTheme.backgroundColor ?? Theme.of(context).primaryColor,
-              borderRadius: BorderRadius.circular(35),
+              color: Color.alphaBlend(
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.045),
+                Theme.of(context).bottomSheetTheme.backgroundColor ?? Theme.of(context).primaryColor,
+              ),
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.09),
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                )
+                  color: Colors.black.withValues(alpha: 0.24),
+                  blurRadius: 22,
+                  offset: const Offset(0, 9),
+                ),
               ],
             ),
             child: Center(
@@ -63,19 +70,24 @@ class MiniPlayer extends StatelessWidget {
                   !isWideScreen || bottomNavEnabled
                       ? GetX<PlayerController>(
                           builder: (controller) => Container(
-                              height: 3,
-                              color: Theme.of(context)
-                                  .sliderTheme
-                                  .inactiveTrackColor
-                                  ?.withValues(alpha: 0.3) ?? 
-                                  Colors.grey.withValues(alpha: 0.3),
-                              child: MiniPlayerProgressBar(
-                                  progressBarStatus:
-                                      controller.progressBarStatus.value,
-                                  progressBarColor: Theme.of(context)
-                                          .sliderTheme
-                                          .activeTrackColor ??
-                                      Theme.of(context).colorScheme.primary)),
+                              height: 4,
+                              margin: const EdgeInsets.symmetric(horizontal: 18),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .sliderTheme
+                                    .inactiveTrackColor
+                                    ?.withValues(alpha: 0.28) ??
+                                    Colors.grey.withValues(alpha: 0.28),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(99),
+                                child: MiniPlayerProgressBar(
+                                  progressBarStatus: controller.progressBarStatus.value,
+                                  progressBarColor: Theme.of(context).sliderTheme.activeTrackColor ??
+                                      Theme.of(context).colorScheme.primary,
+                                ),
+                              )),
                         )
                       : GetX<PlayerController>(builder: (controller) {
                           return Padding(
@@ -110,7 +122,7 @@ class MiniPlayer extends StatelessWidget {
                         }),
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 17.0, vertical: 7),
+                        horizontal: 15.0, vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -229,9 +241,12 @@ class MiniPlayer extends StatelessWidget {
                                   ),
                                 );
                               } else if (playerController.currentSong.value != null) {
-                                return ImageWidget(
-                                  size: 50,
-                                  song: playerController.currentSong.value!,
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: ImageWidget(
+                                    size: 50,
+                                    song: playerController.currentSong.value!,
+                                  ),
                                 );
                               } else {
                                 return const SizedBox(
@@ -267,13 +282,14 @@ class MiniPlayer extends StatelessWidget {
                                     height: 20,
                                     child: Text(
                                       playerController.currentSong.value != null
-                                          ? playerController
-                                              .currentSong.value!.title
-                                          : "",
+                                          ? playerController.currentSong.value!.title
+                                          : '',
                                       maxLines: 1,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(
@@ -291,7 +307,15 @@ class MiniPlayer extends StatelessWidget {
                                         maxLines: 1,
                                         style: Theme.of(context)
                                             .textTheme
-                                            .titleSmall,
+                                            .titleSmall
+                                            ?.copyWith(
+                                              fontSize: 12,
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall
+                                                  ?.color
+                                                  ?.withValues(alpha: 0.65),
+                                            ),
                                       ),
                                     ),
                                   ),

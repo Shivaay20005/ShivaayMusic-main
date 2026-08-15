@@ -4,7 +4,6 @@ import 'package:shivaaymusic/services/auth_service.dart';
 import 'package:shivaaymusic/ui/widgets/snackbar.dart';
 
 import '../Home/home_screen_controller.dart';
-import '../../home.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -49,9 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (Get.isRegistered<HomeScreenController>()) {
            Get.find<HomeScreenController>().tabIndex.value = 0;
         }
-        if (mounted) {
-          Get.offAll(() => const Home());
-        }
+        // The root auth gate observes Firebase and switches to Home.
       } else {
         showCustomSnackbar(
           title: "Sign Up Failed",
@@ -285,10 +282,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ),
                               ),
                               child: _authService.isLoading.value
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 24,
                                       width: 24,
-                                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: isDark ? Colors.black : Colors.white,
+                                      ),
                                     )
                                   : const Text(
                                       'SIGN UP',

@@ -25,14 +25,14 @@ class ThemeController extends GetxController {
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
     primaryColor.value =
-        Color(Hive.box('appPrefs').get("themePrimaryColor") ?? 4278199603);
+        Color(Hive.box('AppPrefs').get("themePrimaryColor") ?? 4278199603);
 
     changeThemeModeType(
-        ThemeType.values[Hive.box('appPrefs').get("themeModeType") ?? 0]);
+        ThemeType.values[Hive.box('AppPrefs').get("themeModeType") ?? 0]);
 
     _listenSystemBrightness();
 
-    if (ThemeType.values[Hive.box('appPrefs').get("themeModeType") ?? 0] == ThemeType.automatic) {
+    if (ThemeType.values[Hive.box('AppPrefs').get("themeModeType") ?? 0] == ThemeType.automatic) {
       _startAutomaticThemeTimer();
     }
 
@@ -49,7 +49,7 @@ class ThemeController extends GetxController {
     _timer?.cancel();
     // Check every minute
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (Hive.box('appPrefs').get("themeModeType") == ThemeType.values.indexOf(ThemeType.automatic)) {
+      if (Hive.box('AppPrefs').get("themeModeType") == ThemeType.values.indexOf(ThemeType.automatic)) {
         changeThemeModeType(ThemeType.automatic, sysCall: true);
       } else {
         timer.cancel();
@@ -67,7 +67,7 @@ class ThemeController extends GetxController {
     platformDispatcher.onPlatformBrightnessChanged = () {
       systemBrightness = platformDispatcher.platformBrightness;
       changeThemeModeType(
-          ThemeType.values[Hive.box('appPrefs').get("themeModeType")],
+          ThemeType.values[Hive.box('AppPrefs').get("themeModeType")],
           sysCall: true);
     };
   }
@@ -119,13 +119,19 @@ class ThemeController extends GetxController {
         textColor: textColor.value,
         titleColorSwatch: _createMaterialColor(textColor.value));
     currentSongId = songId;
-    Hive.box('appPrefs').put("themePrimaryColor", (primaryColor.value!).toARGB32());
+    Hive.box('AppPrefs').put("themePrimaryColor", (primaryColor.value!).toARGB32());
     setWindowsTitleBarColor(themedata.value!.scaffoldBackgroundColor);
   }
 
   ThemeData _createThemeData(MaterialColor? primarySwatch, ThemeType themeType,
       {MaterialColor? titleColorSwatch, Color? textColor}) {
     if (themeType == ThemeType.dynamic) {
+      final safeBackground = primarySwatch![900] ?? Colors.black;
+      final safeSurface = Color.alphaBlend(
+        Colors.white.withValues(alpha: 0.07),
+        safeBackground,
+      );
+
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
@@ -139,23 +145,34 @@ class ThemeController extends GetxController {
 
       final baseTheme = ThemeData(
           useMaterial3: false,
-          primaryColor: primarySwatch![500],
+          primaryColor: primarySwatch[500],
+          scaffoldBackgroundColor: safeBackground,
           colorScheme: ColorScheme.fromSwatch(
               accentColor: primarySwatch[200],
               brightness: Brightness.dark,
-              backgroundColor: primarySwatch[700],
-              primarySwatch: primarySwatch),
+              backgroundColor: safeBackground,
+              cardColor: safeSurface,
+              primarySwatch: primarySwatch).copyWith(
+                surface: safeSurface,
+                onSurface: Colors.white,
+              ),
           //accentColor: primarySwatch[200],
-          dialogTheme: DialogThemeData(backgroundColor: primarySwatch[700]),
-          cardColor: primarySwatch[600],
+          dialogTheme: DialogThemeData(
+            backgroundColor: primarySwatch[700],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          ),
+          cardColor: safeSurface,
           primaryColorLight: primarySwatch[400],
           primaryColorDark: primarySwatch[700],
           //secondaryHeaderColor: primarySwatch[50],
-          canvasColor: primarySwatch[700],
+          canvasColor: safeBackground,
           //scaffoldBackgroundColor: primarySwatch[700],
           bottomSheetTheme: BottomSheetThemeData(
-              backgroundColor: primarySwatch[600],
-              modalBarrierColor: primarySwatch[400]),
+              backgroundColor: safeSurface,
+              modalBarrierColor: Colors.black54,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              )),
           navigationBarTheme: const NavigationBarThemeData(
             labelTextStyle: WidgetStatePropertyAll(TextStyle(
               fontFamily: 'Nunito',
@@ -187,7 +204,7 @@ class ThemeController extends GetxController {
                   : Colors.white70,
               color: textColor),
           navigationRailTheme: NavigationRailThemeData(
-              backgroundColor: primarySwatch[700],
+              backgroundColor: safeBackground,
               selectedIconTheme: const IconThemeData(color: Colors.white),
               unselectedIconTheme: IconThemeData(color: primarySwatch[100]),
               selectedLabelTextStyle: const TextStyle(
@@ -300,8 +317,16 @@ class ThemeController extends GetxController {
                   fontSize: 15),
               unselectedLabelTextStyle: TextStyle(
                   color: Colors.white38, fontWeight: FontWeight.w900)),
+          dialogTheme: DialogThemeData(
+            backgroundColor: Colors.grey[950],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          ),
           bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: Colors.black, modalBarrierColor: Colors.black),
+              backgroundColor: Colors.black,
+              modalBarrierColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              )),
           navigationBarTheme: const NavigationBarThemeData(
             labelTextStyle: WidgetStatePropertyAll(TextStyle(
               fontFamily: 'Nunito',
@@ -419,8 +444,16 @@ class ThemeController extends GetxController {
             actionTextColor: Colors.white,
             behavior: SnackBarBehavior.floating,
           ),
+          dialogTheme: DialogThemeData(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          ),
           bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: Colors.white, modalBarrierColor: Colors.black12),
+              backgroundColor: Colors.white,
+              modalBarrierColor: Colors.black12,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              )),
           navigationBarTheme: NavigationBarThemeData(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,

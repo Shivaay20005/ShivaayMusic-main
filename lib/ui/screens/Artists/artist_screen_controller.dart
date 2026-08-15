@@ -1,4 +1,6 @@
 import 'package:audio_service/audio_service.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -9,6 +11,7 @@ import '../../../models/artist.dart';
 import '../../../utils/helper.dart';
 import '../Library/library_controller.dart';
 import '/services/music_service.dart';
+import '/services/cloud_service.dart';
 import '/ui/screens/Home/home_screen_controller.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
 
@@ -95,8 +98,11 @@ class ArtistScreenController extends GetxController
           ? box.put(artist_.browseId, artist_.toJson())
           : box.delete(artist_.browseId);
       isAddedToLibrary.value = add;
-      //Update frontend
+      // Update frontend and persist the artist preference for the signed-in user.
       Get.find<LibraryArtistsController>().refreshLib();
+      if (Get.isRegistered<CloudService>()) {
+        unawaited(Get.find<CloudService>().syncArtistFavourites());
+      }
       return true;
     } catch (e) {
       return false;

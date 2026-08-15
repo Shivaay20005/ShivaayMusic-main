@@ -28,6 +28,13 @@ class HomeScreenController extends GetxController {
   final quickPicks = QuickPicks([]).obs;
   final middleContent = [].obs;
   final fixedContent = [].obs;
+  final homeSongFeed = <MediaItem>[].obs;
+  final isLoadingMore = false.obs;
+  final hasMoreHomeContent = true.obs;
+  final homeFeedScrollController = ScrollController();
+  final Set<String> _homeSongIds = <String>{};
+  final Set<String> _homeSectionTitles = <String>{};
+  int _requestedHomeSectionCount = 0;
   final showVersionDialog = true.obs;
   //isHomeScreenOnTop var only useful if bottom nav enabled
   final isHomeSreenOnTop = true.obs;
@@ -37,6 +44,7 @@ class HomeScreenController extends GetxController {
   @override
   onInit() {
     super.onInit();
+    homeFeedScrollController.addListener(_onHomeFeedScroll);
     loadContent();
     if (updateCheckFlag) _checkNewVersion();
     // _listenToSystemEvents(); // Handled by CloudService now
@@ -91,9 +99,14 @@ class HomeScreenController extends GetxController {
         return false;
       }
 
+      final cachedSongs = quickPicksData
+          .map((e) => MediaItemBuilder.fromJson(e))
+          .toList();
       quickPicks.value = QuickPicks(
-          quickPicksData.map((e) => MediaItemBuilder.fromJson(e)).toList(),
-          title: quickPicksType ?? "Quick picks");
+        cachedSongs,
+        title: quickPicksType ?? "Quick picks",
+      );
+      _replaceHomeSongFeed(cachedSongs);
 
       middleContent.value = middleContentData
           .map((e) => e["type"] == "Album Content"
@@ -105,6 +118,17 @@ class HomeScreenController extends GetxController {
               ? AlbumContent.fromJson(e)
               : PlaylistContent.fromJson(e))
           .toList();
+      _homeSectionTitles
+        ..clear()
+        ..addAll([
+          ...middleContent.map((e) => e.title.toString()),
+          ...fixedContent.map((e) => e.title.toString()),
+        ]);
+      _replaceHomeSongFeed([
+        ...cachedSongs,
+        ...middleContent,
+        ...fixedContent,
+      ]);
       isContentFetched.value = true;
       printINFO("Loaded from offline db");
       return true;
@@ -121,7 +145,10 @@ class HomeScreenController extends GetxController {
     networkError.value = false;
     try {
       List middleContentTemp = [];
-      final homeContentListMap = await _loadHomeContentWithRetry();
+      _requestedHomeSectionCount = _initialHomeSectionCount();
+      final homeContentListMap = await _loadHomeContentWithRetry(
+        limit: _requestedHomeSectionCount,
+      );
       if (contentType == "TR") {
         final index = homeContentListMap
             .indexWhere((element) => element['title'] == "Trending");
@@ -211,6 +238,13 @@ class HomeScreenController extends GetxController {
 
       middleContent.value = _setContentList(middleContentTemp);
       fixedContent.value = _setContentList(homeContentListMap);
+      _homeSectionTitles
+        ..clear()
+        ..addAll(homeContentListMap.map((e) => e['title'].toString()));
+      _replaceHomeSongFeed([
+        ...middleContentTemp,
+        ...homeContentListMap,
+      ]);
 
       isContentFetched.value = true;
 
@@ -232,8 +266,16 @@ class HomeScreenController extends GetxController {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _loadHomeContentWithRetry() async {
-    final limit = Get.find<SettingsScreenController>().noOfHomeScreenContent.value;
+  int _initialHomeSectionCount() {
+    final configured = Get.find<SettingsScreenController>()
+        .noOfHomeScreenContent
+        .value;
+    return configured < 18 ? 18 : configured;
+  }
+
+  Future<List<Map<String, dynamic>>> _loadHomeContentWithRetry({
+    required int limit,
+  }) async {
     int attempt = 0;
     const int maxAttempts = 2;
 
@@ -252,6 +294,94 @@ class HomeScreenController extends GetxController {
 
       await Future.delayed(const Duration(milliseconds: 500));
     }
+  }
+
+  void _onHomeFeedScroll() {
+    if (!homeFeedScrollController.hasClients ||
+        isLoadingMore.isTrue ||
+        hasMoreHomeContent.isFalse) {
+      return;
+    }
+
+    final distanceToEnd = homeFeedScrollController.position.maxScrollExtent -
+        homeFeedScrollController.position.pixels;
+    if (distanceToEnd < 720) {
+      unawaited(loadMoreHomeContent());
+    }
+  }
+
+  Future<void> loadMoreHomeContent() async {
+    if (isLoadingMore.isTrue || hasMoreHomeContent.isFalse || !isContentFetched.value) {
+      return;
+    }
+
+    isLoadingMore.value = true;
+    try {
+      final nextLimit = _requestedHomeSectionCount + 12;
+      final allSections = await _loadHomeContentWithRetry(limit: nextLimit);
+      final previousSongCount = homeSongFeed.length;
+      final newSections = allSections.where((section) {
+        final title = section['title']?.toString() ?? '';
+        return title.isNotEmpty && !_homeSectionTitles.contains(title);
+      }).toList();
+
+      _replaceHomeSongFeed(allSections);
+      final didAddSongs = homeSongFeed.length > previousSongCount;
+      if (newSections.isEmpty && !didAddSongs) {
+        hasMoreHomeContent.value = false;
+        return;
+      }
+
+      _requestedHomeSectionCount = nextLimit;
+      _homeSectionTitles.addAll(
+        newSections.map((section) => section['title'].toString()),
+      );
+
+      if (newSections.isNotEmpty) {
+        final newShelves = _setContentList(newSections);
+        middleContent.assignAll([
+          ...middleContent,
+          ...newShelves,
+        ]);
+      }
+    } catch (e) {
+      printERROR('Home feed pagination failed: $e');
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  void _replaceHomeSongFeed(Iterable<dynamic> source) {
+    final songs = <MediaItem>[];
+    final seen = <String>{};
+
+    void addSong(dynamic song) {
+      if (song is MediaItem && seen.add(song.id)) {
+        songs.add(song);
+      }
+    }
+
+    for (final item in homeSongFeed) {
+      addSong(item);
+    }
+    for (final item in quickPicks.value.songList) {
+      addSong(item);
+    }
+
+    for (final section in source) {
+      if (section is MediaItem) {
+        addSong(section);
+      } else if (section is Map && section['contents'] is List) {
+        for (final item in section['contents']) {
+          addSong(item);
+        }
+      }
+    }
+
+    _homeSongIds
+      ..clear()
+      ..addAll(seen);
+    homeSongFeed.assignAll(songs);
   }
 
   List _setContentList(
@@ -473,6 +603,9 @@ class HomeScreenController extends GetxController {
   @override
   void dispose() {
     disposeDetachedScrollControllers(disposeAll: true);
+    homeFeedScrollController
+      ..removeListener(_onHomeFeedScroll)
+      ..dispose();
     super.dispose();
   }
 

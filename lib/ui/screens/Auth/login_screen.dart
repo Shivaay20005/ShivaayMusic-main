@@ -6,7 +6,6 @@ import 'package:shivaaymusic/ui/screens/Auth/signup_screen.dart';
 import 'package:shivaaymusic/ui/widgets/snackbar.dart';
 
 import '../Home/home_screen_controller.dart';
-import '../../home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,9 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (Get.isRegistered<HomeScreenController>()) {
            Get.find<HomeScreenController>().tabIndex.value = 0;
         }
-        if (mounted) {
-          Get.offAll(() => const Home());
-        }
+        // The root auth gate observes Firebase and switches to Home.
       } else {
         showCustomSnackbar(
           title: "Login Failed",
@@ -92,9 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (Get.isRegistered<HomeScreenController>()) {
         Get.find<HomeScreenController>().tabIndex.value = 0;
       }
-      if (mounted) {
-        Get.offAll(() => const Home());
-      }
+      // The root auth gate observes Firebase and switches to Home.
     } else {
       showCustomSnackbar(
         title: "Login Failed",
@@ -317,10 +312,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               child: _authService.isLoading.value
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 24,
                                       width: 24,
-                                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: isDark ? Colors.black : Colors.white,
+                                      ),
                                     )
                                   : const Text(
                                       'LOGIN',
@@ -372,10 +370,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               icon: _authService.isLoading.value
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 24,
                                       width: 24,
-                                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: isDark ? Colors.white : theme.colorScheme.primary,
+                                      ),
                                     )
                                   : Image.asset(
                                       'assets/images/google_logo.png',

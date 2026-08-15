@@ -8,31 +8,39 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final homeScreenController = Get.find<HomeScreenController>();
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Obx(() {
       final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
       if (isKeyboardOpen) return const SizedBox.shrink();
-      
-      return Container(
-        margin: EdgeInsets.only(
-          bottom: 16 + MediaQuery.of(context).padding.bottom,
-          left: 16,
-          right: 16,
-        ),
+
+      final surfaceColor = Color.alphaBlend(
+        scheme.primary.withValues(alpha: theme.brightness == Brightness.dark ? 0.18 : 0.06),
+        scheme.surface,
+      );
+
+      return SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
         child: Row(
           children: [
-            // Pill-shaped menu
             Expanded(
               child: Container(
-                height: 70,
+                height: 72,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(35),
+                  color: surfaceColor.withValues(alpha: 0.96),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: scheme.onSurface.withValues(alpha: 0.08),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    )
+                      color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.32 : 0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
                   ],
                 ),
                 child: Row(
@@ -41,7 +49,7 @@ class BottomNavBar extends StatelessWidget {
                     _buildNavItem(
                       context,
                       icon: Icons.home_outlined,
-                      selectedIcon: Icons.home,
+                      selectedIcon: Icons.home_rounded,
                       label: 'home'.tr,
                       index: 0,
                     ),
@@ -49,19 +57,19 @@ class BottomNavBar extends StatelessWidget {
                       context,
                       icon: (GetPlatform.isAndroid || GetPlatform.isIOS)
                           ? Icons.explore_outlined
-                          : Icons.library_music,
+                          : Icons.library_music_outlined,
                       selectedIcon: (GetPlatform.isAndroid || GetPlatform.isIOS)
-                          ? Icons.explore
-                          : null,
+                          ? Icons.explore_rounded
+                          : Icons.library_music_rounded,
                       label: (GetPlatform.isAndroid || GetPlatform.isIOS)
-                          ? "explore".tr
+                          ? 'explore'.tr
                           : 'library'.tr,
                       index: 2,
                     ),
                     _buildNavItem(
                       context,
                       icon: Icons.settings_outlined,
-                      selectedIcon: Icons.settings,
+                      selectedIcon: Icons.settings_rounded,
                       label: 'settings'.tr,
                       index: 3,
                     ),
@@ -70,31 +78,40 @@ class BottomNavBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Circular Search button
-            GestureDetector(
-              onTap: () => homeScreenController.onBottonBarTabSelected(1),
-              child: Container(
-                height: 70,
-                width: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: homeScreenController.tabIndex.value == 1
-                      ? Theme.of(context).colorScheme.secondary
-                      : Theme.of(context).primaryColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    )
-                  ],
-                ),
-                child: Icon(
-                  Icons.search,
-                  size: 28,
-                  color: homeScreenController.tabIndex.value == 1
-                      ? Theme.of(context).colorScheme.onSecondary
-                      : Theme.of(context).iconTheme.color,
+            Semantics(
+              button: true,
+              label: 'search'.tr,
+              child: GestureDetector(
+                onTap: () => homeScreenController.onBottonBarTabSelected(1),
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  height: 72,
+                  width: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: homeScreenController.tabIndex.value == 1
+                        ? scheme.secondary
+                        : surfaceColor.withValues(alpha: 0.96),
+                    border: Border.all(
+                      color: scheme.onSurface.withValues(alpha: 0.08),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.32 : 0.12),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.search_rounded,
+                    size: 28,
+                    color: homeScreenController.tabIndex.value == 1
+                        ? scheme.onSecondary
+                        : theme.iconTheme.color,
+                  ),
                 ),
               ),
             ),
@@ -104,49 +121,66 @@ class BottomNavBar extends StatelessWidget {
     });
   }
 
-  Widget _buildNavItem(BuildContext context,
-      {required IconData icon,
-      IconData? selectedIcon,
-      required String label,
-      required int index}) {
+  Widget _buildNavItem(
+    BuildContext context, {
+    required IconData icon,
+    required IconData selectedIcon,
+    required String label,
+    required int index,
+  }) {
     final homeScreenController = Get.find<HomeScreenController>();
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final isSelected = homeScreenController.tabIndex.value == index;
     final displayLabel = modifyNgetlabel(label);
 
-    return GestureDetector(
-      onTap: () => homeScreenController.onBottonBarTabSelected(index),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isSelected ? (selectedIcon ?? icon) : icon,
+    return Expanded(
+      child: Semantics(
+        selected: isSelected,
+        button: true,
+        label: label,
+        child: GestureDetector(
+          onTap: () => homeScreenController.onBottonBarTabSelected(index),
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+            decoration: BoxDecoration(
               color: isSelected
-                  ? Theme.of(context).colorScheme.secondary
-                  : Theme.of(context).iconTheme.color,
+                  ? scheme.secondary.withValues(alpha: 0.16)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(21),
             ),
-            const SizedBox(height: 4),
-            Text(
-              displayLabel,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.secondary
-                    : Theme.of(context).iconTheme.color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            child: AnimatedScale(
+              scale: isSelected ? 1.0 : 0.96,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isSelected ? selectedIcon : icon,
+                    size: 24,
+                    color: isSelected ? scheme.secondary : theme.iconTheme.color?.withValues(alpha: 0.62),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    displayLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 11,
+                      color: isSelected ? scheme.secondary : theme.iconTheme.color?.withValues(alpha: 0.62),
+                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -154,7 +188,7 @@ class BottomNavBar extends StatelessWidget {
 
   String modifyNgetlabel(String label) {
     if (label.length > 9) {
-      return "${label.substring(0, 8)}..";
+      return '${label.substring(0, 8)}..';
     }
     return label;
   }

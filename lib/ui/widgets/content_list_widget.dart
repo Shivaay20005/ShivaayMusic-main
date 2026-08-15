@@ -21,7 +21,11 @@ class ContentListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAlbumContent = content.runtimeType.toString() == "AlbumContent";
     // ignore: avoid_unnecessary_containers
-    return Container(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -29,12 +33,18 @@ class ContentListWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  !isHomeContent && content.title.length > 12
-                      ? "${content.title.substring(0, 12)}..."
-                      : content.title,
-                  //maxLines: 2,
-                  style: Theme.of(context).textTheme.titleLarge,
+                Expanded(
+                  child: Text(
+                    !isHomeContent && content.title.length > 12
+                        ? "${content.title.substring(0, 12)}..."
+                        : content.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontSize: 21,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
                 ),
                 !isHomeContent
                     ? TextButton(
@@ -43,15 +53,20 @@ class ContentListWidget extends StatelessWidget {
                               Get.find<SearchResultScreenController>();
                           scrresController.viewAllCallback(content.title);
                         },
-                        child: Text("viewAll".tr,
-                            style: Theme.of(Get.context!).textTheme.titleSmall))
+                        child: Text(
+                          "viewAll".tr,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: scheme.secondary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ))
                     : const SizedBox.shrink()
               ],
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 12),
           SizedBox(
-            height: 200,
+            height: 196,
             //color: Colors.blueAccent,
             child: Scrollbar(
               thickness: GetPlatform.isDesktop ? null : 0,
@@ -62,7 +77,7 @@ class ContentListWidget extends StatelessWidget {
                   addRepaintBoundaries: false, //on this
                   physics: const BouncingScrollPhysics(),
                   separatorBuilder: (context, index) => const SizedBox(
-                        width: 15,
+                        width: 14,
                       ),
                   scrollDirection: Axis.horizontal,
                   itemCount: isAlbumContent
