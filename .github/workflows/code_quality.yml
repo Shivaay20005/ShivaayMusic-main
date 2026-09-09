@@ -1,9 +1,5 @@
 name: Build Android APK
 
-# Needed so the debug step can push logs back to this branch
-permissions:
-  contents: write
-
 on:
   workflow_dispatch:
   push:
@@ -49,25 +45,6 @@ jobs:
         run: |
           set -o pipefail
           flutter build apk --release 2>&1 | tee build.log
-
-      # Temporary debug: this sandbox token cannot read CI logs,
-      # so push the outputs back to the branch on failure.
-      - name: Push logs on failure
-        if: failure()
-        run: |
-          git config user.email "ci@debug.local"
-          git config user.name "ci-debug"
-          echo "=== FLUTTER VERSION ===" > pubget_ci_failure.txt
-          cat flutter_version.log >> pubget_ci_failure.txt 2>/dev/null || true
-          echo "=== PUB GET OUTPUT ===" >> pubget_ci_failure.txt
-          cat pubget.log >> pubget_ci_failure.txt 2>/dev/null || true
-          echo "=== ANALYZE OUTPUT (tail) ===" >> pubget_ci_failure.txt
-          tail -c 20000 analyze.log >> pubget_ci_failure.txt 2>/dev/null || true
-          echo "=== BUILD OUTPUT (tail) ===" >> pubget_ci_failure.txt
-          tail -c 90000 build.log >> pubget_ci_failure.txt 2>/dev/null || true
-          git add pubget_ci_failure.txt
-          git commit -m "CI debug: failure log (temp)"
-          git push
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
