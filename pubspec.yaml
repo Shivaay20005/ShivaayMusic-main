@@ -56,10 +56,9 @@ dependencies:
   ionicons: ^0.2.2
   jni: ^0.14.0
   just_audio: ^0.9.46
-  just_audio_media_kit:
-    git:
-      url: https://github.com/Shivaay20005/just_audio_media_kit.git
-      branch: main
+  # NOTE: personal git fork was deleted; using the official pub.dev release
+  # (app only uses the JustAudioMediaKit.title / protocolWhitelist statics).
+  just_audio_media_kit: ^2.0.0
   local_auth: ^2.3.0
   palette_generator: ^0.3.3+4
   path: ^1.8.3
@@ -70,15 +69,12 @@ dependencies:
   package_info_plus: 8.0.2
   wakelock_plus: ^1.3.3
   shimmer: ^3.0.0
-  sidebar_with_animation:
-    git:
-      url: https://github.com/Shivaay20005/animated_side_bar.git
-      branch: main
   smtc_windows: ^0.1.2
+  # NOTE: personal fork was deleted; the user's fork tracked this upstream.
   terminate_restart:
     git:
-      url: https://github.com/Shivaay20005/terminate_restart.git
-      branch: master
+      url: https://github.com/sleem2012/terminate_restart.git
+      ref: 5bab101a661e953b0d28a66ddce469779cf8dea0
   toggle_switch: ^2.1.0
   tray_manager: ^0.2.3
   url_launcher: ^6.2.1
