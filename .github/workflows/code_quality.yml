@@ -1,5 +1,9 @@
 name: Build Android APK
 
+# Needed so the debug step can push logs back to this branch
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
@@ -29,7 +33,8 @@ jobs:
           channel: 'stable'
 
       - name: Flutter version
-        run: flutter --version
+        run: |
+          flutter --version | tee flutter_version.log
 
       - name: Install packages
         run: |
@@ -43,7 +48,10 @@ jobs:
         run: |
           git config user.email "ci@debug.local"
           git config user.name "ci-debug"
-          cp pubget.log pubget_ci_failure.txt
+          echo "=== FLUTTER VERSION ===" > pubget_ci_failure.txt
+          cat flutter_version.log >> pubget_ci_failure.txt 2>/dev/null || true
+          echo "=== PUB GET OUTPUT ===" >> pubget_ci_failure.txt
+          cat pubget.log >> pubget_ci_failure.txt 2>/dev/null || true
           git add pubget_ci_failure.txt
           git commit -m "CI debug: pub get failure log (temp)"
           git push
