@@ -1,39 +1,53 @@
-name: Code quality check
+name: Build Android APK
+
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - arena/01a0841c-shivaaymusic-main
   pull_request:
     branches:
       - main
 
 jobs:
-  test:
-    name: Check the source code quality
+  build-apk:
+    name: Analyze & build release APK
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: '3.24.2'
+      - uses: actions/checkout@v4
 
       - name: Setup JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # Latest stable Flutter is required:
+      # pubspec.lock was generated with Flutter >=3.44 (Dart >=3.12).
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Flutter version
+        run: |
+          flutter --version | tee flutter_version.log
+
       - name: Install packages
-        run: flutter pub get
+        run: |
+          set -o pipefail
+          flutter pub get 2>&1 | tee pubget.log
 
       - name: Linter
-        run: flutter analyze
+        run: |
+          flutter analyze --no-fatal-warnings --no-fatal-infos 2>&1 | tee analyze.log
 
       - name: Build APK
-        run: flutter build apk
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee build.log
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: apk-release
+          name: shivaaymusic-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk

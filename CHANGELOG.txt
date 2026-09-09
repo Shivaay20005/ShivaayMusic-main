@@ -9,6 +9,21 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#27 Update - 1.0.8 - 2026-09-09
+-------------------
+[Fixes]
+- **Playback Restoration (Critical)**: Fixed songs not playing at all (endless loading, then YouTube's "you may need to refresh the page" style error). Root cause: the bundled YouTube stream-extraction package (youtube_explode_dart 2.3.7, pinned to a git fork that has since been deleted) used 2024-era extraction clients (IOS 19.29.1 / TVHTML5). Since mid-2026 YouTube enforces PO-Tokens / JS signature challenges on those clients and answers their media URLs with HTTP 403 (upstream issues #386, #389, #390).
+- **Dependency**: Moved `youtube_explode_dart` from the deleted git fork to the official pub.dev release (^3.1.0). This also fixes fresh builds failing at `flutter pub get` with "Repository not found".
+- **Stream Client**: `StreamProvider.fetch` now tries a client fallback chain — a built-in VISIONOS (Apple Vision Pro) client payload (the same client yt-dlp uses; currently served without PO-Token), then `androidSdkless`, then `tv`. If YouTube rotates clients again, only the payload in `lib/services/stream_service.dart` needs updating.
+- **API Migration**: Migrated to youtube_explode_dart v3 (no more per-stream `duration`/`loudnessDb`/exception `.reason` getters); error snackbar now shows the short human-readable reason from YouTube.
+- **Loudness Normalization**: Skipped when loudness data is unavailable (v3 reports 0), preventing every song from being attenuated to ~56% volume.
+- **Resource**: The `YoutubeExplode` client used for stream fetching is now properly closed after use.
+
+[Notes]
+- After pulling this update run `flutter pub get` (pubspec.lock entry for the old fork was removed; it will be re-pinned automatically), then rebuild and reinstall the app. The previously installed app cannot be fixed in place — this fix ships with the new build.
+
+===================================================================
+
 #26 Update - 1.0.7 - 2026-08-15
 -------------------
 [UI & Experience]

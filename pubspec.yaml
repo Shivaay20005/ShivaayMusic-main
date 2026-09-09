@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.7+7
+version: 1.0.8+8
 
 environment:
   sdk: ">=3.1.5 <4.0.0"
@@ -53,13 +53,18 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   html: ^0.15.6
-  ionicons: ^0.2.2
+  # NOTE: hosted 0.2.2 extends IconData, which is a final class in recent
+  # Flutter (fails compilation). v0.2.3 fixed it and renamed constants from
+  # snake_case to camelCase (app call sites were migrated accordingly).
+  ionicons:
+    git:
+      url: https://github.com/ez-connect/flutter-ionicons.git
+      ref: v0.2.3
   jni: ^0.14.0
   just_audio: ^0.9.46
-  just_audio_media_kit:
-    git:
-      url: https://github.com/Shivaay20005/just_audio_media_kit.git
-      branch: main
+  # NOTE: personal git fork was deleted; using the official pub.dev release
+  # (app only uses the JustAudioMediaKit.title / protocolWhitelist statics).
+  just_audio_media_kit: ^2.0.0
   local_auth: ^2.3.0
   palette_generator: ^0.3.3+4
   path: ^1.8.3
@@ -70,15 +75,12 @@ dependencies:
   package_info_plus: 8.0.2
   wakelock_plus: ^1.3.3
   shimmer: ^3.0.0
-  sidebar_with_animation:
-    git:
-      url: https://github.com/Shivaay20005/animated_side_bar.git
-      branch: main
   smtc_windows: ^0.1.2
+  # NOTE: personal fork was deleted; the user's fork tracked this upstream.
   terminate_restart:
     git:
-      url: https://github.com/Shivaay20005/terminate_restart.git
-      branch: master
+      url: https://github.com/sleem2012/terminate_restart.git
+      ref: 5bab101a661e953b0d28a66ddce469779cf8dea0
   toggle_switch: ^2.1.0
   tray_manager: ^0.2.3
   url_launcher: ^6.2.1
@@ -86,10 +88,11 @@ dependencies:
   window_manager: ^0.4.2
   flutter_inappwebview: ^6.0.0
   video_player: ^2.9.1
-  youtube_explode_dart:
-    git:
-      url: https://github.com/Shivaay20005/youtube_explode_dart.git
-      branch: master
+  # NOTE: The previous git fork (Shivaay20005/youtube_explode_dart) no longer
+  # exists (404), which broke fresh `flutter pub get` runs. YouTube has also
+  # blocked the old extraction clients bundled with v2.3.7, so the app must
+  # use the actively-maintained upstream release.
+  youtube_explode_dart: ^3.1.0
   # fl_chart: ^1.1.0
   intl: ^0.20.2
   # vector_math: ^2.1.4
