@@ -292,11 +292,14 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => AudioBoosterController(), fenix: true);
 
-  // Listening stats must be ready before playback can start. Otherwise the
-  // first timer ticks can arrive while its Hive box is still unopened.
+  // Stats are initialized in the background so a damaged/legacy analytics box
+  // can never hold the app on the native splash screen.
   final statsService = ListeningStatsService();
   Get.put(statsService, permanent: true);
-  await statsService.init();
+  statsService.init().catchError((Object error, StackTrace stackTrace) {
+    debugPrint('Listening stats initialization error: $error');
+    return statsService;
+  });
   
   // Privacy Service
   Get.put(PrivacyService(), permanent: true);

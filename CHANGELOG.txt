@@ -13,7 +13,9 @@ HOW TO UPDATE THIS CHANGELOG
 -------------------
 [Fixes]
 - **Listening Stats**: Listening time is now measured from real playback position updates and saved while a song is actually playing. Fixed the first daily entry being lost because a newly-created Hive object was saved before it was attached to its box.
-- **Stats Startup Reliability**: The listening statistics store now finishes initializing before playback services become available, preventing early listens from being missed.
+- **Splash/Black Screen Hotfix**: Fixed the app remaining on the ShivaayMusic splash or opening to a black screen after statistics had been written. Listening analytics now initialize safely in the background and can never block `runApp` on an existing/legacy Hive box.
+- **Safe Stats Migration**: Song display metadata now uses its own schema-free Hive box instead of changing the persisted daily-stat adapter. Existing installs, including data written by build 7, remain readable without clearing app data.
+- **Stats Startup Reliability**: The stats page waits for analytics initialization while the rest of the app starts immediately.
 - **Visible Short Listens**: Listening time and top-track durations now show seconds for plays under one minute instead of appearing stuck at `0 min`.
 - **Playback Restoration (Critical)**: Fixed songs not playing at all (endless loading, then YouTube's "you may need to refresh the page" style error). Root cause: the bundled YouTube stream-extraction package (youtube_explode_dart 2.3.7, pinned to a git fork that has since been deleted) used 2024-era extraction clients (IOS 19.29.1 / TVHTML5). Since mid-2026 YouTube enforces PO-Tokens / JS signature challenges on those clients and answers their media URLs with HTTP 403 (upstream issues #386, #389, #390).
 - **Dependency**: Moved `youtube_explode_dart` from the deleted git fork to the official pub.dev release (^3.1.0). This also fixes fresh builds failing at `flutter pub get` with "Repository not found".
@@ -26,7 +28,7 @@ HOW TO UPDATE THIS CHANGELOG
 - **Modern Listening Dashboard**: Rebuilt Listening Stats with a polished responsive layout, 7/30-day switcher, activity graph, listening-time hero, active-day and daily-average cards, improved empty state, and ranked top-track cards.
 - **Track Details in Stats**: New listens now retain each track's title, artist, and artwork locally and in the user's Firestore stats, replacing raw song IDs with a useful visual listening history.
 - **First-Visit Home Message**: “Your soundtrack is ready” is shown only on the user's first Home visit. The seen state is stored locally, so the introductory card stays out of the way afterwards.
-- **Version Consistency**: Set the app, Android/iOS build metadata, Windows executable/installer, About fallback, and license version to 1.0.7 (build 7).
+- **Version Consistency**: The public app version remains 1.0.7 everywhere; the Android/iOS build number is now 8 so the black-screen hotfix installs over build 7.
 
 [CI/CD]
 - **Automatic Android Builds**: Every pushed branch and pull request now runs dependency installation, source analysis, and both universal and per-architecture release APK builds. Versioned APKs and SHA-256 checksums are retained as GitHub Actions artifacts for 30 days.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -5,16 +7,28 @@ import '../models/listening_stat.dart';
 
 class ListeningStatsService extends GetxService {
   late Box<ListeningStatDay> _box;
+  late Box _metadataBox;
   final String _boxName = "ListeningStats";
+  final Completer<void> _readyCompleter = Completer<void>();
   bool _isInitialized = false;
 
+  bool get isInitialized => _isInitialized;
+  Future<void> get ready => _readyCompleter.future;
+
   Future<ListeningStatsService> init() async {
-    if (!Hive.isAdapterRegistered(20)) {
-      Hive.registerAdapter(ListeningStatDayAdapter());
+    try {
+      if (!Hive.isAdapterRegistered(20)) {
+        Hive.registerAdapter(ListeningStatDayAdapter());
+      }
+      _box = await Hive.openBox<ListeningStatDay>(_boxName);
+      // Keep display metadata outside the typed daily-stat adapter. This makes
+      // schema upgrades safe for users who already have ListeningStats data.
+      _metadataBox = await Hive.openBox('ListeningStatsMetadata');
+      _isInitialized = true;
+      return this;
+    } finally {
+      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
     }
-    _box = await Hive.openBox<ListeningStatDay>(_boxName);
-    _isInitialized = true;
-    return this;
   }
 
   String _getDateKey(DateTime date) {
@@ -43,21 +57,23 @@ class ListeningStatsService extends GetxService {
     // created HiveObject is not attached to a box yet, so calling save() on it
     // drops the first listening entry with a HiveError.
     dayStat.songStats[songId] = (dayStat.songStats[songId] ?? 0) + seconds;
+    await _box.put(key, dayStat);
+
     if (title != null || artist != null || artworkUrl != null) {
-      final existing = dayStat.songMetadata[songId] ?? <String, String>{};
-      dayStat.songMetadata[songId] = {
+      final rawExisting = _metadataBox.get(songId);
+      final existing = rawExisting is Map ? rawExisting : const {};
+      await _metadataBox.put(songId, {
         'title': title?.trim().isNotEmpty == true
             ? title!.trim()
-            : (existing['title'] ?? songId),
+            : (existing['title']?.toString() ?? songId),
         'artist': artist?.trim().isNotEmpty == true
             ? artist!.trim()
-            : (existing['artist'] ?? 'Unknown artist'),
+            : (existing['artist']?.toString() ?? 'Unknown artist'),
         'artworkUrl': artworkUrl?.trim().isNotEmpty == true
             ? artworkUrl!.trim()
-            : (existing['artworkUrl'] ?? ''),
-      };
+            : (existing['artworkUrl']?.toString() ?? ''),
+      });
     }
-    await _box.put(key, dayStat);
   }
 
   /// Get stats for a specific day
@@ -110,17 +126,36 @@ class ListeningStatsService extends GetxService {
     DateTime start,
     DateTime end,
   ) {
-    final days = end.difference(start).inDays + 1;
-    for (int i = days - 1; i >= 0; i--) {
-      final stat = getDayStats(start.add(Duration(days: i)));
-      final metadata = stat?.songMetadata[songId];
-      if (metadata != null) return metadata;
+    final rawMetadata = _metadataBox.get(songId);
+    if (rawMetadata is Map) {
+      return rawMetadata.map(
+        (key, value) => MapEntry(key.toString(), value.toString()),
+      );
     }
     return {
       'title': songId,
       'artist': 'Unknown artist',
       'artworkUrl': '',
     };
+  }
+
+  Map<String, Map<String, String>> getAllSongMetadata() {
+    return {
+      for (final key in _metadataBox.keys)
+        key.toString(): getSongMetadata(
+          key.toString(),
+          DateTime.now(),
+          DateTime.now(),
+        ),
+    };
+  }
+
+  Future<void> restoreSongMetadata(Map<String, dynamic> metadata) async {
+    for (final entry in metadata.entries) {
+      if (entry.value is Map) {
+        await _metadataBox.put(entry.key, Map<dynamic, dynamic>.from(entry.value));
+      }
+    }
   }
 
   /// Get top songs for a date range

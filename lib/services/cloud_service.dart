@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import '../models/playlist.dart';
 import '../models/listening_stat.dart';
+import 'listening_stats_service.dart';
 
 import '../ui/screens/Library/library_controller.dart';
 import 'package:shivaaymusic/ui/utils/theme_controller.dart';
@@ -588,12 +589,20 @@ class CloudService extends GetxService {
         .doc(_user!.uid)
         .collection('listening_stats');
     final batch = _firestore.batch();
+    final metadata = Get.isRegistered<ListeningStatsService>() &&
+            Get.find<ListeningStatsService>().isInitialized
+        ? Get.find<ListeningStatsService>().getAllSongMetadata()
+        : <String, Map<String, String>>{};
     for (final stat in box.values) {
+      final statMetadata = <String, Map<String, String>>{
+        for (final songId in stat.songStats.keys)
+          if (metadata.containsKey(songId)) songId: metadata[songId]!,
+      };
       batch.set(statsRef.doc(stat.date), {
         'date': stat.date,
         'totalSeconds': stat.totalSeconds,
         'songStats': stat.songStats,
-        'songMetadata': stat.songMetadata,
+        'songMetadata': statMetadata,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
@@ -638,9 +647,14 @@ class CloudService extends GetxService {
           date: date,
           totalSeconds: (data['totalSeconds'] as num?)?.toInt() ?? 0,
           songStats: songStats,
-          songMetadata: songMetadata,
         ),
       );
+      if (songMetadata.isNotEmpty &&
+          Get.isRegistered<ListeningStatsService>() &&
+          Get.find<ListeningStatsService>().isInitialized) {
+        await Get.find<ListeningStatsService>()
+            .restoreSongMetadata(songMetadata);
+      }
     }
   }
 }

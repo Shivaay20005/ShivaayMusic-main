@@ -31,9 +31,17 @@ class _ListeningStatsPageState extends State<ListeningStatsPage> {
   Future<void> _loadStats({int? days}) async {
     final range = days ?? _selectedDays;
     if (mounted) setState(() => _loading = true);
-    if (!Get.isRegistered<ListeningStatsService>()) return;
+    if (!Get.isRegistered<ListeningStatsService>()) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
 
     final service = Get.find<ListeningStatsService>();
+    await service.ready;
+    if (!service.isInitialized) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
     final now = DateTime.now();
     final start = now.subtract(Duration(days: range - 1));
     final recentDays = service.getRecentStats(range);

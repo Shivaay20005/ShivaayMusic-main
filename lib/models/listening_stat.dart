@@ -13,14 +13,9 @@ class ListeningStatDay extends HiveObject {
   @HiveField(2)
   Map<String, int> songStats; // songId -> seconds listened
 
-  @HiveField(3)
-  Map<String, Map<String, String>> songMetadata;
-
   ListeningStatDay({
     required this.date,
     this.totalSeconds = 0,
     Map<String, int>? songStats,
-    Map<String, Map<String, String>>? songMetadata,
-  })  : songStats = songStats ?? {},
-        songMetadata = songMetadata ?? {};
+  }) : songStats = songStats ?? {};
 }
