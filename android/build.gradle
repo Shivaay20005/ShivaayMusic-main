@@ -19,13 +19,11 @@ rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
-subprojects {
-    project.evaluationDependsOn(':app')
-}
-
 // Older plugins (e.g. app_links 3.x) hardcode compileSdk 31 in their own
 // build.gradle, but modern androidx libraries in the merged dependency graph
 // require compilation against API 34+. Force every subproject to compileSdk 36.
+// NOTE: must be registered BEFORE the evaluationDependsOn(':app') block below,
+// otherwise :app is already evaluated and afterEvaluate registration throws.
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
@@ -34,6 +32,10 @@ subprojects {
             }
         }
     }
+}
+
+subprojects {
+    project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
