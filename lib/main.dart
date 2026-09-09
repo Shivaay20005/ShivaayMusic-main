@@ -142,7 +142,7 @@ Future<void> backgroundCallback(Uri? uri) async {
 class _StartupApp extends StatelessWidget {
   const _StartupApp({required this.status});
 
-  final ValueListenable<String> status;
+  final ValueNotifier<String> status;
 
   @override
   Widget build(BuildContext context) {
