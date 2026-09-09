@@ -45,9 +45,26 @@ jobs:
         run: |
           set -o pipefail
           flutter build apk --release 2>&1 | tee build.log
+          flutter build apk --release --split-per-abi 2>&1 | tee -a build.log
+          flutter build appbundle --release 2>&1 | tee -a build.log
 
-      - name: Upload APK
+      - name: Upload universal APK
         uses: actions/upload-artifact@v4
         with:
-          name: shivaaymusic-release-apk
+          name: shivaaymusic-apk-universal
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload split APKs (per device CPU)
+        uses: actions/upload-artifact@v4
+        with:
+          name: shivaaymusic-apk-split-per-abi
+          path: |
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
+
+      - name: Upload App Bundle (AAB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: shivaaymusic-aab
+          path: build/app/outputs/bundle/release/app-release.aab
