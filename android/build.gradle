@@ -23,6 +23,19 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
+// Older plugins (e.g. app_links 3.x) hardcode compileSdk 31 in their own
+// build.gradle, but modern androidx libraries in the merged dependency graph
+// require compilation against API 34+. Force every subproject to compileSdk 36.
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            project.android {
+                compileSdkVersion 36
+            }
+        }
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
