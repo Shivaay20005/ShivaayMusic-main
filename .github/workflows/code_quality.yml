@@ -32,7 +32,21 @@ jobs:
         run: flutter --version
 
       - name: Install packages
-        run: flutter pub get
+        run: |
+          set -o pipefail
+          flutter pub get 2>&1 | tee pubget.log
+
+      # Temporary debug: this sandbox token cannot read CI logs,
+      # so push the pub output back to the branch on failure.
+      - name: Push pub log on failure
+        if: failure()
+        run: |
+          git config user.email "ci@debug.local"
+          git config user.name "ci-debug"
+          cp pubget.log pubget_ci_failure.txt
+          git add pubget_ci_failure.txt
+          git commit -m "CI debug: pub get failure log (temp)"
+          git push
 
       - name: Linter
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
