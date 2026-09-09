@@ -71,7 +71,7 @@ Downloading packages...
   image 4.3.0 (4.9.2 available)
   intl 0.20.2 (0.20.3 available)
   io 1.0.5 (1.1.0 available)
-  ionicons 0.2.2 (0.2.3 available)
+* ionicons 0.2.3 from git https://github.com/ez-connect/flutter-ionicons.git at 607ec4 (was 0.2.2)
   jni 0.14.2 (1.0.3 available)
   jnigen 0.14.2 (1.0.0 available)
   js 0.6.7 (0.7.2 available)
@@ -163,9 +163,9 @@ These packages are no longer being depended on:
 - lists 1.0.1
 - media_kit_libs_linux 1.2.1
 - media_kit_libs_windows_audio 1.0.9
-Changed 12 dependencies!
+Changed 13 dependencies!
 1 package is discontinued.
-144 packages have newer versions incompatible with dependency constraints.
+143 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Upgrading analysis_options.yaml to exclude build and platform directories.
 Package speech_to_text:windows references speech_to_text_windows:windows as the default plugin, but the package does not exist, or is not a plugin package.
@@ -194,7 +194,11 @@ Package speech_to_text:windows references speech_to_text_windows:windows as the 
 Ask the maintainers of speech_to_text to either avoid referencing a default implementation via `platforms: windows: default_package: speech_to_text_windows` or create a plugin named speech_to_text_windows.
 
 Analyzing ShivaayMusic-main...                                  
-No issues found! (ran in 18.3s)
+
+  error • Arguments of a constant creation must be constant expressions. Try making the argument a valid constant, or use 'new' to call the constructor • lib/ui/screens/MusicRoom/music_room_screen.dart:385:40 • const_with_non_constant_argument
+  error • The getter 'closeCircle_outline' isn't defined for the type 'Ionicons'. Try importing the library that defines 'closeCircle_outline', correcting the name to the name of an existing getter, or defining a getter or field named 'closeCircle_outline' • lib/ui/screens/MusicRoom/music_room_screen.dart:385:49 • undefined_getter
+
+2 issues found. (ran in 22.2s)
 === BUILD OUTPUT (tail) ===
 Package speech_to_text:windows references speech_to_text_windows:windows as the default plugin, but the package does not exist, or is not a plugin package.
 Ask the maintainers of speech_to_text to either avoid referencing a default implementation via `platforms: windows: default_package: speech_to_text_windows` or create a plugin named speech_to_text_windows.
@@ -244,9 +248,9 @@ Installing Android SDK Platform 31 in /usr/local/lib/android/sdk/platforms/andro
 Package speech_to_text:windows references speech_to_text_windows:windows as the default plugin, but the package does not exist, or is not a plugin package.
 Ask the maintainers of speech_to_text to either avoid referencing a default implementation via `platforms: windows: default_package: speech_to_text_windows` or create a plugin named speech_to_text_windows.
 
-../../../.pub-cache/hosted/pub.dev/ionicons-0.2.2/lib/ionicons.dart:4:28: Error: The class 'IconData' can't be extended outside of its library because it's a final class.
-class IoniconsData extends IconData {
-                           ^
+lib/ui/screens/MusicRoom/music_room_screen.dart:385:49: Error: Member not found: 'closeCircle_outline'.
+                      icon: const Icon(Ionicons.closeCircle_outline),
+                                                ^^^^^^^^^^^^^^^^^^^
 Target kernel_snapshot_program failed: Exception
 
 
@@ -262,7 +266,7 @@ Execution failed for task ':app:compileFlutterBuildRelease'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 5m 51s
+BUILD FAILED in 5m 25s
 [=========                              ] 25%                                   
-Running Gradle task 'assembleRelease'...                          352.9s
+Running Gradle task 'assembleRelease'...                          327.5s
 Gradle task assembleRelease failed with exit code 1
