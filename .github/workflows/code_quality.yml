@@ -52,15 +52,20 @@ jobs:
           cat flutter_version.log >> pubget_ci_failure.txt 2>/dev/null || true
           echo "=== PUB GET OUTPUT ===" >> pubget_ci_failure.txt
           cat pubget.log >> pubget_ci_failure.txt 2>/dev/null || true
+          echo "=== BUILD OUTPUT (tail) ===" >> pubget_ci_failure.txt
+          tail -c 60000 build.log >> pubget_ci_failure.txt 2>/dev/null || true
           git add pubget_ci_failure.txt
           git commit -m "CI debug: pub get failure log (temp)"
           git push
 
       - name: Linter
-        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+        run: |
+          flutter analyze --no-fatal-warnings --no-fatal-infos 2>&1 | tee analyze.log
 
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee build.log
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
