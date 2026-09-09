@@ -24,7 +24,7 @@ class RoomLobbyScreen extends StatelessWidget {
             children: [
               // Icon
               Icon(
-                Ionicons.musical_notes,
+                Ionicons.musicalNotes,
                 size: 100,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -55,7 +55,7 @@ class RoomLobbyScreen extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton.icon(
                   onPressed: () => _showCreateRoomDialog(context, controller),
-                  icon: const Icon(Ionicons.add_circle_outline),
+                  icon: const Icon(Ionicons.addCircleOutline),
                   label: const Text('Create Room'),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
@@ -72,7 +72,7 @@ class RoomLobbyScreen extends StatelessWidget {
                 height: 56,
                 child: OutlinedButton.icon(
                   onPressed: () => _showJoinRoomDialog(context, controller),
-                  icon: const Icon(Ionicons.enter_outline),
+                  icon: const Icon(Ionicons.enterOutline),
                   label: const Text('Join Room'),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(

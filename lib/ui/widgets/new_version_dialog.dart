@@ -17,7 +17,7 @@ class NewVersionDialog extends StatelessWidget {
       title: Row(
         children: [
           Icon(
-            Ionicons.rocket_outline,
+            Ionicons.rocketOutline,
             color: theme.colorScheme.primary,
             size: 28,
           ),
@@ -46,7 +46,7 @@ class NewVersionDialog extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Ionicons.information_circle_outline,
+                  Ionicons.informationCircleOutline,
                   color: theme.colorScheme.primary,
                   size: 20,
                 ),
@@ -85,7 +85,7 @@ class NewVersionDialog extends StatelessWidget {
               );
             }
           },
-          icon: const Icon(Ionicons.download_outline),
+          icon: const Icon(Ionicons.downloadOutline),
           label: const Text('Update Now'),
         ),
       ],

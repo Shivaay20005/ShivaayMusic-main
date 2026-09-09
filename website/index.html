@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShivaayMusic Web</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-2: #12121a;
+    --card: #17171f;
+    --card-hover: #1e1e28;
+    --accent: #8b7cff;
+    --accent-2: #5a9cff;
+    --text: #f2f2f7;
+    --muted: #9a9aad;
+    --danger: #ff6b81;
+    --radius: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(1200px 600px at 70% -10%, #1c1733 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    padding-bottom: 120px;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 26px; position: sticky; top: 0; z-index: 5;
+    background: rgba(10,10,15,.75); backdrop-filter: blur(14px);
+    border-bottom: 1px solid #ffffff12;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: .4px; }
+  .logo .note { font-size: 24px; }
+  .logo b { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .icon-btn {
+    background: var(--card); border: 1px solid #ffffff14; color: var(--text);
+    width: 40px; height: 40px; border-radius: 12px; font-size: 18px; cursor: pointer;
+  }
+  .icon-btn:hover { background: var(--card-hover); }
+
+  .hero { text-align: center; padding: 42px 20px 10px; }
+  .hero h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 800; }
+  .hero h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: var(--muted); margin-top: 8px; font-size: 14px; }
+
+  .search-wrap { display: flex; justify-content: center; padding: 22px 20px 8px; }
+  .search {
+    display: flex; gap: 10px; width: min(640px, 100%);
+    background: var(--card); border: 1px solid #ffffff14; border-radius: 999px; padding: 6px 6px 6px 20px;
+  }
+  .search input {
+    flex: 1; background: none; border: none; outline: none; color: var(--text); font-size: 15px;
+  }
+  .search input::placeholder { color: var(--muted); }
+  .search button {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border: none; color: #0b0b12; font-weight: 700; font-size: 15px;
+    padding: 12px 22px; border-radius: 999px; cursor: pointer;
+  }
+  .search button:disabled { opacity: .5; cursor: default; }
+
+  .status { text-align: center; color: var(--muted); font-size: 13px; min-height: 22px; margin-top: 8px; }
+  .status.err { color: var(--danger); }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px; padding: 26px; max-width: 1200px; margin: 0 auto;
+  }
+  .card {
+    background: var(--card); border: 1px solid #ffffff10; border-radius: var(--radius);
+    overflow: hidden; cursor: pointer; transition: transform .15s ease, background .15s ease;
+  }
+  .card:hover { background: var(--card-hover); transform: translateY(-3px); }
+  .thumb { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dur {
+    position: absolute; right: 8px; bottom: 8px; background: #000c; color: #fff;
+    font-size: 11px; padding: 3px 7px; border-radius: 6px; font-weight: 600;
+  }
+  .card .meta { padding: 12px 14px 14px; }
+  .card .title {
+    font-size: 14px; font-weight: 650; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card .artist { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* settings modal */
+  .modal-bg {
+    position: fixed; inset: 0; background: #000a; display: none;
+    align-items: center; justify-content: center; z-index: 20;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--bg-2); border: 1px solid #ffffff14; border-radius: 18px;
+    padding: 24px; width: min(480px, 92vw);
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 6px; }
+  .modal p { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+  .modal input {
+    width: 100%; background: var(--card); border: 1px solid #ffffff14; border-radius: 12px;
+    color: var(--text); padding: 12px 14px; font-size: 14px; outline: none;
+  }
+  .modal .row { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+  .btn {
+    border: none; border-radius: 12px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 14px;
+  }
+  .btn.primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #0b0b12; }
+  .btn.ghost { background: var(--card); color: var(--text); }
+  .check-row { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--muted); font-size: 13px; }
+
+  /* player */
+  .player {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    background: rgba(18,18,26,.92); backdrop-filter: blur(18px);
+    border-top: 1px solid #ffffff14; padding: 14px 20px 16px;
+    transform: translateY(110%); transition: transform .25s ease;
+  }
+  .player.show { transform: translateY(0); }
+  .player-main { display: flex; align-items: center; gap: 14px; max-width: 1100px; margin: 0 auto; }
+  .player img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; background: #000; }
+  .player .pinfo { flex: 1; min-width: 0; }
+  .player .ptitle { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player .partist { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .controls { display: flex; align-items: center; gap: 8px; }
+  .cbtn {
+    background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 8px;
+    border-radius: 10px;
+  }
+  .cbtn:hover { background: #ffffff14; }
+  .cbtn.play {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #0b0b12;
+    width: 44px; height: 44px; border-radius: 50%; font-size: 18px;
+  }
+  .progress-row { display: flex; align-items: center; gap: 10px; max-width: 1100px; margin: 10px auto 0; }
+  .time { font-size: 11px; color: var(--muted); min-width: 38px; text-align: center; }
+  input[type="range"].bar {
+    flex: 1; -webkit-appearance: none; height: 5px; border-radius: 4px;
+    background: #ffffff22; outline: none; cursor: pointer;
+  }
+  input[type="range"].bar::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+    background: var(--accent); cursor: pointer;
+  }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid #ffffff33; border-top-color: var(--accent);
+    border-radius: 50%; display: inline-block; animation: spin 1s linear infinite; vertical-align: -3px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="note">🎵</span> Shivaay<b>Music</b></div>
+  <button class="icon-btn" id="settingsBtn" title="Server settings">⚙️</button>
+</header>
+
+<section class="hero">
+  <h1>Sunna hai jo bhi, <span>yahin bajao</span> 🎧</h1>
+  <p>YouTube Music powered • no API key • no ads</p>
+</section>
+
+<div class="search-wrap">
+  <form class="search" id="searchForm">
+    <input id="query" type="text" placeholder="Song, artist ya lyrics search karo…" autocomplete="off" />
+    <button id="searchBtn" type="submit">Search</button>
+  </form>
+</div>
+
+<div class="status" id="status"></div>
+<main class="grid" id="grid"></main>
+
+<div class="player" id="player">
+  <div class="player-main">
+    <img id="pThumb" alt="" />
+    <div class="pinfo">
+      <div class="ptitle" id="pTitle">—</div>
+      <div class="partist" id="pArtist">—</div>
+    </div>
+    <div class="controls">
+      <button class="cbtn" id="prevBtn" title="Previous">⏮</button>
+      <button class="cbtn play" id="playBtn" title="Play/Pause">▶</button>
+      <button class="cbtn" id="nextBtn" title="Next">⏭</button>
+    </div>
+  </div>
+  <div class="progress-row">
+    <span class="time" id="cur">0:00</span>
+    <input type="range" class="bar" id="bar" value="0" min="0" max="1000" />
+    <span class="time" id="tot">0:00</span>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>⚙️ Server Settings</h2>
+    <p>Tumhara backend ka URL (Render pe bana hua), bina trailing slash ke. Example: <b>https://shivaaymusic-server.onrender.com</b></p>
+    <input id="baseInput" placeholder="https://your-server.onrender.com" />
+    <div class="check-row">
+      <input type="checkbox" id="proxyCheck" />
+      <label for="proxyCheck">Force proxy mode (agar songs 403 de to on karo — thoda slow hoga)</label>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="closeModal">Close</button>
+      <button class="btn primary" id="saveModal">Save</button>
+    </div>
+  </div>
+</div>
+
+<audio id="audio" crossorigin="anonymous"></audio>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const audio = $('audio');
+const state = {
+  base: localStorage.getItem('sm_base') || '',
+  proxy: localStorage.getItem('sm_proxy') === '1',
+  results: [],
+  idx: -1,
+  proxied: false,
+};
+
+function setStatus(msg, isErr = false) {
+  const s = $('status');
+  s.innerHTML = msg || '';
+  s.className = 'status' + (isErr ? ' err' : '');
+}
+
+function fmt(sec) {
+  if (sec == null || isNaN(sec)) return '--:--';
+  sec = Math.floor(sec);
+  return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+
+async function api(path) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 40000);
+  try {
+    const r = await fetch(state.base + path, { signal: ctl.signal });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+    return data;
+  } finally { clearTimeout(t); }
+}
+
+/* ---------- settings ---------- */
+$('settingsBtn').onclick = () => {
+  $('baseInput').value = state.base;
+  $('proxyCheck').checked = state.proxy;
+  $('modalBg').classList.add('open');
+};
+$('closeModal').onclick = () => $('modalBg').classList.remove('open');
+$('saveModal').onclick = () => {
+  let v = $('baseInput').value.trim().replace(/\/+$/, '');
+  state.base = v;
+  state.proxy = $('proxyCheck').checked;
+  localStorage.setItem('sm_base', v);
+  localStorage.setItem('sm_proxy', state.proxy ? '1' : '0');
+  $('modalBg').classList.remove('open');
+  setStatus(v ? 'Server set ✓ ab search karo!' : 'Server URL khali hai');
+};
+
+/* ---------- search ---------- */
+$('searchForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const q = $('query').value.trim();
+  if (!q) return;
+  if (!state.base) { $('settingsBtn').click(); return; }
+
+  $('searchBtn').disabled = true;
+  setStatus('<span class="spinner"></span> Search ho raha hai… (Render free server soya hua ho to pehli request ~30-60s leti hai)');
+  $('grid').innerHTML = '';
+  try {
+    const data = await api('/api/search?q=' + encodeURIComponent(q));
+    state.results = data.results || [];
+    if (!state.results.length) { setStatus('Kuch nahi mila 😕'); return; }
+    setStatus(state.results.length + ' results — click karke bajao 🎵');
+    renderGrid();
+  } catch (err) {
+    setStatus('Search fail ho gaya: ' + esc(err.message) + ' — server URL settings me check karo', true);
+  } finally {
+    $('searchBtn').disabled = false;
+  }
+};
+
+function renderGrid() {
+  $('grid').innerHTML = state.results.map((v, i) => `
+    <div class="card" onclick="playAt(${i})">
+      <div class="thumb">
+        <img loading="lazy" src="${esc(v.thumbnail)}" alt="">
+        <span class="dur">${fmt(v.duration)}</span>
+      </div>
+      <div class="meta">
+        <div class="title">${esc(v.title)}</div>
+        <div class="artist">${esc(v.author)}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- playback ---------- */
+window.playAt = async function playAt(i) {
+  state.idx = i;
+  state.proxied = false;
+  const v = state.results[i];
+  if (!v) return;
+
+  $('player').classList.add('show');
+  $('pThumb').src = v.thumbnail || '';
+  $('pTitle').textContent = v.title || 'Unknown';
+  $('pArtist').textContent = v.author || '';
+  $('playBtn').textContent = '▶';
+  setStatus('<span class="spinner"></span> Stream nikaali ja rahi hai…');
+
+  try {
+    if (state.proxy) throw new Error('proxy-forced');
+    const s = await api('/api/stream/' + encodeURIComponent(v.id));
+    audio.src = s.url;
+    setStatus(v.title ? ('▶ ' + esc(v.title)) : '');
+  } catch (err) {
+    if (err.message !== 'proxy-forced') {
+      console.warn('direct stream fail, proxy try:', err);
+    }
+    state.proxied = true;
+    audio.src = state.base + '/api/proxy/' + encodeURIComponent(v.id);
+    setStatus('Proxy mode se chala raha… ▶ ' + esc(v.title));
+  }
+  audio.play().catch(() => {});
+};
+
+$('playBtn').onclick = () => {
+  if (!audio.src) return;
+  if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+};
+$('nextBtn').onclick = () => { if (state.idx < state.results.length - 1) playAt(state.idx + 1); };
+$('prevBtn').onclick = () => {
+  if (audio.currentTime > 5) { audio.currentTime = 0; return; }
+  if (state.idx > 0) playAt(state.idx - 1);
+};
+audio.onended = () => $('nextBtn').click();
+audio.onplay = () => { $('playBtn').textContent = '⏸'; };
+audio.onpause = () => { $('playBtn').textContent = '▶'; };
+audio.onerror = () => {
+  // agar direct URL 403 de to proxy pe switch
+  if (!state.proxied && state.idx >= 0) {
+    console.warn('audio error — proxy fallback');
+    const v = state.results[state.idx];
+    state.proxied = true;
+    audio.src = state.base + '/api/proxy/' + encodeURIComponent(v.id);
+    audio.play().catch(() => {});
+  } else if (state.idx >= 0) {
+    setStatus('Ye song play nahi ho pa raha 😔 next try karo', true);
+  }
+};
+audio.ontimeupdate = () => {
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    $('bar').value = Math.round((audio.currentTime / audio.duration) * 1000);
+  }
+  $('cur').textContent = fmt(audio.currentTime);
+  $('tot').textContent = fmt(isFinite(audio.duration) ? audio.duration : (state.results[state.idx] || {}).duration);
+};
+$('bar').oninput = () => {
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    audio.currentTime = ($('bar').value / 1000) * audio.duration;
+  }
+};
+
+/* first-run hint */
+if (!state.base) {
+  setStatus('Pehle ⚙️ settings me apna server URL daalo');
+} else {
+  setStatus('Ready ✓ kuch bhi search karo');
+}
+</script>
+</body>
+</html>

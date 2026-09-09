@@ -1,0 +1,12 @@
+name: shivaaymusic_server
+description: Lightweight backend for the ShivaayMusic website — searches YouTube and resolves stream URLs (no YouTube API key needed).
+publish_to: "none"
+version: 1.0.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  shelf: ^1.4.0
+  shelf_router: ^1.1.0
+  youtube_explode_dart: ^3.1.0

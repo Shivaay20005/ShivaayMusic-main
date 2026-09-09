@@ -78,12 +78,12 @@ class SideNavBar extends StatelessWidget {
                 sidebarItems: [
                   SideBarItem(
                     iconSelected: Ionicons.home,
-                    iconUnselected: Ionicons.home_outline,
+                    iconUnselected: Ionicons.homeOutline,
                     text: 'home'.tr,
                   ),
                   SideBarItem(
-                    iconSelected: Ionicons.musical_notes,
-                    iconUnselected: Ionicons.musical_notes_outline,
+                    iconSelected: Ionicons.musicalNotes,
+                    iconUnselected: Ionicons.musicalNotesOutline,
                     text: 'songs'.tr,
                   ),
                   SideBarItem(
@@ -91,35 +91,35 @@ class SideNavBar extends StatelessWidget {
                         ? Ionicons.compass 
                         : Ionicons.list,
                     iconUnselected: (GetPlatform.isAndroid || GetPlatform.isIOS) 
-                        ? Ionicons.compass_outline 
-                        : Ionicons.list_outline,
+                        ? Ionicons.compassOutline 
+                        : Ionicons.listOutline,
                     text: (GetPlatform.isAndroid || GetPlatform.isIOS) 
                         ? "explore".tr 
                         : 'playlists'.tr,
                   ),
                   SideBarItem(
                     iconSelected: Ionicons.disc,
-                    iconUnselected: Ionicons.disc_outline,
+                    iconUnselected: Ionicons.discOutline,
                     text: 'albums'.tr,
                   ),
                   SideBarItem(
                     iconSelected: Ionicons.person,
-                    iconUnselected: Ionicons.person_outline,
+                    iconUnselected: Ionicons.personOutline,
                     text: 'artists'.tr,
                   ),
                   SideBarItem(
                     iconSelected: Ionicons.download,
-                    iconUnselected: Ionicons.download_outline,
+                    iconUnselected: Ionicons.downloadOutline,
                     text: 'downloads'.tr,
                   ),
                   SideBarItem(
                     iconSelected: Ionicons.people,
-                    iconUnselected: Ionicons.people_outline,
+                    iconUnselected: Ionicons.peopleOutline,
                     text: 'Music Room',
                   ),
                   SideBarItem(
                     iconSelected: Ionicons.settings,
-                    iconUnselected: Ionicons.settings_outline,
+                    iconUnselected: Ionicons.settingsOutline,
                     text: 'settings'.tr,
                   ),
                 ],

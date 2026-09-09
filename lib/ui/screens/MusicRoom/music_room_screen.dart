@@ -38,7 +38,7 @@ class MusicRoomScreen extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Ionicons.people_outline, size: 12, color: Colors.grey),
+                        const Icon(Ionicons.peopleOutline, size: 12, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
                           'Participants: ${controller.participants.length}',
@@ -52,13 +52,13 @@ class MusicRoomScreen extends StatelessWidget {
           actions: [
             // Restoring the backup Chat Button
             IconButton(
-              icon: const Icon(Ionicons.chatbubble_ellipses, color: Colors.blueAccent),
+              icon: const Icon(Ionicons.chatbubbleEllipses, color: Colors.blueAccent),
               tooltip: 'Full Screen Chat',
               onPressed: () => Get.toNamed(ScreenNavigationSetup.musicRoomChat, id: ScreenNavigationSetup.id),
             ),
             Obx(() => IconButton(
                   icon: Icon(
-                    controller.isHost ? Ionicons.close_circle : Ionicons.exit,
+                    controller.isHost ? Ionicons.closeCircle : Ionicons.exit,
                     color: Colors.redAccent,
                   ),
                   onPressed: () => _showLeaveDialog(context, controller),
@@ -197,7 +197,7 @@ class MusicRoomScreen extends StatelessWidget {
             ),
             IconButton.filled(
               onPressed: controller.copyRoomCode,
-              icon: const Icon(Ionicons.copy_outline),
+              icon: const Icon(Ionicons.copyOutline),
               tooltip: 'Copy Code',
             ),
           ],
@@ -231,7 +231,7 @@ class MusicRoomScreen extends StatelessWidget {
                       ),
                 ),
                 const Spacer(),
-                const Icon(Ionicons.chatbubble_ellipses, size: 16, color: Colors.grey),
+                const Icon(Ionicons.chatbubbleEllipses, size: 16, color: Colors.grey),
               ],
             ),
           ),
@@ -382,7 +382,7 @@ class MusicRoomScreen extends StatelessWidget {
                     )),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Ionicons.close_circle_outline),
+                      icon: const Icon(Ionicons.closeCircleOutline),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],

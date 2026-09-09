@@ -848,6 +848,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   void _normalizeVolume(double currentLoudnessDb) {
+    // youtube_explode_dart v3 no longer provides loudnessDb (passed as 0).
+    // Skip normalization instead of attenuating every song to ~56% volume.
+    if (currentLoudnessDb == 0) return;
     double loudnessDifference = -5 - currentLoudnessDb;
 
     // Converted loudness difference to a volume multiplier
