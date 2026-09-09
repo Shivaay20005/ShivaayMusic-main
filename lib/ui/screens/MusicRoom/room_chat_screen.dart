@@ -20,7 +20,7 @@ class RoomChatScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Room Chat'),
         leading: IconButton(
-          icon: const Icon(Ionicons.chevron_back),
+          icon: const Icon(Ionicons.chevronBack),
           onPressed: () => Get.back(id: 1),
         ),
       ),
