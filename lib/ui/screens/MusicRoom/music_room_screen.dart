@@ -382,7 +382,7 @@ class MusicRoomScreen extends StatelessWidget {
                     )),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Ionicons.closeCircle_outline),
+                      icon: const Icon(Ionicons.closeCircleOutline),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
