@@ -593,6 +593,7 @@ class CloudService extends GetxService {
         'date': stat.date,
         'totalSeconds': stat.totalSeconds,
         'songStats': stat.songStats,
+        'songMetadata': stat.songMetadata,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
@@ -618,6 +619,18 @@ class CloudService extends GetxService {
           if (seconds != null) songStats[key.toString()] = seconds;
         });
       }
+      final rawMetadata = data['songMetadata'];
+      final songMetadata = <String, Map<String, String>>{};
+      if (rawMetadata is Map) {
+        rawMetadata.forEach((songId, value) {
+          if (value is Map) {
+            songMetadata[songId.toString()] = value.map(
+              (key, metadataValue) =>
+                  MapEntry(key.toString(), metadataValue.toString()),
+            );
+          }
+        });
+      }
       final date = data['date']?.toString() ?? doc.id;
       await box.put(
         date,
@@ -625,6 +638,7 @@ class CloudService extends GetxService {
           date: date,
           totalSeconds: (data['totalSeconds'] as num?)?.toInt() ?? 0,
           songStats: songStats,
+          songMetadata: songMetadata,
         ),
       );
     }

@@ -9,15 +9,29 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
-#27 Update - 1.0.8 - 2026-09-09
+#27 Update - 1.0.7 - 2026-09-09
 -------------------
 [Fixes]
+- **Listening Stats**: Listening time is now measured from real playback position updates and saved while a song is actually playing. Fixed the first daily entry being lost because a newly-created Hive object was saved before it was attached to its box.
+- **Stats Startup Reliability**: The listening statistics store now finishes initializing before playback services become available, preventing early listens from being missed.
+- **Visible Short Listens**: Listening time and top-track durations now show seconds for plays under one minute instead of appearing stuck at `0 min`.
 - **Playback Restoration (Critical)**: Fixed songs not playing at all (endless loading, then YouTube's "you may need to refresh the page" style error). Root cause: the bundled YouTube stream-extraction package (youtube_explode_dart 2.3.7, pinned to a git fork that has since been deleted) used 2024-era extraction clients (IOS 19.29.1 / TVHTML5). Since mid-2026 YouTube enforces PO-Tokens / JS signature challenges on those clients and answers their media URLs with HTTP 403 (upstream issues #386, #389, #390).
 - **Dependency**: Moved `youtube_explode_dart` from the deleted git fork to the official pub.dev release (^3.1.0). This also fixes fresh builds failing at `flutter pub get` with "Repository not found".
 - **Stream Client**: `StreamProvider.fetch` now tries a client fallback chain — a built-in VISIONOS (Apple Vision Pro) client payload (the same client yt-dlp uses; currently served without PO-Token), then `androidSdkless`, then `tv`. If YouTube rotates clients again, only the payload in `lib/services/stream_service.dart` needs updating.
 - **API Migration**: Migrated to youtube_explode_dart v3 (no more per-stream `duration`/`loudnessDb`/exception `.reason` getters); error snackbar now shows the short human-readable reason from YouTube.
 - **Loudness Normalization**: Skipped when loudness data is unavailable (v3 reports 0), preventing every song from being attenuated to ~56% volume.
 - **Resource**: The `YoutubeExplode` client used for stream fetching is now properly closed after use.
+
+[UI & Experience]
+- **Modern Listening Dashboard**: Rebuilt Listening Stats with a polished responsive layout, 7/30-day switcher, activity graph, listening-time hero, active-day and daily-average cards, improved empty state, and ranked top-track cards.
+- **Track Details in Stats**: New listens now retain each track's title, artist, and artwork locally and in the user's Firestore stats, replacing raw song IDs with a useful visual listening history.
+- **First-Visit Home Message**: “Your soundtrack is ready” is shown only on the user's first Home visit. The seen state is stored locally, so the introductory card stays out of the way afterwards.
+- **Version Consistency**: Set the app, Android/iOS build metadata, Windows executable/installer, About fallback, and license version to 1.0.7 (build 7).
+
+[CI/CD]
+- **Automatic Android Builds**: Every pushed branch and pull request now runs dependency installation, source analysis, and both universal and per-architecture release APK builds. Versioned APKs and SHA-256 checksums are retained as GitHub Actions artifacts for 30 days.
+- **Tagged GitHub Releases**: A successful push to the repository's default branch automatically creates the version tag from `pubspec.yaml` (for example `v1.0.7`) and publishes all APKs plus checksums to GitHub Releases. A workflow-dispatch checkbox can explicitly publish a selected non-default branch.
+- **Safe Version Guard**: If the version tag already exists, CI keeps the new build artifact but does not overwrite or move the existing release tag; the app version must be bumped before another release.
 
 [Notes]
 - After pulling this update run `flutter pub get` (pubspec.lock entry for the old fork was removed; it will be re-pinned automatically), then rebuild and reinstall the app. The previously installed app cannot be fixed in place — this fix ships with the new build.

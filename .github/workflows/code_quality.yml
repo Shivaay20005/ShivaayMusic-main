@@ -1,53 +1,148 @@
-name: Build Android APK
+name: Build Android APK & Release
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Create a GitHub tag and Release from this branch'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
-      - arena/01a0841c-shivaaymusic-main
+      - '**'
   pull_request:
     branches:
-      - main
+      - '**'
+
+# A new push cancels an older build for the same branch, saving Actions minutes.
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
 
 jobs:
   build-apk:
-    name: Analyze & build release APK
+    name: Analyze, build & publish Android
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
+          cache: gradle
 
-      # Latest stable Flutter is required:
-      # pubspec.lock was generated with Flutter >=3.44 (Dart >=3.12).
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter stable
+        uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: stable
+          cache: true
 
-      - name: Flutter version
+      - name: Read app version
+        id: version
+        shell: bash
         run: |
-          flutter --version | tee flutter_version.log
+          set -euo pipefail
+          FULL_VERSION="$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | head -n 1)"
+          APP_VERSION="${FULL_VERSION%%+*}"
+          BUILD_NUMBER="${FULL_VERSION##*+}"
+          if [[ -z "$APP_VERSION" || "$FULL_VERSION" == "$APP_VERSION" ]]; then
+            echo "Invalid pubspec version: $FULL_VERSION (expected x.y.z+build)" >&2
+            exit 1
+          fi
+          echo "full=$FULL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "build=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "tag=v$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building ShivaayMusic $FULL_VERSION"
+
+      - name: Show Flutter version
+        run: flutter --version
 
       - name: Install packages
-        run: |
-          set -o pipefail
-          flutter pub get 2>&1 | tee pubget.log
+        run: flutter pub get
 
-      - name: Linter
-        run: |
-          flutter analyze --no-fatal-warnings --no-fatal-infos 2>&1 | tee analyze.log
+      - name: Analyze source
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
-      - name: Build APK
+      - name: Build universal and architecture APKs
+        shell: bash
         run: |
-          set -o pipefail
-          flutter build apk --release 2>&1 | tee build.log
+          set -euo pipefail
+          flutter build apk \
+            --release \
+            --build-name="${{ steps.version.outputs.name }}" \
+            --build-number="${{ steps.version.outputs.build }}"
+          flutter build apk \
+            --release \
+            --split-per-abi \
+            --build-name="${{ steps.version.outputs.name }}" \
+            --build-number="${{ steps.version.outputs.build }}"
 
-      - name: Upload APK
+          mkdir -p release-apks
+          find build/app/outputs/flutter-apk -maxdepth 1 \
+            -type f -name '*.apk' -print -exec cp '{}' release-apks/ \;
+          test -n "$(find release-apks -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          sha256sum release-apks/*.apk > release-apks/SHA256SUMS.txt
+          echo "Release files:"
+          ls -lh release-apks
+
+      - name: Upload APK build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: shivaaymusic-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: ShivaayMusic-v${{ steps.version.outputs.name }}-android
+          path: release-apks/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Decide whether to publish a Release
+        id: release
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PUBLISH_MANUALLY: ${{ inputs.publish_release || false }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          SHOULD_PUBLISH=false
+
+          # Normal pushes publish only after landing on the repository's default
+          # branch. A manual run can explicitly publish from any selected branch.
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_name }}" == "$DEFAULT_BRANCH" ]]; then
+            SHOULD_PUBLISH=true
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "$PUBLISH_MANUALLY" == "true" ]]; then
+            SHOULD_PUBLISH=true
+          fi
+
+          if [[ "$SHOULD_PUBLISH" == "true" ]] && \
+             git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Tag $RELEASE_TAG already exists. Bump pubspec.yaml before publishing another release."
+            SHOULD_PUBLISH=false
+          fi
+
+          echo "publish=$SHOULD_PUBLISH" >> "$GITHUB_OUTPUT"
+
+      - name: Create version tag and GitHub Release
+        if: steps.release.outputs.publish == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ShivaayMusic ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          make_latest: true
+          draft: false
+          prerelease: false
+          files: |
+            release-apks/*.apk
+            release-apks/SHA256SUMS.txt

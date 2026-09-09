@@ -6,12 +6,14 @@ import '../models/listening_stat.dart';
 class ListeningStatsService extends GetxService {
   late Box<ListeningStatDay> _box;
   final String _boxName = "ListeningStats";
+  bool _isInitialized = false;
 
   Future<ListeningStatsService> init() async {
     if (!Hive.isAdapterRegistered(20)) {
       Hive.registerAdapter(ListeningStatDayAdapter());
     }
     _box = await Hive.openBox<ListeningStatDay>(_boxName);
+    _isInitialized = true;
     return this;
   }
 
@@ -19,23 +21,43 @@ class ListeningStatsService extends GetxService {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  /// Records listening time for a specific song
-  Future<void> recordListeningTime(String songId, int seconds) async {
-    if (seconds <= 0) return;
-    
+  /// Records listening time and keeps enough track information to render a
+  /// useful stats screen without making another network request.
+  Future<void> recordListeningTime(
+    String songId,
+    int seconds, {
+    String? title,
+    String? artist,
+    String? artworkUrl,
+  }) async {
+    if (!_isInitialized || songId.isEmpty || seconds <= 0) return;
+
     final today = DateTime.now();
     final key = _getDateKey(today);
-
-    ListeningStatDay dayStat = _box.get(key) ?? 
-        ListeningStatDay(date: key, songStats: {});
+    final dayStat = _box.get(key) ??
+        ListeningStatDay(date: key, songStats: <String, int>{});
 
     dayStat.totalSeconds += seconds;
-    
-    // Update song specific stats
-    final currentSongTime = dayStat.songStats[songId] ?? 0;
-    dayStat.songStats[songId] = currentSongTime + seconds;
 
-    await dayStat.save();
+    // Update song-specific stats. Always put the value into the box: a newly
+    // created HiveObject is not attached to a box yet, so calling save() on it
+    // drops the first listening entry with a HiveError.
+    dayStat.songStats[songId] = (dayStat.songStats[songId] ?? 0) + seconds;
+    if (title != null || artist != null || artworkUrl != null) {
+      final existing = dayStat.songMetadata[songId] ?? <String, String>{};
+      dayStat.songMetadata[songId] = {
+        'title': title?.trim().isNotEmpty == true
+            ? title!.trim()
+            : (existing['title'] ?? songId),
+        'artist': artist?.trim().isNotEmpty == true
+            ? artist!.trim()
+            : (existing['artist'] ?? 'Unknown artist'),
+        'artworkUrl': artworkUrl?.trim().isNotEmpty == true
+            ? artworkUrl!.trim()
+            : (existing['artworkUrl'] ?? ''),
+      };
+    }
+    await _box.put(key, dayStat);
   }
 
   /// Get stats for a specific day
@@ -71,6 +93,34 @@ class ListeningStatsService extends GetxService {
       }
     }
     return total;
+  }
+
+  /// Daily totals in chronological order, including zero-listening days.
+  List<int> getDailyTotals(int days) {
+    final now = DateTime.now();
+    return List<int>.generate(days, (index) {
+      final date = now.subtract(Duration(days: days - index - 1));
+      return getDayStats(date)?.totalSeconds ?? 0;
+    });
+  }
+
+  /// Returns the newest stored display information for a song.
+  Map<String, String> getSongMetadata(
+    String songId,
+    DateTime start,
+    DateTime end,
+  ) {
+    final days = end.difference(start).inDays + 1;
+    for (int i = days - 1; i >= 0; i--) {
+      final stat = getDayStats(start.add(Duration(days: i)));
+      final metadata = stat?.songMetadata[songId];
+      if (metadata != null) return metadata;
+    }
+    return {
+      'title': songId,
+      'artist': 'Unknown artist',
+      'artworkUrl': '',
+    };
   }
 
   /// Get top songs for a date range

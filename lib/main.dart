@@ -58,7 +58,7 @@ Future<void> main() async {
 
   await initHive();
   _setAppInitPrefs();
-  startApplicationServices();
+  await startApplicationServices();
   Get.put(AuthService(), permanent: true);
   
   // Register HomeWidget Background Callback
@@ -292,10 +292,11 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => AudioBoosterController(), fenix: true);
 
-  // Listening Stats Service
+  // Listening stats must be ready before playback can start. Otherwise the
+  // first timer ticks can arrive while its Hive box is still unopened.
   final statsService = ListeningStatsService();
-  Get.put(statsService);
-  statsService.init(); // Run asynchronously without blocking
+  Get.put(statsService, permanent: true);
+  await statsService.init();
   
   // Privacy Service
   Get.put(PrivacyService(), permanent: true);
