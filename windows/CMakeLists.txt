@@ -38,6 +38,14 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Plugins that pull in C++/WinRT transitively include MSVC's deprecated
+# <experimental/coroutine> header. Since MSVC 14.51 (the Visual Studio 2026
+# toolchain shipped on the windows-latest runner) that header stops the build
+# with "error STL1011" unless this macro is defined. It is added here, before
+# the plugin subdirectories are included further down, so every plugin target
+# inherits it.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
