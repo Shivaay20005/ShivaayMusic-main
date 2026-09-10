@@ -72,9 +72,8 @@ class NewVersionDialog extends StatelessWidget {
         FilledButton.icon(
           onPressed: () async {
             Navigator.of(context).pop();
-            const url = 'https://github.com/Shivaay20005/ShivaayMusic-Windows-release/releases/latest';
             try {
-              await launchUrlSafe(url);
+              await launchUrlSafe(latestReleaseUrl);
             } catch(e) {
               Get.snackbar(
                 'Error',

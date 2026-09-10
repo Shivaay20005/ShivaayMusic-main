@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 
 import '../Search/components/desktop_search_bar.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
@@ -106,6 +107,39 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ));
+  }
+}
+
+class _FirstVisitHomeDiscoveryHeader extends StatefulWidget {
+  const _FirstVisitHomeDiscoveryHeader();
+
+  @override
+  State<_FirstVisitHomeDiscoveryHeader> createState() =>
+      _FirstVisitHomeDiscoveryHeaderState();
+}
+
+class _FirstVisitHomeDiscoveryHeaderState
+    extends State<_FirstVisitHomeDiscoveryHeader> {
+  static const _seenPreferenceKey = 'hasSeenSoundtrackReadyHeader';
+  late final bool _shouldShow;
+
+  @override
+  void initState() {
+    super.initState();
+    final preferences = Hive.box('AppPrefs');
+    _shouldShow = preferences.get(_seenPreferenceKey, defaultValue: false) != true;
+    if (_shouldShow) {
+      // Keep it visible for this first visit, but do not show it again after
+      // the user leaves/reopens Home or starts the app another time.
+      preferences.put(_seenPreferenceKey, true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _shouldShow
+        ? const _HomeDiscoveryHeader()
+        : const SizedBox.shrink();
   }
 }
 
@@ -311,7 +345,7 @@ class Body extends StatelessWidget {
                         final items = homeScreenController
                                 .isContentFetched.value
                             ? [
-                                const _HomeDiscoveryHeader(),
+                                const _FirstVisitHomeDiscoveryHeader(),
                                 Obx(() {
                                   final scrollController = ScrollController();
                                   homeScreenController.contentScrollControllers

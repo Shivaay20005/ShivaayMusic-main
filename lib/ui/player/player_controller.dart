@@ -24,6 +24,7 @@ import '/models/durationstate.dart';
 import '/services/music_service.dart';
 import '../../services/privacy_service.dart';
 import '../../services/music_room_service.dart';
+import '../../services/listening_stats_service.dart';
 
 class PlayerController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -49,6 +50,17 @@ class PlayerController extends GetxController
   dynamic radioInitiatorItem;
   Timer? sleepTimer;
   int timerDuration = 0;
+
+  // Listening time is measured from real position updates instead of assuming
+  // that a "playing" flag means audio was heard (it can also be buffering).
+  Duration? _lastStatsPosition;
+  String? _statsSongId;
+  String? _statsSongTitle;
+  String? _statsSongArtist;
+  String? _statsArtworkUrl;
+  int _pendingListeningMilliseconds = 0;
+  Timer? _statsCloudSyncTimer;
+  bool _statsTrackerDisposed = false;
   final timerDurationLeft = 0.obs;
   final isSleepTimerActive = false.obs;
   final isSleepEndOfSongActive = false.obs;
@@ -304,6 +316,7 @@ class PlayerController extends GetxController
 
   void _listenForChangesInPosition() {
     AudioService.position.listen((position) {
+      _trackListeningPosition(position);
       final oldState = progressBarStatus.value;
       if (isSleepEndOfSongActive.isTrue) {
         timerDurationLeft.value = oldState.total.inSeconds - position.inSeconds;
@@ -317,6 +330,77 @@ class PlayerController extends GetxController
         val.buffered = oldState.buffered;
         val.total = oldState.total;
       });
+    });
+  }
+
+  void _trackListeningPosition(Duration position) {
+    final songId = currentSong.value?.id;
+
+    if (songId != _statsSongId) {
+      _flushListeningStats();
+      // Do not carry a sub-second remainder over to a different track.
+      _pendingListeningMilliseconds = 0;
+      final song = currentSong.value;
+      _statsSongId = songId;
+      _statsSongTitle = song?.title;
+      _statsSongArtist = song?.artist;
+      _statsArtworkUrl = song?.artUri?.toString();
+      _lastStatsPosition = position;
+      return;
+    }
+
+    final playback = _audioHandler.playbackState.value;
+    final isPrivate = Get.find<PrivacyService>().isIncognitoMode.value;
+    final isActuallyPlaying = songId != null &&
+        !isPrivate &&
+        playback.playing &&
+        playback.processingState == AudioProcessingState.ready;
+
+    if (!isActuallyPlaying) {
+      _flushListeningStats();
+      _lastStatsPosition = position;
+      return;
+    }
+
+    final previousPosition = _lastStatsPosition;
+    _lastStatsPosition = position;
+    if (previousPosition == null) return;
+
+    final elapsed = position - previousPosition;
+    // Ignore backwards movement and large forward jumps caused by seeking.
+    if (elapsed <= Duration.zero || elapsed > const Duration(seconds: 2)) return;
+
+    _pendingListeningMilliseconds += elapsed.inMilliseconds;
+    if (_pendingListeningMilliseconds >= 10000) {
+      _flushListeningStats();
+    }
+  }
+
+  void _flushListeningStats() {
+    final songId = _statsSongId;
+    final wholeSeconds = _pendingListeningMilliseconds ~/ 1000;
+    if (songId == null || wholeSeconds <= 0) return;
+
+    _pendingListeningMilliseconds -= wholeSeconds * 1000;
+    if (Get.isRegistered<ListeningStatsService>()) {
+      final write = Get.find<ListeningStatsService>().recordListeningTime(
+        songId,
+        wholeSeconds,
+        title: _statsSongTitle,
+        artist: _statsSongArtist,
+        artworkUrl: _statsArtworkUrl,
+      );
+      unawaited(write.then((_) => _scheduleStatsCloudSync()));
+    }
+  }
+
+  void _scheduleStatsCloudSync() {
+    if (_statsTrackerDisposed) return;
+    _statsCloudSyncTimer?.cancel();
+    _statsCloudSyncTimer = Timer(const Duration(seconds: 20), () {
+      if (Get.isRegistered<CloudService>()) {
+        unawaited(Get.find<CloudService>().syncListeningStats());
+      }
     });
   }
 
@@ -1002,6 +1086,9 @@ class PlayerController extends GetxController
 
   @override
   void dispose() {
+    _flushListeningStats();
+    _statsTrackerDisposed = true;
+    _statsCloudSyncTimer?.cancel();
     _audioHandler.customAction('dispose');
     keyboardSubscription.cancel();
     scrollController.dispose();

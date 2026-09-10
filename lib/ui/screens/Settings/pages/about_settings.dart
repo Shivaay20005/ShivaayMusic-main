@@ -103,7 +103,7 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
             subtitle: Text("Current: ${settingsController.currentVersion.value}",
                 style: Theme.of(context).textTheme.bodyMedium),
             trailing: const Icon(Icons.system_update, color: Colors.green),
-            onTap: () => launchUrlSafe('https://github.com/Shivaay20005/ShivaayMusic/releases/latest'),
+            onTap: () => launchUrlSafe(latestReleaseUrl),
           ),
           
           

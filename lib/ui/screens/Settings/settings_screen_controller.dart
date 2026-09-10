@@ -55,7 +55,7 @@ class SettingsScreenController extends GetxController {
   final cacheSize = "0 MB".obs;
   Timer? _cacheTimer;
   // Get version dynamically from package info (from pubspec.yaml)
-  final currentVersion = "V1.0.6".obs;
+  final currentVersion = "V1.0.7".obs;
 
   @override
   void onInit() {
@@ -94,7 +94,7 @@ class SettingsScreenController extends GetxController {
       currentVersion.value = "V${packageInfo.version}";
     } catch (e) {
       // Fallback to default version if package info fails
-      currentVersion.value = "V1.0.6";
+      currentVersion.value = "V1.0.7";
     }
   }
 

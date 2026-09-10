@@ -37,7 +37,16 @@ import "package:media_kit/src/player/platform_player.dart" show MPVLogLevel;
 
 Future<AudioHandler> initAudioService() async {
   return await AudioService.init(
-    builder: () => MyAudioHandler(),
+    builder: () {
+      final handler = MyAudioHandler();
+      // AudioService invokes this builder before initAudioService completes.
+      // Register the concrete handler immediately so constructor callbacks can
+      // never observe an empty GetX registry during that initialization window.
+      if (!Get.isRegistered<AudioHandler>()) {
+        Get.put<AudioHandler>(handler, permanent: true);
+      }
+      return handler;
+    },
     config: const AudioServiceConfig(
       androidNotificationIcon: 'drawable/ic_shivaay_logo',
       androidNotificationChannelId: 'com.shivaay20005.shivaaymusicflutter.channel.audio',

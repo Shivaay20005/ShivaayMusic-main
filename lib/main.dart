@@ -36,6 +36,10 @@ import 'utils/system_tray.dart';
 import 'ui/widgets/maintenance_overlay.dart';
 import 'utils/update_check_flag_file.dart';
 
+const String _appBuildLabel = 'Version 1.0.7 • Build 12';
+final ValueNotifier<String> _startupStatus =
+    ValueNotifier<String>('Preparing your music space…');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -46,31 +50,65 @@ Future<void> main() async {
     });
   }
 
-  // Initialize Firebase
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    debugPrint('Firebase initialization error: $e');
-    // Continue anyway - app can still work without Firebase
-  }
+  // Render a Flutter frame before initializing plugins. Android can otherwise
+  // look permanently frozen on its native splash while a plugin is starting.
+  runApp(_StartupApp(status: _startupStatus));
+  await Future<void>.delayed(const Duration(milliseconds: 50));
 
-  await initHive();
-  _setAppInitPrefs();
-  startApplicationServices();
-  Get.put(AuthService(), permanent: true);
-  
-  // Register HomeWidget Background Callback
-  /*if (!GetPlatform.isDesktop && GetPlatform.isAndroid) {
-    HomeWidget.registerInteractivityCallback(backgroundCallback);
-  }*/
-  
-  Get.put<AudioHandler>(await initAudioService(), permanent: true);
-  WidgetsBinding.instance.addObserver(LifecycleHandler());
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  TerminateRestart.instance.initialize();
-  runApp(const MyApp());
+  try {
+    _startupStatus.value = 'Connecting securely…';
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      ).timeout(const Duration(seconds: 12));
+    } catch (e) {
+      debugPrint('Firebase initialization error: $e');
+      // Firebase/network issues must never prevent offline app startup.
+    }
+
+    _startupStatus.value = 'Loading your library…';
+    await initHive().timeout(const Duration(seconds: 15));
+    _setAppInitPrefs();
+
+    // Audio restoration may need persisted playback settings, but this
+    // controller itself does not depend on AudioHandler during construction.
+    Get.lazyPut(() => SettingsScreenController(), fenix: true);
+
+    // AudioHandler must exist before any app controller is registered. Some
+    // GetX controllers resolve their dependencies during construction/onInit,
+    // so registering even a lazy controller first can create a startup race.
+    _startupStatus.value = 'Starting the music player…';
+    final audioHandler =
+        await initAudioService().timeout(const Duration(seconds: 30));
+    if (!Get.isRegistered<AudioHandler>()) {
+      Get.put<AudioHandler>(audioHandler, permanent: true);
+    }
+
+    _startupStatus.value = 'Registering app services…';
+    await startApplicationServices();
+
+    _startupStatus.value = 'Restoring your account…';
+    Get.put(AuthService(), permanent: true);
+
+    // Register HomeWidget Background Callback
+    /*if (!GetPlatform.isDesktop && GetPlatform.isAndroid) {
+      HomeWidget.registerInteractivityCallback(backgroundCallback);
+    }*/
+
+    WidgetsBinding.instance.addObserver(LifecycleHandler());
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    try {
+      TerminateRestart.instance.initialize();
+    } catch (e) {
+      debugPrint('Restart service initialization error: $e');
+    }
+    runApp(const MyApp());
+  } catch (error, stackTrace) {
+    debugPrint('Fatal startup error: $error\n$stackTrace');
+    runApp(_StartupFailureApp(
+      error: 'Stage: ${_startupStatus.value}\n$error',
+    ));
+  }
 }
 
 
@@ -113,6 +151,148 @@ Future<void> backgroundCallback(Uri? uri) async {
     );
     await audioHandler.skipToPrevious();
   }*/
+}
+
+class _StartupApp extends StatelessWidget {
+  const _StartupApp({required this.status});
+
+  final ValueNotifier<String> status;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF09070D),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: ValueListenableBuilder<String>(
+                valueListenable: status,
+                builder: (context, message, _) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/icons/imagelogo.png',
+                        width: 104,
+                        height: 104,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'ShivaayMusic',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const SizedBox(
+                      height: 28,
+                      width: 28,
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFB98AFF),
+                        strokeWidth: 3,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      _appBuildLabel,
+                      style: TextStyle(color: Colors.white38, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupFailureApp extends StatelessWidget {
+  const _StartupFailureApp({required this.error});
+
+  final String error;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF09070D),
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: Color(0xFFFF8A80),
+                    size: 58,
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'ShivaayMusic could not start',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Please take a screenshot of the message below. Your data has not been deleted.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, height: 1.4),
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: SelectableText(
+                      error,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFFFCCBC),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    _appBuildLabel,
+                    style: TextStyle(color: Colors.white38, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _AuthLoadingScreen extends StatelessWidget {
@@ -288,14 +468,20 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryPlaylistsController(), fenix: true);
   Get.lazyPut(() => LibraryAlbumsController(), fenix: true);
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
-  Get.lazyPut(() => SettingsScreenController(), fenix: true);
+  if (!Get.isRegistered<SettingsScreenController>()) {
+    Get.lazyPut(() => SettingsScreenController(), fenix: true);
+  }
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => AudioBoosterController(), fenix: true);
 
-  // Listening Stats Service
+  // Stats are initialized in the background so a damaged/legacy analytics box
+  // can never hold the app on the native splash screen.
   final statsService = ListeningStatsService();
-  Get.put(statsService);
-  statsService.init(); // Run asynchronously without blocking
+  Get.put(statsService, permanent: true);
+  statsService.init().catchError((Object error, StackTrace stackTrace) {
+    debugPrint('Listening stats initialization error: $error');
+    return statsService;
+  });
   
   // Privacy Service
   Get.put(PrivacyService(), permanent: true);

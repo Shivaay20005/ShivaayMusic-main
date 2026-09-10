@@ -9,15 +9,60 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
-#27 Update - 1.0.8 - 2026-09-09
+#28 Release - 1.0.7 - 2026-09-10
+-------------------
+[Release]
+- **GitHub Release**: Published ShivaayMusic 1.0.7 from the tested Build 12 commit with the version tag `v1.0.7`.
+- **Android Downloads**: Attached the universal APK, ARM64 (`arm64-v8a`), ARM32 (`armeabi-v7a`), and x86_64 APKs to the release together with `SHA256SUMS.txt` for download verification.
+- **Release Safety**: Tag-triggered builds verify that the Git tag matches the version declared in `pubspec.yaml` before publishing assets.
+- **Windows CI/CD**: Added a GitHub-hosted Windows build that generates a complete portable ZIP and an Inno Setup installer (`ShivaayMusic-v1.0.7-Windows-Setup.exe`). Windows artifacts include SHA-256 checksums, remain downloadable from Actions for 30 days, and are automatically attached to matching future version-tag releases.
+- **Consistent Download Names**: Android APKs, Windows installer/portable packages, and platform checksum files now consistently begin with `ShivaayMusic-v1.0.7-` so downloaded files are easy to identify.
+- **Manual Windows Publishing**: The Windows workflow can be run manually with `publish_release` enabled to attach the generated installer and portable package to an existing matching GitHub Release.
+
+[Update Experience]
+- **External Browser Downloads**: Release, update, support, and other web links now open in Chrome, Edge, Firefox, or the user's chosen browser instead of the embedded WebView, allowing GitHub redirects and APK/EXE downloads to work reliably.
+- **Platform-aware Updates**: Windows users are directed to the public Windows release page, while Android and other users are directed to the public ShivaayMusic release page.
+
+[Appearance]
+- **Theme Visibility**: Added consistent high-contrast colors for buttons, icons, list tiles, text fields, checkboxes, radio buttons, switches, menus, tooltips, dividers, selected states, and disabled states in dynamic, dark, light, system, and automatic themes.
+- **Settings Polish**: Improved settings-card backgrounds, borders, icons, and navigation indicators so options no longer disappear against light or dark surfaces.
+- **Dynamic Theme Safety**: Removed the low-opacity startup text seed that could briefly make labels and controls nearly invisible.
+
+[Critical Fix]
+- **AudioHandler Registration**: AudioHandler is registered inside the `AudioService.init` builder as soon as it is created, eliminating the startup registration window reported on Android.
+
+===================================================================
+
+#27 Update - 1.0.7 - 2026-09-09
 -------------------
 [Fixes]
+- **Listening Stats**: Listening time is now measured from real playback position updates and saved while a song is actually playing. Fixed the first daily entry being lost because a newly-created Hive object was saved before it was attached to its box.
+- **AudioHandler Builder Registration (Critical)**: Fixed the remaining `"AudioHandler" not found` initialization window. `AudioService.init` executes its builder before returning, so moving service calls alone was insufficient; the concrete handler is now registered inside the builder at the exact moment it is created, with duplicate-safe registration after initialization.
+- **AudioHandler Startup Order**: AudioService also initializes before any dependent app controller; only the dependency-safe Settings controller is pre-registered for playback restoration.
+- **Build Identification**: Startup and failure screens now show the exact build number and failing startup stage, preventing an older extracted APK from being mistaken for the latest build.
+- **Lazy Booster Dependency**: Audio Booster now resolves AudioHandler only when an effect is used instead of during controller construction, removing another startup-order race.
+- **Native Splash Freeze Hotfix**: Flutter renders a branded startup screen before Firebase, local storage, and audio plugins initialize. Every startup stage has a timeout, and fatal plugin failures display a readable diagnostic instead of a black screen.
+- **Listening Startup Isolation**: Listening analytics initialize safely in the background and can never block the app on an existing/legacy Hive box.
+- **Safe Stats Migration**: Song display metadata now uses its own schema-free Hive box instead of changing the persisted daily-stat adapter. Existing installs, including data written by build 7, remain readable without clearing app data.
+- **Stats Startup Reliability**: The stats page waits for analytics initialization while the rest of the app starts immediately.
+- **Visible Short Listens**: Listening time and top-track durations now show seconds for plays under one minute instead of appearing stuck at `0 min`.
 - **Playback Restoration (Critical)**: Fixed songs not playing at all (endless loading, then YouTube's "you may need to refresh the page" style error). Root cause: the bundled YouTube stream-extraction package (youtube_explode_dart 2.3.7, pinned to a git fork that has since been deleted) used 2024-era extraction clients (IOS 19.29.1 / TVHTML5). Since mid-2026 YouTube enforces PO-Tokens / JS signature challenges on those clients and answers their media URLs with HTTP 403 (upstream issues #386, #389, #390).
 - **Dependency**: Moved `youtube_explode_dart` from the deleted git fork to the official pub.dev release (^3.1.0). This also fixes fresh builds failing at `flutter pub get` with "Repository not found".
 - **Stream Client**: `StreamProvider.fetch` now tries a client fallback chain — a built-in VISIONOS (Apple Vision Pro) client payload (the same client yt-dlp uses; currently served without PO-Token), then `androidSdkless`, then `tv`. If YouTube rotates clients again, only the payload in `lib/services/stream_service.dart` needs updating.
 - **API Migration**: Migrated to youtube_explode_dart v3 (no more per-stream `duration`/`loudnessDb`/exception `.reason` getters); error snackbar now shows the short human-readable reason from YouTube.
 - **Loudness Normalization**: Skipped when loudness data is unavailable (v3 reports 0), preventing every song from being attenuated to ~56% volume.
 - **Resource**: The `YoutubeExplode` client used for stream fetching is now properly closed after use.
+
+[UI & Experience]
+- **Modern Listening Dashboard**: Rebuilt Listening Stats with a polished responsive layout, 7/30-day switcher, activity graph, listening-time hero, active-day and daily-average cards, improved empty state, and ranked top-track cards.
+- **Track Details in Stats**: New listens now retain each track's title, artist, and artwork locally and in the user's Firestore stats, replacing raw song IDs with a useful visual listening history.
+- **First-Visit Home Message**: “Your soundtrack is ready” is shown only on the user's first Home visit. The seen state is stored locally, so the introductory card stays out of the way afterwards.
+- **Version Consistency**: The public app version remains 1.0.7 everywhere; the Android/iOS build number is now 12 so the AudioService builder-registration fix installs over previous builds.
+
+[CI/CD]
+- **Automatic Android Builds**: Every pushed branch and pull request now runs dependency installation, source analysis, and both universal and per-architecture release APK builds. Versioned APKs and SHA-256 checksums are retained as GitHub Actions artifacts for 30 days.
+- **Tagged GitHub Releases**: A successful push to the repository's default branch automatically creates the version tag from `pubspec.yaml` (for example `v1.0.7`) and publishes all APKs plus checksums to GitHub Releases. A workflow-dispatch checkbox can explicitly publish a selected non-default branch.
+- **Safe Version Guard**: If the version tag already exists, CI keeps the new build artifact but does not overwrite or move the existing release tag; the app version must be bumped before another release.
 
 [Notes]
 - After pulling this update run `flutter pub get` (pubspec.lock entry for the old fork was removed; it will be re-pinned automatically), then rebuild and reinstall the app. The previously installed app cannot be fixed in place — this fix ships with the new build.

@@ -1,86 +1,215 @@
-name: Build Windows exe 
-on: workflow_dispatch
-  
-jobs:
+name: Build Windows EXE & Installer
 
-  build-windows-exe:
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Attach Windows files to the matching GitHub Release'
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - '**'
+
+concurrency:
+  group: windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows portable app & setup EXE
     runs-on: windows-latest
-    
+    timeout-minutes: 60
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
+      - name: Check out source
+        uses: actions/checkout@v4
         with:
-          channel: 'stable'
-          flutter-version: '3.24.2'
-      
-      - name: Install InnoSetup if missing
+          fetch-depth: 0
+
+      - name: Setup Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # CMake 4 rejects the minimum policy level used by the Firebase C++ SDK
+      # bundled with the current FlutterFire Windows plugins. Keep Windows CI
+      # on the newest compatible CMake 3.x release until that SDK is upgraded.
+      - name: Setup compatible CMake
+        uses: lukka/get-cmake@v4.1.1
+        with:
+          cmakeVersion: '~3.31.0'
+          ninjaVersion: latest
+
+      - name: Verify Windows toolchain
+        shell: pwsh
         run: |
-          if (-not (Get-Command "innosetup" -ErrorAction SilentlyContinue)) {
-            choco install innosetup -y
-          } else {
-            Write-Output "InnoSetup already installed."
+          cmake --version
+          flutter doctor -v
+
+      - name: Enable Windows desktop and symlink support
+        shell: pwsh
+        run: |
+          # Flutter plugins and the Firebase C++ archive contain symlinks.
+          # Developer Mode lets the hosted runner create/extract them safely.
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v AllowDevelopmentWithoutDevLicense /d 1
+          git config --global core.symlinks true
+          flutter config --enable-windows-desktop
+
+      - name: Read app version
+        id: version
+        shell: pwsh
+        run: |
+          $versionLine = Select-String -Path "pubspec.yaml" -Pattern '^version:\s*(.+)$'
+          if (-not $versionLine) {
+            throw "Version was not found in pubspec.yaml"
           }
 
-      - name: Update lang data
-        working-directory: "${{ github.workspace }}"
+          $fullVersion = $versionLine.Matches[0].Groups[1].Value.Trim()
+          $parts = $fullVersion -split '\+'
+          if ($parts.Count -ne 2) {
+            throw "Invalid version '$fullVersion'. Expected x.y.z+build"
+          }
+
+          $appVersion = $parts[0]
+          $buildNumber = $parts[1]
+          "full=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "name=$appVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "build=$buildNumber" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag=v$appVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Building ShivaayMusic $fullVersion for Windows"
+
+      - name: Verify tag matches pubspec version
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_name }}" -ne "${{ steps.version.outputs.tag }}") {
+            throw "Git tag ${{ github.ref_name }} does not match pubspec tag ${{ steps.version.outputs.tag }}"
+          }
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Generate localization data
         run: dart localization/generator.dart
 
-      - name: Set update check flag to true
-        working-directory: "${{ github.workspace }}/lib/utils"
-        run: echo "const updateCheckFlag = true;" > update_check_flag_file.dart
-        
-      - name: Build windows exe package
-        working-directory: "${{ github.workspace }}"
+      - name: Enable update checks in release build
+        shell: pwsh
         run: |
-          flutter clean
-          dart pub global activate flutter_distributor
-          flutter_distributor package --platform windows --targets exe
+          Set-Content -Path "lib/utils/update_check_flag_file.dart" -Value "const updateCheckFlag = true;"
 
-      - name: Find first .exe file
-        id: find_exe
+      - name: Build Windows release bundle
+        shell: pwsh
         run: |
-          $lastSubDir = Get-ChildItem -Path "${{ github.workspace }}/dist" -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          $exeFile = Get-ChildItem -Path "$($lastSubDir.FullName)/*.exe" | Select-Object -First 1
-          if ($exeFile) {
-              echo "Found .exe file: $($exeFile.FullName)"
-              echo "::set-output name=exe_path::$($exeFile.FullName)"
-          } else {
-              Write-Error "No .exe files found in the dist directory."
-              exit 1
+          flutter build windows `
+            --release `
+            --build-name="${{ steps.version.outputs.name }}" `
+            --build-number="${{ steps.version.outputs.build }}" `
+            2>&1 | Tee-Object -FilePath "windows-build.log"
+          $buildExitCode = $LASTEXITCODE
+
+          if ($buildExitCode -ne 0) {
+            $logTail = Get-Content "windows-build.log" -Tail 160
+            "## Windows build failure" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "``````text" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            $logTail | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "``````" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+
+            # Surface useful compiler lines through the Checks API as well as
+            # the downloadable full log, making failures diagnosable even when
+            # the Actions log service is temporarily unavailable.
+            $diagnostic = $logTail |
+              Select-String -Pattern '(?i)(error|exception|failed|failure|cannot|undefined)' |
+              Select-Object -Last 20 |
+              ForEach-Object { $_.Line.Trim() }
+            if (-not $diagnostic) { $diagnostic = $logTail | Select-Object -Last 20 }
+            $message = ($diagnostic -join ' | ').Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Output "::error title=Flutter Windows compiler output::$message"
+            throw "Flutter Windows build failed with exit code $buildExitCode"
           }
-          
-      - name: Set up osslsigncode
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/mtrojnar/osslsigncode/releases/download/2.9/osslsigncode-2.9-windows-x64-mingw.zip" -OutFile "osslsigncode.zip"
-          Expand-Archive -Path "osslsigncode.zip" -DestinationPath "osslsigncode"
-          Add-Content -Path $env:GITHUB_PATH -Value "${{ github.workspace }}\osslsigncode"
-      
-      - name: Make signing dir
-        working-directory: "${{ github.workspace }}"
-        run: mkdir signed
 
-      - name: Collecting certs and key
-        working-directory: "${{ github.workspace }}/signed"
-        run: |
-          [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.KEY_PEM }}")) | Out-File -FilePath key.pem -Encoding ASCII
-          cp "${{ github.workspace }}/win_cert/DigiCertGlobalRootCA.crt" .
-          cp "${{ github.workspace }}/win_cert/cert.pem" .
+          $bundle = "build/windows/x64/runner/Release"
+          if (-not (Test-Path "$bundle/shivaaymusic.exe")) {
+            throw "Windows build did not produce $bundle/shivaaymusic.exe"
+          }
 
-      - name: Sign executable
-        working-directory: "${{ github.workspace }}/signed"
-        run: |
-          $exePath = "${{ steps.find_exe.outputs.exe_path }}"
-          $signedExePath = "$exePath".Replace(".exe", "_signed.exe")
-          & "${{ github.workspace }}/osslsigncode/bin/osslsigncode.exe" sign -certs cert.pem -key key.pem -t http://timestamp.digicert.com -in "$exePath" -out "$signedExePath"
-
-      - name: Verify signature
-        working-directory: "${{ github.workspace }}/signed"
-        run: |
-          $signedExePath = "${{ steps.find_exe.outputs.exe_path }}".Replace(".exe", "_signed.exe")
-          & "${{ github.workspace }}/osslsigncode/bin/osslsigncode.exe" verify -in "$signedExePath" -TSA-CAfile DigiCertGlobalRootCA.crt -CAfile cert.pem
-          
-      - name: Upload Windows exe artifact
+      - name: Upload Windows build log
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ShivaayMusic windows exe
-          path: "${{ github.workspace }}/dist/**/*signed.exe"
+          name: windows-build-log-${{ github.run_id }}
+          path: windows-build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup --yes --no-progress
+          }
+
+      - name: Build installer and portable ZIP
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.name }}"
+          $releaseDir = Join-Path $env:GITHUB_WORKSPACE "windows-release"
+          $bundleDir = Join-Path $env:GITHUB_WORKSPACE "build/windows/x64/runner/Release"
+          New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
+
+          # Portable package includes the EXE, Flutter DLL and the complete data
+          # folder. Shipping shivaaymusic.exe by itself would not run.
+          $portablePath = Join-Path $releaseDir "ShivaayMusic-v$version-Windows-Portable.zip"
+          Compress-Archive -Path "$bundleDir\*" -DestinationPath $portablePath -CompressionLevel Optimal -Force
+
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "windows/packaging/exe/inno_setup.iss"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup failed with exit code $LASTEXITCODE"
+          }
+
+          $generatedInstaller = "windows/packaging/exe/shivaaymusic.exe"
+          if (-not (Test-Path $generatedInstaller)) {
+            throw "Inno Setup did not produce $generatedInstaller"
+          }
+          Move-Item $generatedInstaller (Join-Path $releaseDir "ShivaayMusic-v$version-Windows-Setup.exe") -Force
+
+          $checksumPath = Join-Path $releaseDir "ShivaayMusic-v$version-SHA256SUMS-Windows.txt"
+          Get-ChildItem $releaseDir -File | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($_.Name)" | Out-File $checksumPath -Append -Encoding ascii
+          }
+          Get-ChildItem $releaseDir | Format-Table Name, Length
+
+      - name: Upload Windows build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShivaayMusic-v${{ steps.version.outputs.name }}-windows
+          path: windows-release/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach Windows files to GitHub Release
+        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ShivaayMusic ${{ steps.version.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          files: |
+            windows-release/*.exe
+            windows-release/*.zip
+            windows-release/SHA256SUMS-Windows.txt

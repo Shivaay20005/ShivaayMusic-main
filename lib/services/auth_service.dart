@@ -505,6 +505,7 @@ class AuthService extends GetxService {
       'searchQuery',
       'ListeningHistory',
       'ListeningStats',
+      'ListeningStatsMetadata',
     ];
     for (final name in boxNames) {
       final box = Hive.isBoxOpen(name) ? Hive.box(name) : await Hive.openBox(name);

@@ -251,15 +251,12 @@ class SettingsScreen extends StatelessWidget {
   }
   
   Widget _buildSettingsTile(BuildContext context, {required String title, required IconData icon, required VoidCallback onTap}) {
-    // Custom Tile Style to match user request (Dark Card, Bold Text)
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    // Determine background color based on theme
-    // User image shows a distinct dark card color on a dark background.
-    final tileColor = isDark 
-        ? Colors.grey[900]?.withValues(alpha: 0.6) // Dark mode card
-        : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3); // Light mode card
-        
+    final scheme = Theme.of(context).colorScheme;
+    final tileColor = Color.alphaBlend(
+      scheme.primary.withValues(alpha: 0.07),
+      scheme.surfaceContainerHighest,
+    );
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -271,16 +268,15 @@ class SettingsScreen extends StatelessWidget {
             color: tileColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+              color: scheme.outline.withValues(alpha: 0.28),
               width: 1,
             ),
           ),
           child: Row(
             children: [
               Icon(
-                icon, 
-                // Icon color: White in dark mode (high contrast), Dark Grey in light mode
-                color: isDark ? Colors.white70 : Colors.grey[850],
+                icon,
+                color: scheme.primary,
                 size: 24,
               ),
               const SizedBox(width: 16),
@@ -294,8 +290,8 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded, // Chevron right ^
-                color: Theme.of(context).disabledColor,
+                Icons.chevron_right_rounded,
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.82),
               ),
             ],
           ),
@@ -312,7 +308,7 @@ class SettingsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => launchUrlSafe('https://github.com/shivaay20005/ShivaayMusic-Windows-release/releases/latest'),
+          onTap: () => launchUrlSafe(latestReleaseUrl),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
