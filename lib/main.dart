@@ -69,19 +69,24 @@ Future<void> main() async {
     await initHive().timeout(const Duration(seconds: 15));
     _setAppInitPrefs();
 
-    _startupStatus.value = 'Starting app services…';
+    _startupStatus.value = 'Registering app services…';
     await startApplicationServices();
+
+    // AudioHandler is a dependency of AuthService, PlayerController and the
+    // audio booster. It must be registered before any of those services can
+    // react to Firebase/auth state callbacks.
+    _startupStatus.value = 'Starting the music player…';
+    final audioHandler =
+        await initAudioService().timeout(const Duration(seconds: 30));
+    Get.put<AudioHandler>(audioHandler, permanent: true);
+
+    _startupStatus.value = 'Restoring your account…';
     Get.put(AuthService(), permanent: true);
 
     // Register HomeWidget Background Callback
     /*if (!GetPlatform.isDesktop && GetPlatform.isAndroid) {
       HomeWidget.registerInteractivityCallback(backgroundCallback);
     }*/
-
-    _startupStatus.value = 'Starting the music player…';
-    final audioHandler =
-        await initAudioService().timeout(const Duration(seconds: 30));
-    Get.put<AudioHandler>(audioHandler, permanent: true);
 
     WidgetsBinding.instance.addObserver(LifecycleHandler());
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

@@ -6,7 +6,10 @@ import 'package:audio_service/audio_service.dart';
 
 class AudioBoosterController extends GetxController {
   final _box = Hive.box('AppPrefs');
-  final _audioHandler = Get.find<AudioHandler>();
+
+  // Resolve on use rather than during controller construction. Startup may
+  // register this lazy controller just before AudioService finishes binding.
+  AudioHandler get _audioHandler => Get.find<AudioHandler>();
   
   var isBoosterEnabled = false.obs;
   var bassBoostLevel = 0.0.obs; // 0 to 1000 for Android

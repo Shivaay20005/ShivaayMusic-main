@@ -13,7 +13,9 @@ HOW TO UPDATE THIS CHANGELOG
 -------------------
 [Fixes]
 - **Listening Stats**: Listening time is now measured from real playback position updates and saved while a song is actually playing. Fixed the first daily entry being lost because a newly-created Hive object was saved before it was attached to its box.
-- **Native Splash Freeze Hotfix**: Flutter now renders a branded startup screen before Firebase, local storage, and audio plugins initialize, so Android can no longer remain indefinitely on the native splash. Every startup stage has a timeout, Firebase failures fall back to offline startup, and any fatal plugin failure now displays a readable diagnostic instead of a black screen.
+- **AudioHandler Startup Order (Critical)**: Fixed the confirmed `"AudioHandler" not found` startup failure. AudioService is now initialized and registered before AuthService can restore an account or any dependent controller can resolve the player.
+- **Lazy Booster Dependency**: Audio Booster now resolves AudioHandler only when an effect is used instead of during controller construction, removing another startup-order race.
+- **Native Splash Freeze Hotfix**: Flutter renders a branded startup screen before Firebase, local storage, and audio plugins initialize. Every startup stage has a timeout, and fatal plugin failures display a readable diagnostic instead of a black screen.
 - **Listening Startup Isolation**: Listening analytics initialize safely in the background and can never block the app on an existing/legacy Hive box.
 - **Safe Stats Migration**: Song display metadata now uses its own schema-free Hive box instead of changing the persisted daily-stat adapter. Existing installs, including data written by build 7, remain readable without clearing app data.
 - **Stats Startup Reliability**: The stats page waits for analytics initialization while the rest of the app starts immediately.
@@ -29,7 +31,7 @@ HOW TO UPDATE THIS CHANGELOG
 - **Modern Listening Dashboard**: Rebuilt Listening Stats with a polished responsive layout, 7/30-day switcher, activity graph, listening-time hero, active-day and daily-average cards, improved empty state, and ranked top-track cards.
 - **Track Details in Stats**: New listens now retain each track's title, artist, and artwork locally and in the user's Firestore stats, replacing raw song IDs with a useful visual listening history.
 - **First-Visit Home Message**: “Your soundtrack is ready” is shown only on the user's first Home visit. The seen state is stored locally, so the introductory card stays out of the way afterwards.
-- **Version Consistency**: The public app version remains 1.0.7 everywhere; the Android/iOS build number is now 9 so this startup hotfix installs over previous builds.
+- **Version Consistency**: The public app version remains 1.0.7 everywhere; the Android/iOS build number is now 10 so the confirmed AudioHandler startup fix installs over previous builds.
 
 [CI/CD]
 - **Automatic Android Builds**: Every pushed branch and pull request now runs dependency installation, source analysis, and both universal and per-architecture release APK builds. Versioned APKs and SHA-256 checksums are retained as GitHub Actions artifacts for 30 days.
