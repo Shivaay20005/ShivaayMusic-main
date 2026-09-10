@@ -14,7 +14,9 @@ HOW TO UPDATE THIS CHANGELOG
 [Release]
 - **GitHub Release**: Published ShivaayMusic 1.0.7 from the tested Build 12 commit with the version tag `v1.0.7`.
 - **Android Downloads**: Attached the universal APK, ARM64 (`arm64-v8a`), ARM32 (`armeabi-v7a`), and x86_64 APKs to the release together with `SHA256SUMS.txt` for download verification.
-- **Release Safety**: Tag-triggered builds now verify that the Git tag matches the version declared in `pubspec.yaml` before publishing assets.
+- **Release Safety**: Tag-triggered builds verify that the Git tag matches the version declared in `pubspec.yaml` before publishing assets.
+- **Windows CI/CD**: Added a GitHub-hosted Windows build that generates a complete portable ZIP and an Inno Setup installer (`ShivaayMusic-v1.0.7-Windows-Setup.exe`). Windows artifacts include SHA-256 checksums, remain downloadable from Actions for 30 days, and are automatically attached to matching future version-tag releases.
+- **Manual Windows Publishing**: The Windows workflow can be run manually with `publish_release` enabled to attach the generated installer and portable package to an existing matching GitHub Release.
 
 [Critical Fix]
 - **AudioHandler Registration**: AudioHandler is registered inside the `AudioService.init` builder as soon as it is created, eliminating the startup registration window reported on Android.
