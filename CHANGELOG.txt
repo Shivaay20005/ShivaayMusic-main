@@ -18,6 +18,15 @@ HOW TO UPDATE THIS CHANGELOG
 - **Windows CI/CD**: Added a GitHub-hosted Windows build that generates a complete portable ZIP and an Inno Setup installer (`ShivaayMusic-v1.0.7-Windows-Setup.exe`). Windows artifacts include SHA-256 checksums, remain downloadable from Actions for 30 days, and are automatically attached to matching future version-tag releases.
 - **Manual Windows Publishing**: The Windows workflow can be run manually with `publish_release` enabled to attach the generated installer and portable package to an existing matching GitHub Release.
 
+[Update Experience]
+- **External Browser Downloads**: Release, update, support, and other web links now open in Chrome, Edge, Firefox, or the user's chosen browser instead of the embedded WebView, allowing GitHub redirects and APK/EXE downloads to work reliably.
+- **Platform-aware Updates**: Windows users are directed to the public Windows release page, while Android and other users are directed to the public ShivaayMusic release page.
+
+[Appearance]
+- **Theme Visibility**: Added consistent high-contrast colors for buttons, icons, list tiles, text fields, checkboxes, radio buttons, switches, menus, tooltips, dividers, selected states, and disabled states in dynamic, dark, light, system, and automatic themes.
+- **Settings Polish**: Improved settings-card backgrounds, borders, icons, and navigation indicators so options no longer disappear against light or dark surfaces.
+- **Dynamic Theme Safety**: Removed the low-opacity startup text seed that could briefly make labels and controls nearly invisible.
+
 [Critical Fix]
 - **AudioHandler Registration**: AudioHandler is registered inside the `AudioService.init` builder as soon as it is created, eliminating the startup registration window reported on Android.
 

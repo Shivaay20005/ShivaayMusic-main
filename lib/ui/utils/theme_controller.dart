@@ -10,7 +10,9 @@ import 'package:shivaaymusic/utils/helper.dart';
 
 class ThemeController extends GetxController {
   final primaryColor = Colors.deepPurple[400].obs;
-  final textColor = Colors.white24.obs;
+  // Never seed the dynamic theme with low-opacity text; album-art palettes may
+  // replace this later, but controls must remain readable during startup.
+  final textColor = Colors.white87.obs;
   final themedata = Rxn<ThemeData>();
 
   /// The method channel for setting the title bar color on Windows.
@@ -260,10 +262,10 @@ class ThemeController extends GetxController {
           ),
           //scaffoldBackgroundColor: primarySwatch[700]
           );
-      return baseTheme.copyWith(
+      return _withAccessibleComponents(baseTheme.copyWith(
           textTheme: baseTheme.textTheme.apply(
         fontFamily: 'Nunito',
-      ));
+      )));
     } else if (themeType == ThemeType.dark) {
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
@@ -350,10 +352,10 @@ class ThemeController extends GetxController {
               focusColor: Colors.white,
               focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.white))));
-      return baseTheme.copyWith(
+      return _withAccessibleComponents(baseTheme.copyWith(
           textTheme: baseTheme.textTheme.apply(
         fontFamily: 'Nunito',
-      ));
+      )));
     } else {
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
@@ -486,11 +488,150 @@ class ThemeController extends GetxController {
               selectionColor: Colors.grey[300],
               selectionHandleColor: Colors.grey[700]), 
       );
-      return baseTheme.copyWith(
+      return _withAccessibleComponents(baseTheme.copyWith(
           textTheme: baseTheme.textTheme.apply(
         fontFamily: 'Nunito',
-      ));
+      )));
     }
+  }
+
+  /// Applies minimum-contrast component colors consistently to dynamic, dark,
+  /// light, system, and automatic themes. This prevents controls from becoming
+  /// transparent or blending into their surface after a theme transition.
+  ThemeData _withAccessibleComponents(ThemeData theme) {
+    final scheme = theme.colorScheme;
+    final disabled = scheme.onSurface.withValues(alpha: 0.48);
+    final subtle = scheme.onSurface.withValues(alpha: 0.14);
+
+    Color? controlFill(Set<WidgetState> states) {
+      if (states.contains(WidgetState.disabled)) return disabled;
+      if (states.contains(WidgetState.selected)) return scheme.primary;
+      return null;
+    }
+
+    Color? controlForeground(Set<WidgetState> states) {
+      if (states.contains(WidgetState.disabled)) return disabled;
+      if (states.contains(WidgetState.selected)) return scheme.onPrimary;
+      return scheme.onSurface;
+    }
+
+    return theme.copyWith(
+      disabledColor: disabled,
+      dividerColor: scheme.onSurface.withValues(alpha: 0.18),
+      cardColor: scheme.surface,
+      iconTheme: theme.iconTheme.copyWith(color: scheme.onSurface),
+      listTileTheme: theme.listTileTheme.copyWith(
+        iconColor: scheme.onSurfaceVariant,
+        textColor: scheme.onSurface,
+        selectedColor: scheme.primary,
+        selectedTileColor: Color.alphaBlend(
+          scheme.primary.withValues(alpha: 0.12),
+          scheme.surface,
+        ),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith(controlFill),
+        checkColor: WidgetStateProperty.resolveWith(controlForeground),
+        side: BorderSide(color: scheme.onSurfaceVariant, width: 1.5),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return disabled;
+          return states.contains(WidgetState.selected)
+              ? scheme.primary
+              : scheme.onSurfaceVariant;
+        }),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return disabled;
+          return states.contains(WidgetState.selected)
+              ? scheme.onPrimary
+              : scheme.onSurfaceVariant;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return scheme.onSurface.withValues(alpha: 0.12);
+          }
+          return states.contains(WidgetState.selected)
+              ? scheme.primary
+              : scheme.onSurface.withValues(alpha: 0.28);
+        }),
+        trackOutlineColor: WidgetStatePropertyAll(
+          scheme.onSurface.withValues(alpha: 0.24),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: scheme.primary,
+          disabledForegroundColor: disabled,
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          disabledBackgroundColor: subtle,
+          disabledForegroundColor: disabled,
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          disabledBackgroundColor: subtle,
+          disabledForegroundColor: disabled,
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: scheme.onSurface,
+          disabledForegroundColor: disabled,
+          side: BorderSide(color: scheme.outline.withValues(alpha: 0.72)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.resolveWith(controlForeground),
+        ),
+      ),
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        filled: true,
+        fillColor: Color.alphaBlend(subtle, scheme.surface),
+        hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+        labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+        prefixIconColor: scheme.onSurfaceVariant,
+        suffixIconColor: scheme.onSurfaceVariant,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: scheme.outline.withValues(alpha: 0.5)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: scheme.primary, width: 1.8),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: disabled.withValues(alpha: 0.5)),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: scheme.surface,
+        textStyle: TextStyle(color: scheme.onSurface),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: scheme.inverseSurface,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        textStyle: TextStyle(color: scheme.onInverseSurface),
+      ),
+    );
   }
 
   MaterialColor _createMaterialColor(Color color) {

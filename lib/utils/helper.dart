@@ -4,37 +4,35 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shivaaymusic/ui/navigator.dart';
 import 'package:shivaaymusic/ui/widgets/sort_widget.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-class MyInAppBrowser extends InAppBrowser {
-  @override
-  void onLoadStart(url) {
-    debugPrint("InAppBrowser started loading: $url");
-  }
+const _androidReleaseUrl =
+    'https://github.com/Shivaay20005/ShivaayMusic/releases/latest';
+const _windowsReleaseUrl =
+    'https://github.com/Shivaay20005/ShivaayMusic-Windows-release/releases/latest';
 
-  @override
-  void onLoadStop(url) {
-    debugPrint("InAppBrowser stopped loading: $url");
-  }
-}
+/// Returns the public download page appropriate for the current platform.
+String get latestReleaseUrl =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.windows
+        ? _windowsReleaseUrl
+        : _androidReleaseUrl;
 
+/// Opens links in the user's default browser or registered external app.
+///
+/// GitHub's release redirects and file downloads do not work reliably inside
+/// an embedded WebView. Keeping all network links external also lets Chrome,
+/// Edge, Firefox, or the user's chosen browser handle downloads normally.
 Future<void> launchUrlSafe(String url) async {
-  if (url.isEmpty) return;
-  final Uri uri = Uri.parse(url);
-  
-  // No try-catch fallback! If native plugin is missing, it will throw a visible error.
-  if (uri.scheme == 'http' || uri.scheme == 'https') {
-    final browser = MyInAppBrowser();
-    await browser.openUrlRequest(
-      urlRequest: URLRequest(url: WebUri(url)),
-      settings: InAppBrowserClassSettings(
-        browserSettings: InAppBrowserSettings(
-          hideUrlBar: false,
-        ),
-      ),
-    );
-  } else {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  final value = url.trim();
+  if (value.isEmpty) return;
+
+  final uri = Uri.tryParse(value);
+  if (uri == null || !uri.hasScheme) {
+    throw FormatException('Invalid URL', value);
+  }
+
+  final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!opened) {
+    throw StateError('Could not open $uri in an external application');
   }
 }
 
