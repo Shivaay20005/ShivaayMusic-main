@@ -36,6 +36,7 @@ import 'utils/system_tray.dart';
 import 'ui/widgets/maintenance_overlay.dart';
 import 'utils/update_check_flag_file.dart';
 
+const String _appBuildLabel = 'Version 1.0.7 • Build 11';
 final ValueNotifier<String> _startupStatus =
     ValueNotifier<String>('Preparing your music space…');
 
@@ -69,16 +70,20 @@ Future<void> main() async {
     await initHive().timeout(const Duration(seconds: 15));
     _setAppInitPrefs();
 
-    _startupStatus.value = 'Registering app services…';
-    await startApplicationServices();
+    // Audio restoration may need persisted playback settings, but this
+    // controller itself does not depend on AudioHandler during construction.
+    Get.lazyPut(() => SettingsScreenController(), fenix: true);
 
-    // AudioHandler is a dependency of AuthService, PlayerController and the
-    // audio booster. It must be registered before any of those services can
-    // react to Firebase/auth state callbacks.
+    // AudioHandler must exist before any app controller is registered. Some
+    // GetX controllers resolve their dependencies during construction/onInit,
+    // so registering even a lazy controller first can create a startup race.
     _startupStatus.value = 'Starting the music player…';
     final audioHandler =
         await initAudioService().timeout(const Duration(seconds: 30));
     Get.put<AudioHandler>(audioHandler, permanent: true);
+
+    _startupStatus.value = 'Registering app services…';
+    await startApplicationServices();
 
     _startupStatus.value = 'Restoring your account…';
     Get.put(AuthService(), permanent: true);
@@ -98,7 +103,9 @@ Future<void> main() async {
     runApp(const MyApp());
   } catch (error, stackTrace) {
     debugPrint('Fatal startup error: $error\n$stackTrace');
-    runApp(_StartupFailureApp(error: error.toString()));
+    runApp(_StartupFailureApp(
+      error: 'Stage: ${_startupStatus.value}\n$error',
+    ));
   }
 }
 
@@ -199,6 +206,11 @@ class _StartupApp extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      _appBuildLabel,
+                      style: TextStyle(color: Colors.white38, fontSize: 11),
+                    ),
                   ],
                 ),
               ),
@@ -265,6 +277,11 @@ class _StartupFailureApp extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    _appBuildLabel,
+                    style: TextStyle(color: Colors.white38, fontSize: 11),
                   ),
                 ],
               ),
@@ -449,7 +466,9 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryPlaylistsController(), fenix: true);
   Get.lazyPut(() => LibraryAlbumsController(), fenix: true);
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
-  Get.lazyPut(() => SettingsScreenController(), fenix: true);
+  if (!Get.isRegistered<SettingsScreenController>()) {
+    Get.lazyPut(() => SettingsScreenController(), fenix: true);
+  }
   Get.lazyPut(() => Downloader(), fenix: true);
   Get.lazyPut(() => AudioBoosterController(), fenix: true);
 
