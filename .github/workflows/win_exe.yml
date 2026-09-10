@@ -99,10 +99,22 @@ jobs:
           $buildExitCode = $LASTEXITCODE
 
           if ($buildExitCode -ne 0) {
+            $logTail = Get-Content "windows-build.log" -Tail 160
             "## Windows build failure" | Out-File $env:GITHUB_STEP_SUMMARY -Append
             "``````text" | Out-File $env:GITHUB_STEP_SUMMARY -Append
-            Get-Content "windows-build.log" -Tail 160 | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            $logTail | Out-File $env:GITHUB_STEP_SUMMARY -Append
             "``````" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+
+            # Surface useful compiler lines through the Checks API as well as
+            # the downloadable full log, making failures diagnosable even when
+            # the Actions log service is temporarily unavailable.
+            $diagnostic = $logTail |
+              Select-String -Pattern '(?i)(error|exception|failed|failure|cannot|undefined)' |
+              Select-Object -Last 20 |
+              ForEach-Object { $_.Line.Trim() }
+            if (-not $diagnostic) { $diagnostic = $logTail | Select-Object -Last 20 }
+            $message = ($diagnostic -join ' | ').Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Output "::error title=Flutter Windows compiler output::$message"
             throw "Flutter Windows build failed with exit code $buildExitCode"
           }
 
