@@ -12,7 +12,8 @@ class ThemeController extends GetxController {
   final primaryColor = Colors.deepPurple[400].obs;
   // Never seed the dynamic theme with low-opacity text; album-art palettes may
   // replace this later, but controls must remain readable during startup.
-  final textColor = Colors.white87.obs;
+  // `Colors` has no `white87` member, so spell the 87% white out explicitly.
+  final textColor = Colors.white.withValues(alpha: 0.87).obs;
   final themedata = Rxn<ThemeData>();
 
   /// The method channel for setting the title bar color on Windows.

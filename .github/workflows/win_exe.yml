@@ -30,6 +30,18 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
 
+    env:
+      # `flutter build windows` configures the project with the CMake that ships
+      # inside Visual Studio (flutter_tools reads visualStudio.cmakePath), so the
+      # CMake that lukka/get-cmake puts on PATH never runs the configure step.
+      # That Visual Studio CMake is 4.x, and CMake 4 removed compatibility with
+      # `cmake_minimum_required(VERSION <3.5)`. The Firebase C++ SDK 12.7.0 that
+      # firebase_core 3.15.2 downloads still declares `cmake_minimum_required
+      # (VERSION 3.1)` on line 17 of its top-level CMakeLists.txt, which aborts the
+      # configure step. CMake >= 4.0 reads this environment variable as the floor
+      # to apply when a project asks for an older policy version.
+      CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -42,10 +54,10 @@ jobs:
           channel: stable
           cache: true
 
-      # CMake 4 rejects the minimum policy level used by the Firebase C++ SDK
-      # bundled with the current FlutterFire Windows plugins. Keep Windows CI
-      # on the newest compatible CMake 3.x release until that SDK is upgraded.
-      - name: Setup compatible CMake
+      # Kept for any tooling that resolves `cmake` from PATH. It is deliberately
+      # not the CMake that builds the app; see the step below that reports the
+      # Visual Studio CMake, which is the one Flutter actually invokes.
+      - name: Setup CMake and Ninja on PATH
         uses: lukka/get-cmake@v4.1.1
         with:
           cmakeVersion: '~3.31.0'
@@ -54,14 +66,34 @@ jobs:
       - name: Verify Windows toolchain
         shell: pwsh
         run: |
+          Write-Host "CMake on PATH:"
           cmake --version
+
+          # Report the CMake that `flutter build windows` really runs, so a
+          # configure failure can be attributed to the correct toolchain version.
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath |
+            Select-Object -First 1
+          if (-not $vsPath) {
+            throw "Visual Studio with the MSVC toolset was not found on this runner"
+          }
+          $vsCMake = Join-Path $vsPath 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
+          Write-Host "Visual Studio installation: $vsPath"
+          if (Test-Path $vsCMake) {
+            Write-Host "CMake bundled with Visual Studio (used by 'flutter build windows'):"
+            & $vsCMake --version
+          } else {
+            Write-Host "No CMake bundled with Visual Studio at $vsCMake"
+          }
+          Write-Host "CMAKE_POLICY_VERSION_MINIMUM=$env:CMAKE_POLICY_VERSION_MINIMUM"
+
           flutter doctor -v
 
       - name: Enable Windows desktop and symlink support
         shell: pwsh
         run: |
-          # Flutter plugins and the Firebase C++ archive contain symlinks.
-          # Developer Mode lets the hosted runner create/extract them safely.
+          # Flutter plugins are exposed to the build through NTFS symlinks, so the
+          # hosted runner has to be allowed to create them.
           reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v AllowDevelopmentWithoutDevLicense /d 1
           git config --global core.symlinks true
           flutter config --enable-windows-desktop
@@ -103,6 +135,70 @@ jobs:
       - name: Generate localization data
         run: dart localization/generator.dart
 
+      # `flutter build windows` reaches every plugin through
+      # windows/flutter/ephemeral/.plugin_symlinks/<plugin>. audiotags unpacks its
+      # prebuilt taglib binaries with `cmake -E tar` into its own source directory,
+      # and CMake's libarchive refuses to write through a symlink:
+      #   CMake Error: Problem with archive_write_header():
+      #   Cannot extract through symlink ...\.plugin_symlinks\audiotags
+      # Downloading and unpacking the archive into the plugin's real directory in
+      # the pub cache first makes both of the plugin's `if(NOT EXISTS ...)` guards
+      # true, so the build never extracts through a symlink.
+      - name: Pre-extract plugin native binaries outside symlinked paths
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $packageConfig = Get-Content ".dart_tool/package_config.json" -Raw | ConvertFrom-Json
+          $package = $packageConfig.packages | Where-Object { $_.name -eq 'audiotags' } | Select-Object -First 1
+          if (-not $package) {
+            throw "audiotags is missing from .dart_tool/package_config.json"
+          }
+
+          $pluginRoot = ([Uri]$package.rootUri).LocalPath
+          if (-not [System.IO.Path]::IsPathRooted($pluginRoot)) {
+            $pluginRoot = Join-Path (Get-Location) $pluginRoot
+          }
+          $windowsDir = Join-Path $pluginRoot 'windows'
+          $cmakeLists = Join-Path $windowsDir 'CMakeLists.txt'
+          if (-not (Test-Path $cmakeLists)) {
+            throw "Expected the audiotags Windows CMakeLists at $cmakeLists"
+          }
+
+          # Read the version and URL the plugin itself uses, so this step keeps
+          # working when the plugin bumps its prebuilt binaries.
+          $cmakeText = Get-Content $cmakeLists -Raw
+          $versionMatch = [regex]::Match($cmakeText, 'set\(\s*Version\s+"([^"]+)"\s*\)')
+          $urlMatch = [regex]::Match($cmakeText, '"(https://[^"]+\.tar\.gz)"')
+          if (-not $versionMatch.Success -or -not $urlMatch.Success) {
+            throw "Could not read the audiotags native binary download details from $cmakeLists"
+          }
+          $url = $urlMatch.Groups[1].Value -replace '\$\{Version\}', $versionMatch.Groups[1].Value
+
+          $nativeLibrary = Join-Path $windowsDir 'audiotags.dll'
+          if (Test-Path $nativeLibrary) {
+            Write-Host "audiotags native binaries are already unpacked in $windowsDir"
+          } else {
+            $archive = Join-Path $windowsDir 'windows.tar.gz'
+            if (-not (Test-Path $archive)) {
+              Write-Host "Downloading audiotags native binaries from $url"
+              & curl.exe -L --fail --retry 3 --retry-delay 2 -o $archive $url
+              if ($LASTEXITCODE -ne 0) {
+                throw "Download failed for $url"
+              }
+            }
+            Write-Host "Unpacking $archive into $windowsDir"
+            & tar -xzf $archive -C $windowsDir
+            if ($LASTEXITCODE -ne 0) {
+              throw "Extraction failed for $archive"
+            }
+            if (-not (Test-Path $nativeLibrary)) {
+              throw "Extraction of $archive did not produce $nativeLibrary"
+            }
+          }
+
+          Get-ChildItem $windowsDir -File | Select-Object Name, Length | Format-Table
+
       - name: Enable update checks in release build
         shell: pwsh
         run: |
@@ -119,7 +215,7 @@ jobs:
           $buildExitCode = $LASTEXITCODE
 
           if ($buildExitCode -ne 0) {
-            $logTail = Get-Content "windows-build.log" -Tail 160
+            $logTail = Get-Content "windows-build.log" -Tail 300
             "## Windows build failure" | Out-File $env:GITHUB_STEP_SUMMARY -Append
             "``````text" | Out-File $env:GITHUB_STEP_SUMMARY -Append
             $logTail | Out-File $env:GITHUB_STEP_SUMMARY -Append
@@ -127,13 +223,16 @@ jobs:
 
             # Surface useful compiler lines through the Checks API as well as
             # the downloadable full log, making failures diagnosable even when
-            # the Actions log service is temporarily unavailable.
+            # the Actions log service is temporarily unavailable. CMake prints the
+            # reason for a configure error on the lines *after* the error header,
+            # so keep a few lines of trailing context with every match.
             $diagnostic = $logTail |
-              Select-String -Pattern '(?i)(error|exception|failed|failure|cannot|undefined)' |
-              Select-Object -Last 20 |
-              ForEach-Object { $_.Line.Trim() }
+              Select-String -Pattern '(?i)(error|exception|failed|failure|cannot|undefined)' -Context 0,3 |
+              Select-Object -Last 10 |
+              ForEach-Object { (@($_.Line) + @($_.Context.PostContext)) -join ' ~ ' }
             if (-not $diagnostic) { $diagnostic = $logTail | Select-Object -Last 20 }
-            $message = ($diagnostic -join ' | ').Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            $message = ($diagnostic -join ' | ').Trim()
+            $message = $message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
             Write-Output "::error title=Flutter Windows compiler output::$message"
             throw "Flutter Windows build failed with exit code $buildExitCode"
           }
@@ -212,4 +311,4 @@ jobs:
           files: |
             windows-release/*.exe
             windows-release/*.zip
-            windows-release/SHA256SUMS-Windows.txt
+            windows-release/*SHA256SUMS-Windows.txt
