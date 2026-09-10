@@ -57,9 +57,14 @@ jobs:
           cmake --version
           flutter doctor -v
 
-      - name: Enable Windows desktop
+      - name: Enable Windows desktop and symlink support
         shell: pwsh
-        run: flutter config --enable-windows-desktop
+        run: |
+          # Flutter plugins and the Firebase C++ archive contain symlinks.
+          # Developer Mode lets the hosted runner create/extract them safely.
+          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v AllowDevelopmentWithoutDevLicense /d 1
+          git config --global core.symlinks true
+          flutter config --enable-windows-desktop
 
       - name: Read app version
         id: version

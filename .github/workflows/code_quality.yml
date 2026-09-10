@@ -75,7 +75,19 @@ jobs:
         run: flutter pub get
 
       - name: Analyze source
-        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+        shell: bash
+        run: |
+          set +e
+          flutter analyze --no-fatal-warnings --no-fatal-infos 2>&1 | tee flutter-analyze.log
+          analyze_status=${PIPESTATUS[0]}
+          if [[ $analyze_status -ne 0 ]]; then
+            diagnostics="$(grep -Ei '(^|[ •])(error|exception|failed|undefined|isn.t defined)' flutter-analyze.log | tail -n 30 | tr '\n' ' ')"
+            diagnostics="${diagnostics//'%'/'%25'}"
+            diagnostics="${diagnostics//$'\r'/'%0D'}"
+            diagnostics="${diagnostics//$'\n'/'%0A'}"
+            echo "::error title=Flutter analyzer output::$diagnostics"
+            exit "$analyze_status"
+          fi
 
       - name: Build universal and architecture APKs
         shell: bash
