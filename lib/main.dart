@@ -36,7 +36,7 @@ import 'utils/system_tray.dart';
 import 'ui/widgets/maintenance_overlay.dart';
 import 'utils/update_check_flag_file.dart';
 
-const String _appBuildLabel = 'Version 1.0.7 • Build 11';
+const String _appBuildLabel = 'Version 1.0.7 • Build 12';
 final ValueNotifier<String> _startupStatus =
     ValueNotifier<String>('Preparing your music space…');
 
@@ -80,7 +80,9 @@ Future<void> main() async {
     _startupStatus.value = 'Starting the music player…';
     final audioHandler =
         await initAudioService().timeout(const Duration(seconds: 30));
-    Get.put<AudioHandler>(audioHandler, permanent: true);
+    if (!Get.isRegistered<AudioHandler>()) {
+      Get.put<AudioHandler>(audioHandler, permanent: true);
+    }
 
     _startupStatus.value = 'Registering app services…';
     await startApplicationServices();
