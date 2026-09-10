@@ -42,6 +42,21 @@ jobs:
           channel: stable
           cache: true
 
+      # CMake 4 rejects the minimum policy level used by the Firebase C++ SDK
+      # bundled with the current FlutterFire Windows plugins. Keep Windows CI
+      # on the newest compatible CMake 3.x release until that SDK is upgraded.
+      - name: Setup compatible CMake
+        uses: lukka/get-cmake@v4.1.1
+        with:
+          cmakeVersion: '~3.31.0'
+          ninjaVersion: latest
+
+      - name: Verify Windows toolchain
+        shell: pwsh
+        run: |
+          cmake --version
+          flutter doctor -v
+
       - name: Enable Windows desktop
         shell: pwsh
         run: flutter config --enable-windows-desktop
