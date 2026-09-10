@@ -184,9 +184,10 @@ jobs:
           }
           Move-Item $generatedInstaller (Join-Path $releaseDir "ShivaayMusic-v$version-Windows-Setup.exe") -Force
 
+          $checksumPath = Join-Path $releaseDir "ShivaayMusic-v$version-SHA256SUMS-Windows.txt"
           Get-ChildItem $releaseDir -File | ForEach-Object {
             $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
-            "$hash  $($_.Name)" | Out-File (Join-Path $releaseDir "SHA256SUMS-Windows.txt") -Append -Encoding ascii
+            "$hash  $($_.Name)" | Out-File $checksumPath -Append -Encoding ascii
           }
           Get-ChildItem $releaseDir | Format-Table Name, Length
 

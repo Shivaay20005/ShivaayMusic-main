@@ -104,10 +104,22 @@ jobs:
             --build-number="${{ steps.version.outputs.build }}"
 
           mkdir -p release-apks
-          find build/app/outputs/flutter-apk -maxdepth 1 \
-            -type f -name '*.apk' -print -exec cp '{}' release-apks/ \;
-          test -n "$(find release-apks -maxdepth 1 -type f -name '*.apk' -print -quit)"
-          sha256sum release-apks/*.apk > release-apks/SHA256SUMS.txt
+          VERSION="${{ steps.version.outputs.name }}"
+          SOURCE_DIR="build/app/outputs/flutter-apk"
+
+          cp "$SOURCE_DIR/app-release.apk" \
+            "release-apks/ShivaayMusic-v${VERSION}-Android-Universal.apk"
+          for ABI in arm64-v8a armeabi-v7a x86_64; do
+            cp "$SOURCE_DIR/app-${ABI}-release.apk" \
+              "release-apks/ShivaayMusic-v${VERSION}-Android-${ABI}.apk"
+          done
+
+          test -n "$(find release-apks -maxdepth 1 -type f -name 'ShivaayMusic-v*.apk' -print -quit)"
+          (
+            cd release-apks
+            sha256sum ShivaayMusic-v*.apk > \
+              "ShivaayMusic-v${VERSION}-SHA256SUMS-Android.txt"
+          )
           echo "Release files:"
           ls -lh release-apks
 
@@ -167,5 +179,5 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release-apks/*.apk
-            release-apks/SHA256SUMS.txt
+            release-apks/ShivaayMusic-v*.apk
+            release-apks/ShivaayMusic-v*-SHA256SUMS-Android.txt
