@@ -9,6 +9,18 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#28 Release - 1.0.7 - 2026-09-10
+-------------------
+[Release]
+- **GitHub Release**: Published ShivaayMusic 1.0.7 from the tested Build 12 commit with the version tag `v1.0.7`.
+- **Android Downloads**: Attached the universal APK, ARM64 (`arm64-v8a`), ARM32 (`armeabi-v7a`), and x86_64 APKs to the release together with `SHA256SUMS.txt` for download verification.
+- **Release Safety**: Tag-triggered builds now verify that the Git tag matches the version declared in `pubspec.yaml` before publishing assets.
+
+[Critical Fix]
+- **AudioHandler Registration**: AudioHandler is registered inside the `AudioService.init` builder as soon as it is created, eliminating the startup registration window reported on Android.
+
+===================================================================
+
 #27 Update - 1.0.7 - 2026-09-09
 -------------------
 [Fixes]

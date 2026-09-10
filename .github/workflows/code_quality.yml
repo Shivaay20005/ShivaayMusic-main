@@ -11,6 +11,8 @@ on:
   push:
     branches:
       - '**'
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - '**'
@@ -116,15 +118,24 @@ jobs:
           set -euo pipefail
           SHOULD_PUBLISH=false
 
-          # Normal pushes publish only after landing on the repository's default
-          # branch. A manual run can explicitly publish from any selected branch.
-          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_name }}" == "$DEFAULT_BRANCH" ]]; then
+          # A matching version-tag push publishes that exact tested commit.
+          # Normal branch pushes publish only after landing on the default
+          # branch. A manual run can explicitly publish a selected branch.
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            if [[ "${{ github.ref_name }}" != "$RELEASE_TAG" ]]; then
+              echo "Tag ${{ github.ref_name }} does not match pubspec version $RELEASE_TAG" >&2
+              exit 1
+            fi
+            SHOULD_PUBLISH=true
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref_name }}" == "$DEFAULT_BRANCH" ]]; then
             SHOULD_PUBLISH=true
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "$PUBLISH_MANUALLY" == "true" ]]; then
             SHOULD_PUBLISH=true
           fi
 
-          if [[ "$SHOULD_PUBLISH" == "true" ]] && \
+          # Existing tags are expected for tag-triggered runs. For branch/manual
+          # publishing, never move or overwrite an existing version tag.
+          if [[ "$SHOULD_PUBLISH" == "true" && "${{ github.ref_type }}" != "tag" ]] && \
              git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Tag $RELEASE_TAG already exists. Bump pubspec.yaml before publishing another release."
             SHOULD_PUBLISH=false
@@ -137,7 +148,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: ShivaayMusic ${{ steps.version.outputs.tag }}
+          name: ShivaayMusic ${{ steps.version.outputs.name }}
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           make_latest: true
