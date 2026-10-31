@@ -3,6 +3,9 @@
 Everything below happens automatically. The only manual work is the one-time
 secret setup in step 1.
 
+> Full step-by-step flow, artifact paths, upload destinations, update-check
+> behaviour and troubleshooting: [`RELEASE_FLOW.md`](RELEASE_FLOW.md).
+
 ## What happens on every push
 
 1. **Push to any branch** → both workflows run `flutter analyze`/build so a

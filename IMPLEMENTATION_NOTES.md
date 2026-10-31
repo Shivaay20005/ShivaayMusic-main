@@ -1,7 +1,9 @@
 # ShivaayMusic v1.0.8 implementation notes
 
 > Release automation, tagging, and update-notification setup are documented in
-> [`RELEASE_AUTOMATION.md`](RELEASE_AUTOMATION.md).
+> [`RELEASE_AUTOMATION.md`](RELEASE_AUTOMATION.md). The complete build →
+> release → mirror → in-app notification flow (with every artifact path and
+> upload destination) is in [`RELEASE_FLOW.md`](RELEASE_FLOW.md).
 
 ## What was changed
 

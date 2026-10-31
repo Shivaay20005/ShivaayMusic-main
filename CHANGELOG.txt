@@ -17,6 +17,7 @@ HOW TO UPDATE THIS CHANGELOG
 - **All Android Formats**: Each release now ships the universal APK, per-ABI APKs (`arm64-v8a`, `armeabi-v7a`, `x86_64`), an Android App Bundle (AAB), and SHA-256 checksums.
 - **Automatic Update Notification**: The release is mirrored to the legacy download repositories (`Shivaay20005/ShivaayMusic` and `Shivaay20005/ShivaayMusic-Windows-release`) so every already-installed copy receives the in-app “new version available” prompt. Mirroring is skipped with a warning when the `RELEASE_SYNC_TOKEN` secret is missing.
 - **Windows Assets in the Same Release**: The Windows workflow now waits for the Android release job to create the tag, then attaches the installer and portable ZIP to the same release instead of only attaching on a tag push.
+- **Release Flow Documented**: `RELEASE_FLOW.md` maps the complete pipeline — every workflow step, the exact build path and final file name of each artifact, which GitHub Release/artifact/legacy repository it is uploaded to, how the in-app update check finds it, and how to re-publish or force a mirror.
 
 [Critical Fixes]
 - **Windows/Linux Audio Backend**: `JustAudioMediaKit.ensureInitialized()` is now called in `main()` before any `AudioPlayer` is created. Without it just_audio kept the default mobile-only platform implementation, so desktop playback never loaded any audio. `media_kit`, `media_kit_libs_linux`, and `media_kit_libs_windows_audio` are now declared directly in `pubspec.yaml` instead of relying on a stale transitive resolve.
