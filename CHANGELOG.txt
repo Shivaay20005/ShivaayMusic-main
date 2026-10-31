@@ -19,6 +19,9 @@ HOW TO UPDATE THIS CHANGELOG
 - **Windows Assets in the Same Release**: The Windows workflow now waits for the Android release job to create the tag, then attaches the installer and portable ZIP to the same release instead of only attaching on a tag push.
 - **Release Flow Documented**: `RELEASE_FLOW.md` maps the complete pipeline — every workflow step, the exact build path and final file name of each artifact, which GitHub Release/artifact/legacy repository it is uploaded to, how the in-app update check finds it, and how to re-publish or force a mirror.
 
+[CI]
+- **Windows Build Failure (`smtc_windows`)**: The Windows job failed with `CMake Error: Problem with archive_write_header(): Cannot extract through symlink ...\.plugin_symlinks\smtc_windows`. That plugin always wipes and re-extracts its prebuilt DLLs at configure time, so pre-unpacking (the fix used for `audiotags`) cannot help. A new `Relocate symlink-unsafe plugin extraction targets` step rewrites the plugin's `LibRoot` to `${CMAKE_BINARY_DIR}/plugin_native_bin/${LibraryVersion}`, so the archive is only *read* through the symlink and unpacked into the real build tree.
+
 [Critical Fixes]
 - **Windows/Linux Audio Backend**: `JustAudioMediaKit.ensureInitialized()` is now called in `main()` before any `AudioPlayer` is created. Without it just_audio kept the default mobile-only platform implementation, so desktop playback never loaded any audio. `media_kit`, `media_kit_libs_linux`, and `media_kit_libs_windows_audio` are now declared directly in `pubspec.yaml` instead of relying on a stale transitive resolve.
 - **Startup Deadlock (Restore Session)**: `MyAudioHandler._init()` no longer calls `restoreSession()`. That method uses `checkNGetUrl()`, which awaits `_initCompleter`, while the completer was only completed after `_init()` returned, so users with a saved session waited for the full 30-second startup timeout. Session restore stays with `PlayerController._restorePrevSession()`.

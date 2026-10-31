@@ -199,6 +199,50 @@ jobs:
 
           Get-ChildItem $windowsDir -File | Select-Object Name, Length | Format-Table
 
+      # smtc_windows cannot be handled by pre-unpacking: its CMakeLists always
+      # wipes and re-extracts the prebuilt DLLs at configure time
+      # (`file(REMOVE_RECURSE ...)` + `cmake -E tar xzf`). The extraction target
+      # is `${CMAKE_CURRENT_SOURCE_DIR}`, which resolves through
+      # windows/flutter/ephemeral/.plugin_symlinks/smtc_windows, and libarchive
+      # refuses to create directories through a symlink:
+      #   CMake Error: Problem with archive_write_header():
+      #   Cannot extract through symlink ...\.plugin_symlinks\smtc_windows
+      # Move LibRoot into the real build tree. Only the archive itself is then
+      # read through the symlink, which libarchive allows.
+      - name: Relocate symlink-unsafe plugin extraction targets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $packageConfig = Get-Content ".dart_tool/package_config.json" -Raw | ConvertFrom-Json
+          $package = $packageConfig.packages | Where-Object { $_.name -eq 'smtc_windows' } | Select-Object -First 1
+          if (-not $package) {
+            throw "smtc_windows is missing from .dart_tool/package_config.json"
+          }
+
+          $pluginRoot = ([Uri]$package.rootUri).LocalPath
+          if (-not [System.IO.Path]::IsPathRooted($pluginRoot)) {
+            $pluginRoot = Join-Path (Get-Location) $pluginRoot
+          }
+          $cmakeLists = Join-Path $pluginRoot 'windows/CMakeLists.txt'
+          if (-not (Test-Path $cmakeLists)) {
+            throw "Expected the smtc_windows Windows CMakeLists at $cmakeLists"
+          }
+
+          # Literal replace: a regex replacement would treat ${...} as a group
+          # reference and mangle the CMake variable names.
+          $original = Get-Content $cmakeLists -Raw
+          $needle = 'set(LibRoot "${CMAKE_CURRENT_SOURCE_DIR}/${LibraryVersion}")'
+          $replacement = 'set(LibRoot "${CMAKE_BINARY_DIR}/plugin_native_bin/${LibraryVersion}")'
+          if (-not $original.Contains($needle)) {
+            throw "Could not find the smtc_windows LibRoot definition in $cmakeLists"
+          }
+
+          $patched = $original.Replace($needle, $replacement)
+          Set-Content -Path $cmakeLists -Value $patched -NoNewline
+          Write-Host "Patched $cmakeLists"
+          Write-Host "  LibRoot -> `${CMAKE_BINARY_DIR}/plugin_native_bin/`${LibraryVersion}"
+
       - name: Enable update checks in release build
         shell: pwsh
         run: |
