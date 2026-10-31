@@ -38,6 +38,9 @@ HOW TO UPDATE THIS CHANGELOG
 - **Navigation**: Bottom navigation unselected icons are brighter (72% `onSurface`); the desktop sidebar uses `primary`/`onPrimary` so the selected pill and icon always contrast.
 - **Snackbars and Dialogs**: Snackbar text follows `onSecondary`; the sleep-timer "Start" action, chat send buttons, profile avatar initial, up-next playing indicator, about-page icon, and listening-stats hero card no longer use hardcoded black/white that disappeared in one of the themes.
 - **Shimmer Placeholders**: Loading placeholders use `onSurface` at 12% instead of white, so they are visible in the light theme too.
+- **Container Roles**: `primaryContainer`, `secondaryContainer`, and `errorContainer` are now blends of their accent over the surface with computed `on*Container` colours, so text on the Music Room header, settings cards, and dialogs stays readable in every theme.
+- **Desktop Search Bar**: The field and dropdown used `secondary` as their fill, which is white in the dark theme (white text/icons on white) and black in the light theme (black on black). Both now use an `onSurface` blend over the surface.
+- **Up-Next Current Row**: The playing row no longer uses `secondary` as its `tileColor`; it uses a subtle primary tint, so the title, subtitle, and drag handle stay visible in the dark and light themes.
 
 #29 Release - 1.0.8 - 2026-10-31
 -------------------

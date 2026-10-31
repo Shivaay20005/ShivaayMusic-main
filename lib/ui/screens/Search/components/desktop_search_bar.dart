@@ -12,6 +12,14 @@ class DesktopSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final searchScreenController = Get.find<SearchScreenController>();
+    final scheme = Theme.of(context).colorScheme;
+    // The dark theme's `secondary` is white, which used to make this field and
+    // its dropdown white with white text/icons. A subtle onSurface blend keeps
+    // them readable in every theme.
+    final fieldFill = Color.alphaBlend(
+      scheme.onSurface.withValues(alpha: 0.08),
+      scheme.surface,
+    );
     return TapRegion(
       onTapOutside: (event) {
         searchScreenController.focusNode.unfocus();
@@ -43,10 +51,7 @@ class DesktopSearchBar extends StatelessWidget {
                 searchScreenController.focusNode.unfocus();
               },
               focusNode: searchScreenController.focusNode,
-              backgroundColor: WidgetStatePropertyAll<Color>(
-                  Theme.of(context).brightness == Brightness.dark 
-                      ? Theme.of(context).colorScheme.secondary 
-                      : Colors.grey[200]!),
+              backgroundColor: WidgetStatePropertyAll<Color>(fieldFill),
               hintText: "searchDes".tr,
               leading: IconButton(
                   onPressed: () {
@@ -73,9 +78,7 @@ class DesktopSearchBar extends StatelessWidget {
               padding: const EdgeInsets.only(top: 10.0),
               child: Container(
                 decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                        ? Theme.of(context).colorScheme.secondary 
-                        : Colors.grey[200],
+                    color: fieldFill,
                     borderRadius: BorderRadius.circular(20)),
                 constraints: const BoxConstraints(minHeight: 0, maxHeight: 300),
                 child: Obx(() {

@@ -86,7 +86,18 @@ class UpNextQueue extends StatelessWidget {
                         left: GetPlatform.isAndroid ? 30 : 0,
                         right: 25),
                     tileColor: playerController.currentSongIndex.value == index
-                        ? Theme.of(homeScaffoldContext).colorScheme.secondary
+                        ? Color.alphaBlend(
+                            Theme.of(homeScaffoldContext)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.18),
+                            Theme.of(homeScaffoldContext)
+                                    .bottomSheetTheme
+                                    .backgroundColor ??
+                                Theme.of(homeScaffoldContext)
+                                    .colorScheme
+                                    .surface,
+                          )
                         : Theme.of(homeScaffoldContext)
                             .bottomSheetTheme
                             .backgroundColor,

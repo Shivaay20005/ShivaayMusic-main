@@ -525,6 +525,21 @@ class ThemeController extends GetxController {
     // icons on light accent fills (invisible play button) and light-grey accents
     // on light surfaces (invisible selected icons in the light theme).
     final onSurface = _onColorFor(baseScheme.surface);
+    // `ColorScheme.fromSwatch` leaves the container roles at arbitrary defaults,
+    // which could pair a light container with white text. Derive them from the
+    // active surface so text on them always has a known background.
+    final primaryContainer = Color.alphaBlend(
+      baseScheme.primary.withValues(alpha: 0.22),
+      baseScheme.surface,
+    );
+    final secondaryContainer = Color.alphaBlend(
+      baseScheme.secondary.withValues(alpha: 0.22),
+      baseScheme.surface,
+    );
+    final errorContainer = Color.alphaBlend(
+      baseScheme.error.withValues(alpha: 0.22),
+      baseScheme.surface,
+    );
     final scheme = baseScheme.copyWith(
       onSurface: onSurface,
       onSurfaceVariant: Color.alphaBlend(
@@ -535,6 +550,12 @@ class ThemeController extends GetxController {
       onSecondary: _onColorFor(baseScheme.secondary),
       onError: _onColorFor(baseScheme.error),
       onBackground: onSurface,
+      primaryContainer: primaryContainer,
+      onPrimaryContainer: _onColorFor(primaryContainer),
+      secondaryContainer: secondaryContainer,
+      onSecondaryContainer: _onColorFor(secondaryContainer),
+      errorContainer: errorContainer,
+      onErrorContainer: _onColorFor(errorContainer),
     );
 
     final disabled = onSurface.withValues(alpha: 0.42);
