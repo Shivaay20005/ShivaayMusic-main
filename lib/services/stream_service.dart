@@ -361,12 +361,27 @@ class StreamProvider {
   /// spins forever instead of failing. OpenTune mints one the same way, from
   /// the web player's service-worker bootstrap.
   static String? _visitorData;
+  static DateTime? _visitorMintedAt;
   static Future<String?>? _visitorInFlight;
   static final http.Client _visitorHttp = _ExtractionHttpClient();
 
+  /// How long a minted visitor id is trusted before a fresh one is taken.
+  ///
+  /// An id can be burned while the session around it is fine — Google starts
+  /// answering it with preview-only URLs. A music app is used for hours, so the
+  /// id is refreshed periodically instead of only at launch; the cost is one
+  /// small request every half hour.
+  static const Duration _visitorLifetime = Duration(minutes: 30);
+
   static Future<String?> _ensureVisitorData() {
     final cached = _visitorData;
-    if (cached != null && cached.isNotEmpty) return Future.value(cached);
+    final mintedAt = _visitorMintedAt;
+    if (cached != null &&
+        cached.isNotEmpty &&
+        mintedAt != null &&
+        DateTime.now().difference(mintedAt) < _visitorLifetime) {
+      return Future.value(cached);
+    }
     return _visitorInFlight ??=
         _fetchVisitorData().whenComplete(() => _visitorInFlight = null);
   }
@@ -387,7 +402,10 @@ class StreamProvider {
       final start = body.indexOf('[');
       if (start == -1) return null;
       final found = _findVisitorData(jsonDecode(body.substring(start)));
-      if (found != null) _visitorData = found;
+      if (found != null) {
+        _visitorData = found;
+        _visitorMintedAt = DateTime.now();
+      }
       return found;
     } catch (_) {
       return null;
