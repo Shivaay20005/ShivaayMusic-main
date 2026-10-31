@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -146,24 +147,24 @@ const _clients = <YoutubeApiClient>[
   _tvHtml5Client,
 ];
 
-/// User agent of each client, keyed by the `c=` value YouTube bakes into the
-/// media URL.
+/// The browser identity the visitor id is minted as.
+const _webUserAgent =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+    '(KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
+
+/// How much of a stream URL is requested when validating it.
 ///
-/// Several entries share a client name (the two ANDROID_VR builds), so the
-/// first one wins: that is the current build, and its user agent is the one a
-/// fresh URL carries.
-final Map<String, String> _mediaUserAgents = () {
-  final map = <String, String>{};
-  for (final client in _clients) {
-    final context = client.payload['context'] as Map;
-    final info = context['client'] as Map;
-    final name = info['clientName'] as String?;
-    final userAgent = info['userAgent'] as String?;
-    if (name == null || userAgent == null || userAgent.isEmpty) continue;
-    map.putIfAbsent(name, () => userAgent);
-  }
-  return map;
-}();
+/// A URL minted without a visitor id (or for a session Google distrusts) is a
+/// **preview**: it serves roughly the first megabyte and then refuses every
+/// later range with a 403. Asking for two megabytes in one range is what
+/// separates such a URL from a real one — the same test OpenTune's probe uses.
+const _probeRangeBytes = 2 * 1024 * 1024;
+
+/// How many bytes of the probe response must actually arrive.
+///
+/// Headers can arrive long before a body that never does — exactly the
+/// throttling that shows up as a song that buffers forever.
+const _probeReadBytes = 16 * 1024;
 
 /// Thrown when YouTube answers `429` or its "sorry" bot page.
 ///
@@ -203,18 +204,32 @@ class _ExtractionHttpClient extends YoutubeHttpClient {
   }
 
   @override
-  Future<http.Response> head(Uri url, {Map<String, String>? headers}) {
-    final userAgent = StreamProvider.userAgentForUrl(url.toString());
-    return super.head(url, headers: {
-      ...?headers,
-      if (userAgent != null) 'User-Agent': userAgent,
-    });
+  Future<http.Response> head(Uri url, {Map<String, String>? headers}) async {
+    // googlevideo now answers a HEAD on a media URL with 403 even when the URL
+    // plays perfectly: it expects a ranged GET. youtube_explode uses this HEAD
+    // only to sanity-check the first URL, and treats a 403 as "this client is
+    // broken", so every good client used to be rejected here. A one-byte range
+    // request answers the same question without that false negative.
+    final request = http.Request('GET', url)
+      ..headers.addAll({
+        ...?headers,
+        ...StreamProvider.mediaHeadersForUrl(url.toString()),
+        'Range': 'bytes=0-0',
+      });
+    final streamed = await send(request);
+    final body = await streamed.stream.toBytes();
+    return http.Response.bytes(
+      body,
+      streamed.statusCode,
+      headers: streamed.headers,
+      request: request,
+    );
   }
 }
 
 class StreamProvider {
   final bool playable;
-  final List<Audio>? audioFormats;
+  List<Audio>? audioFormats;
   final List<VideoFormat>? videoFormats; // Add this
   final String statusMSG;
   StreamProvider(
@@ -301,19 +316,229 @@ class StreamProvider {
     return ordered;
   }
 
-  /// User agent a media URL must be fetched with, or null when the client that
-  /// minted it is unknown.
+  /// The client that minted a media URL, matched on the `c=`/`cver=` pair
+  /// YouTube bakes into it.
+  static YoutubeApiClient? _clientForStream(String? name, String? version) {
+    if (name == null || name.isEmpty) return null;
+    YoutubeApiClient? fallback;
+    for (final client in _clients) {
+      final info = (client.payload['context'] as Map)['client'] as Map;
+      if (info['clientName'] != name) continue;
+      fallback ??= client;
+      if (version == null || info['clientVersion'] == version) return client;
+    }
+    return fallback;
+  }
+
+  /// Headers a media request must carry for a URL this app minted.
   ///
   /// The media fetch is a separate request from the one that produced the URL,
-  /// and googlevideo refuses (403) a mismatch between the `c=` client baked
-  /// into the URL and the headers that follow it. Passing the minting client's
-  /// user agent on playback is what stops those mid-song 403s.
-  static String? userAgentForUrl(String url) {
-    final c = Uri.tryParse(url)?.queryParameters['c'];
-    if (c == null || c.isEmpty) return null;
-    final userAgent = _mediaUserAgents[c];
-    if (userAgent == null || userAgent.isEmpty) return null;
-    return userAgent;
+  /// and googlevideo treats a mismatch between the two as reason enough to
+  /// throttle the response to a crawl or refuse it with 403. A mismatch is
+  /// exactly the "song buffers forever" failure, so playback, the extraction
+  /// HEAD check and the validation probe all use this map.
+  static Map<String, String> mediaHeadersForUrl(String url) {
+    final parsed = Uri.tryParse(url);
+    final name = parsed?.queryParameters['c']?.toUpperCase();
+    final client = _clientForStream(name, parsed?.queryParameters['cver']);
+    if (client == null) return const {};
+
+    final info = (client.payload['context'] as Map)['client'] as Map;
+    final userAgent = info['userAgent'] as String?;
+    final headers = <String, String>{};
+    if (userAgent != null && userAgent.isNotEmpty) {
+      headers['User-Agent'] = userAgent;
+    }
+    // Only the browser-shaped clients send these, and they are part of what
+    // makes their URLs look like they came from that client.
+    if (name != null && name.startsWith('TVHTML5')) {
+      headers['Origin'] = 'https://www.youtube.com';
+      headers['Referer'] = 'https://www.youtube.com/';
+    }
+    return headers;
+  }
+
+  /// User agent a media URL must be fetched with, or null when the client that
+  /// minted it is unknown.
+  static String? userAgentForUrl(String url) =>
+      mediaHeadersForUrl(url)['User-Agent'];
+
+  // ---- Visitor id ---------------------------------------------------------
+
+  /// A visitor id for this session.
+  ///
+  /// YouTube hands anonymous clients a visitor id and expects it back on every
+  /// `player` request. Without one the good clients refuse outright and the
+  /// rest return URLs that only *look* playable — which is exactly a song that
+  /// spins forever instead of failing. OpenTune mints one the same way, from
+  /// the web player's service-worker bootstrap.
+  static String? _visitorData;
+  static Future<String?>? _visitorInFlight;
+  static final http.Client _visitorHttp = _ExtractionHttpClient();
+
+  static Future<String?> _ensureVisitorData() {
+    final cached = _visitorData;
+    if (cached != null && cached.isNotEmpty) return Future.value(cached);
+    return _visitorInFlight ??=
+        _fetchVisitorData().whenComplete(() => _visitorInFlight = null);
+  }
+
+  static Future<String?> _fetchVisitorData() async {
+    try {
+      final response = await _visitorHttp.get(
+        Uri.parse('https://www.youtube.com/sw.js_data'),
+        headers: {
+          'User-Agent': _webUserAgent,
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 4));
+      if (response.statusCode != 200) return null;
+      final body = response.body;
+      // The payload is an anti-hijacking prefix followed by nested arrays; the
+      // id is found by its shape rather than by a path that would rot.
+      final start = body.indexOf('[');
+      if (start == -1) return null;
+      final found = _findVisitorData(jsonDecode(body.substring(start)));
+      if (found != null) _visitorData = found;
+      return found;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Protobuf-in-base64; always this shape, and nothing else in there is.
+  static final RegExp _visitorDataPattern =
+      RegExp(r'^Cg[A-Za-z0-9_%-]{40,}$');
+
+  static String? _findVisitorData(dynamic element) {
+    if (element is List) {
+      for (final item in element) {
+        final found = _findVisitorData(item);
+        if (found != null) return found;
+      }
+    } else if (element is Map) {
+      for (final value in element.values) {
+        final found = _findVisitorData(value);
+        if (found != null) return found;
+      }
+    } else if (element is String && _visitorDataPattern.hasMatch(element)) {
+      return element;
+    }
+    return null;
+  }
+
+  /// The same client with this session's visitor id attached, both in the
+  /// request body (youtube_explode sends `payload`) and in the header Google
+  /// actually reads.
+  static YoutubeApiClient _withVisitorData(
+      YoutubeApiClient client, String? visitorData) {
+    if (visitorData == null || visitorData.isEmpty) return client;
+    final payload = Map<String, dynamic>.from(client.payload);
+    final context = Map<String, dynamic>.from(payload['context'] as Map);
+    final info = Map<String, dynamic>.from(context['client'] as Map);
+    info['visitorData'] = visitorData;
+    context['client'] = info;
+    payload['context'] = context;
+    return YoutubeApiClient(payload, client.apiUrl, headers: {
+      ...client.headers,
+      'X-Goog-Visitor-Id': visitorData,
+    });
+  }
+
+  // ---- Validation ---------------------------------------------------------
+
+  static int _qualityIndex() {
+    try {
+      if (Hive.isBoxOpen('AppPrefs')) {
+        final quality = Hive.box('AppPrefs').get('streamingQuality');
+        if (quality is num) return quality.toInt();
+      }
+    } catch (_) {}
+    return 1;
+  }
+
+  /// Reads the first bytes of a URL before trusting it.
+  ///
+  /// youtube_explode only issues a HEAD and only treats 403 as a failure, so a
+  /// URL that answers headers and then stalls — or an error page dressed as a
+  /// 200 — was handed straight to the player, where it showed up as a song that
+  /// buffered forever. This is what OpenTune's probe does: a real ranged GET
+  /// with the headers playback will use, requiring audio bytes to arrive.
+  static Future<bool> _probe(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    StreamSubscription<List<int>>? subscription;
+    try {
+      final request = http.Request('GET', uri)
+        ..headers.addAll({
+          'Range': 'bytes=0-${_probeRangeBytes - 1}',
+          ...mediaHeadersForUrl(url),
+        });
+      final response = await _visitorHttp
+          .send(request)
+          .timeout(const Duration(seconds: 5));
+
+      final status = response.statusCode;
+      final type = response.headers['content-type'] ?? '';
+      final refusal = status == 403 || status == 404 || status == 410;
+      if (refusal || status < 200 || status >= 300) {
+        unawaited(response.stream.drain<void>().catchError((_) {}));
+        return false;
+      }
+      // A refusal dressed as a success: an error page or the consent/captcha
+      // interstitial rather than audio.
+      if (!type.startsWith('audio/')) {
+        unawaited(response.stream.drain<void>().catchError((_) {}));
+        return false;
+      }
+
+      final done = Completer<bool>();
+      var received = 0;
+      subscription = response.stream.listen(
+        (chunk) {
+          received += chunk.length;
+          if (received >= _probeReadBytes && !done.isCompleted) {
+            done.complete(true);
+          }
+        },
+        onDone: () {
+          if (!done.isCompleted) done.complete(received > 0);
+        },
+        onError: (Object _) {
+          if (!done.isCompleted) done.complete(false);
+        },
+        cancelOnError: true,
+      );
+      return await done.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => false,
+      );
+    } catch (_) {
+      return false;
+    } finally {
+      await subscription?.cancel();
+    }
+  }
+
+  /// Rejects a manifest whose playable URL does not actually serve audio.
+  ///
+  /// When the preferred quality is dead but the other one works, the working
+  /// one replaces both so whichever setting the user has still plays.
+  static Future<bool> _verifyProvider(StreamProvider provider) async {
+    final formats = provider.audioFormats;
+    if (formats == null || formats.isEmpty) return false;
+    final index = _qualityIndex();
+    final preferred =
+        index == 0 ? provider.lowQualityAudio : provider.highestQualityAudio;
+    if (preferred == null) return false;
+    if (await _probe(preferred.url)) return true;
+
+    final alternate =
+        index == 0 ? provider.highestQualityAudio : provider.lowQualityAudio;
+    if (alternate == null || alternate.url == preferred.url) return false;
+    if (!await _probe(alternate.url)) return false;
+    provider.audioFormats = [alternate];
+    return true;
   }
 
   static String _clientKey(YoutubeApiClient client) {
@@ -370,6 +595,11 @@ class StreamProvider {
     Object? lastError;
     var sawRateLimit = false;
 
+    // One visitor id for the whole session, minted before the first request.
+    // Without it the clients either refuse outright or hand back URLs that
+    // only look playable.
+    final visitorData = await _ensureVisitorData();
+
     for (var i = 0; i < candidates.length; i++) {
       final client = candidates[i];
       StreamProvider? provider;
@@ -379,7 +609,7 @@ class StreamProvider {
         final res = await _yt.videos.streamsClient
             .getManifest(
               videoId,
-              ytClients: [client],
+              ytClients: [_withVisitorData(client, visitorData)],
               // The library only needs the watch page to run its JS challenge
               // solver, and this app never installs one. Fetching it anyway meant
               // every song waited for a full watch page (hundreds of KB) before the
@@ -389,11 +619,17 @@ class StreamProvider {
               requireWatchPage: false,
             )
             // A hung connection used to leave the player on its loading spinner
-            // forever, because `package:http` has no timeout of its own. Fifteen
+            // forever, because `package:http` has no timeout of its own. Ten
             // seconds is far longer than a healthy player request and short
             // enough that the next identity can still be tried.
-            .timeout(const Duration(seconds: 15));
+            .timeout(const Duration(seconds: 10));
         provider = _fromManifest(res);
+        // A manifest is only a promise. Read the URL that will actually be
+        // played before handing it over; a URL that answers headers and then
+        // stalls is what "buffers forever" looks like.
+        if (provider != null && !await _verifyProvider(provider)) {
+          provider = null;
+        }
       } on VideoRequiresPurchaseException {
         return StreamProvider(
           playable: false,

@@ -78,15 +78,20 @@ Future<void> main() async {
   await Future<void>.delayed(const Duration(milliseconds: 50));
 
   try {
+    // Start Firebase immediately but do not make the first screen wait for it:
+    // it can take several seconds on a poor connection, and the app only needs
+    // it just before AuthService is registered.
     _startupStatus.value = 'Connecting securely…';
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ).timeout(const Duration(seconds: 12));
-    } catch (e) {
-      debugPrint('Firebase initialization error: $e');
-      // Firebase/network issues must never prevent offline app startup.
-    }
+    final firebaseReady = Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 8)).then<FirebaseApp?>(
+      (app) => app,
+      onError: (Object e) {
+        debugPrint('Firebase initialization error: $e');
+        // Firebase/network issues must never prevent offline app startup.
+        return null;
+      },
+    );
 
     _startupStatus.value = 'Loading your library…';
     await initHive().timeout(const Duration(seconds: 15));
@@ -101,7 +106,7 @@ Future<void> main() async {
     // so registering even a lazy controller first can create a startup race.
     _startupStatus.value = 'Starting the music player…';
     final audioHandler =
-        await initAudioService().timeout(const Duration(seconds: 30));
+        await initAudioService().timeout(const Duration(seconds: 20));
     if (!Get.isRegistered<AudioHandler>()) {
       Get.put<AudioHandler>(audioHandler, permanent: true);
     }
@@ -110,6 +115,7 @@ Future<void> main() async {
     await startApplicationServices();
 
     _startupStatus.value = 'Restoring your account…';
+    await firebaseReady;
     Get.put(AuthService(), permanent: true);
 
     // Register HomeWidget Background Callback
@@ -185,7 +191,7 @@ class _StartupApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: const Color(0xFF09070D),
+        backgroundColor: const Color(0xFF2A1B45),
         body: SafeArea(
           child: Center(
             child: Padding(
@@ -362,7 +368,9 @@ class MyApp extends StatelessWidget {
           if (authService.isInitializing.value) {
             return const _AuthLoadingScreen();
           }
-          return authService.currentUser != null
+          // `isSignedIn` includes the cached session, so a slow Firebase
+          // restore never sends a signed-in user back to the login screen.
+          return authService.isSignedIn
               ? const Home()
               : const LoginScreen();
         }),

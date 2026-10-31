@@ -31,6 +31,20 @@ class AuthService extends GetxService {
   User? get currentUser => _firebaseUser.value;
   bool get isAuthenticated => _firebaseUser.value != null;
 
+  /// Whether this device still has a signed-in account cached.
+  ///
+  /// Firebase's persisted session can take a while to come back on a cold
+  /// start, especially with a slow connection or Play Services. The cached uid
+  /// is proof that the user signed in here before, so the app keeps them in
+  /// instead of showing the login screen and asking again.
+  bool get hasSavedSession {
+    final uid = _cachedAuthUid;
+    return uid != null && uid.isNotEmpty;
+  }
+
+  /// Signed in either live or from the cached session.
+  bool get isSignedIn => isAuthenticated || hasSavedSession;
+
   /// Uid of the last signed-in account cached on this device.
   ///
   /// `userId` is the key versions before 1.0.9 wrote, so it is used as a
@@ -75,11 +89,15 @@ class AuthService extends GetxService {
 
     if (restoredUser != null) {
       _handleAuthState(restoredUser);
-    } else if (cachedUid == null || cachedUid.isEmpty) {
-      // Fresh install or an explicit sign-out: nothing to restore.
-      isInitializing.value = false;
     } else {
-      _confirmSessionRestore();
+      // Never hold the app on a loading screen while Firebase restores its
+      // session, and never drop a cached session just because the restore is
+      // slow. With a cached uid the app opens straight into Home with the
+      // cached profile; the restore is confirmed quietly in the background.
+      isInitializing.value = false;
+      if (cachedUid != null && cachedUid.isNotEmpty) {
+        _confirmSessionRestore();
+      }
     }
   }
 
@@ -105,11 +123,12 @@ class AuthService extends GetxService {
 
   bool _confirmingRestore = false;
 
-  /// Waits briefly for Firebase to hand back the persisted session.
+  /// Waits in the background for Firebase to hand back the persisted session.
   ///
-  /// Only when [FirebaseAuth.currentUser] stays null for the whole grace period
-  /// is the session considered gone (revoked, password changed, app data
-  /// cleared) and the login screen shown.
+  /// This no longer clears anything on failure: the cached session stays in
+  /// place, because a slow restore is not a sign-out. Only [signOut] (or a
+  /// banned account) removes the cached uid, so the login screen cannot come
+  /// back on its own.
   Future<void> _confirmSessionRestore() async {
     if (_confirmingRestore) return;
     _confirmingRestore = true;
@@ -125,10 +144,6 @@ class AuthService extends GetxService {
     }
 
     _confirmingRestore = false;
-    if (_auth.currentUser == null) {
-      Hive.box('AppPrefs').delete('lastAuthUid');
-      _handleAuthState(null);
-    }
   }
 
   void _handleAuthState(User? user) {
@@ -499,6 +514,7 @@ class AuthService extends GetxService {
       // the listener shows LoginScreen immediately instead of waiting for the
       // restore-confirmation grace period.
       Hive.box('AppPrefs').delete('lastAuthUid');
+      Hive.box('AppPrefs').delete('userId');
       await _auth.signOut();
       _clearUserDataFromHive();
     } catch (e) {
