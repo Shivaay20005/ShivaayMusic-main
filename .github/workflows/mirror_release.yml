@@ -96,7 +96,17 @@ jobs:
           fi
           NOTES="$(printf '## ShivaayMusic v%s\n\n- Universal APK + per-ABI APKs\n- Android App Bundle (AAB)\n- SHA-256 checksums for every file\n' "$VERSION")"
           if gh release view "$VERSION" --repo "$ANDROID_REPO" >/dev/null 2>&1; then
-            gh release upload "$VERSION" --repo "$ANDROID_REPO" --clobber "${FILES[@]}"
+            # `--clobber` can 404 on a stale asset id, so fall back to
+            # recreating the release (the tag is kept, so the download URL and
+            # the in-app update check keep working).
+            if ! gh release upload "$VERSION" --repo "$ANDROID_REPO" --clobber "${FILES[@]}"; then
+              echo "::warning title=Android mirror update failed::Recreating the release so the new files are available."
+              gh release delete "$VERSION" --repo "$ANDROID_REPO" --yes
+              gh release create "$VERSION" --repo "$ANDROID_REPO" \
+                --title "ShivaayMusic v$VERSION" \
+                --notes "$NOTES" \
+                "${FILES[@]}"
+            fi
           else
             gh release create "$VERSION" --repo "$ANDROID_REPO" \
               --title "ShivaayMusic v$VERSION" \
@@ -118,7 +128,14 @@ jobs:
           fi
           NOTES="$(printf '## ShivaayMusic v%s (Windows)\n\n- Installer: `ShivaayMusic-v%s-Windows-Setup.exe`\n- Portable: `ShivaayMusic-v%s-Windows-Portable.zip`\n- SHA-256 checksums for every file\n' "$VERSION" "$VERSION" "$VERSION")"
           if gh release view "$VERSION" --repo "$WINDOWS_REPO" >/dev/null 2>&1; then
-            gh release upload "$VERSION" --repo "$WINDOWS_REPO" --clobber "${FILES[@]}"
+            if ! gh release upload "$VERSION" --repo "$WINDOWS_REPO" --clobber "${FILES[@]}"; then
+              echo "::warning title=Windows mirror update failed::Recreating the release so the new files are available."
+              gh release delete "$VERSION" --repo "$WINDOWS_REPO" --yes
+              gh release create "$VERSION" --repo "$WINDOWS_REPO" \
+                --title "ShivaayMusic v$VERSION" \
+                --notes "$NOTES" \
+                "${FILES[@]}"
+            fi
           else
             gh release create "$VERSION" --repo "$WINDOWS_REPO" \
               --title "ShivaayMusic v$VERSION" \

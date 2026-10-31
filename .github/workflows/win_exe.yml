@@ -398,14 +398,25 @@ jobs:
           NOTES="$(printf '## ShivaayMusic v%s (Windows)\n\n- Installer: `ShivaayMusic-v%s-Windows-Setup.exe`\n- Portable: `ShivaayMusic-v%s-Windows-Portable.zip`\n- SHA-256 checksums for every file\n' "$VERSION" "$VERSION" "$VERSION")"
 
           echo "::group::Mirroring Windows v${VERSION} to ${LEGACY_REPO}"
+          FILES=(windows-release/*)
           if gh release view "$LEGACY_TAG" --repo "$LEGACY_REPO" >/dev/null 2>&1; then
-            gh release upload "$LEGACY_TAG" --repo "$LEGACY_REPO" --clobber \
-              windows-release/*
+            # See code_quality.yml: `--clobber` can 404 on a stale asset id, so
+            # fall back to recreating the release (the tag, and therefore the
+            # download URL used by the app, is kept).
+            if ! gh release upload "$LEGACY_TAG" --repo "$LEGACY_REPO" --clobber "${FILES[@]}"; then
+              echo "::warning title=Windows mirror update failed::Recreating the legacy release so the new files are available."
+              gh release delete "$LEGACY_TAG" --repo "$LEGACY_REPO" --yes
+              gh release create "$LEGACY_TAG" --repo "$LEGACY_REPO" \
+                --title "ShivaayMusic v${VERSION}" \
+                --notes "$NOTES" \
+                --latest \
+                "${FILES[@]}"
+            fi
           else
             gh release create "$LEGACY_TAG" --repo "$LEGACY_REPO" \
               --title "ShivaayMusic v${VERSION}" \
               --notes "$NOTES" \
               --latest \
-              windows-release/*
+              "${FILES[@]}"
           fi
           echo "::endgroup::"
