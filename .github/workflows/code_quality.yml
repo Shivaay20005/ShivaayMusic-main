@@ -167,11 +167,13 @@ jobs:
           fi
 
           # Existing tags are expected for tag-triggered runs. For branch/manual
-          # publishing, never move or overwrite an existing version tag.
+          # publishing, never move or overwrite an existing version tag: the
+          # release for that version is refreshed in place instead, so a fix can
+          # ship without a version bump. The tag keeps pointing at the commit it
+          # was created for; only the attached APK/AAB/checksum assets change.
           if [[ "$SHOULD_PUBLISH" == "true" && "$REF_TYPE" != "tag" ]] && \
              git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "Tag $RELEASE_TAG already exists. Bump pubspec.yaml before publishing another release."
-            SHOULD_PUBLISH=false
+            echo "Tag $RELEASE_TAG already exists. Refreshing its release assets in place."
           fi
 
           echo "publish=$SHOULD_PUBLISH" >> "$GITHUB_OUTPUT"

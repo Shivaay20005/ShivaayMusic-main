@@ -198,17 +198,23 @@ purpose.
 ### Re-publishing the current version
 
 `action-gh-release` is safe to re-run; it updates the release and overwrites
-assets. The branch push path intentionally skips publishing when the tag
-already exists, so use one of these:
+assets with the same name. A push to `main` therefore refreshes the existing
+release for the current `pubspec.yaml` version in place — the tag stays where it
+is, only the APK/AAB/checksum assets are replaced. No version bump is required
+for a fix to reach users.
+
+You can also trigger the same refresh manually:
 
 ```bash
-# Option A: delete the tag (the release and its assets stay), then dispatch
-#           both workflows with publish_release = true from the Actions UI/API.
-gh api -X DELETE repos/Shivaay20005/ShivaayMusic-main/git/refs/tags/v1.0.9
-gh workflow run code_quality.yml  -f publish_release=true --repo Shivaay20005/ShivaayMusic-main
-gh workflow run win_exe.yml        -f publish_release=true --repo Shivaay20005/ShivaayMusic-main
+gh workflow run code_quality.yml -f publish_release=true --repo Shivaay20005/ShivaayMusic-main
+gh workflow run win_exe.yml       -f publish_release=true --repo Shivaay20005/ShivaayMusic-main
+```
 
-# Option B: re-create the tag on the commit you want to ship
+Both workflows then mirror the refreshed assets to the download repositories.
+The tag is never moved by these runs; to intentionally point it at a different
+commit, delete and re-create it:
+
+```bash
 git tag -f v1.0.9 <commit>
 git push origin :refs/tags/v1.0.9
 git push origin v1.0.9
@@ -278,7 +284,7 @@ Without it the build still succeeds; the mirror steps print
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `flutter analyze` error annotation | Compile/lint error | Fix code; nothing was published |
-| `Tag v1.0.9 already exists` message, job green | Version not bumped | Bump `pubspec.yaml`; or re-publish with section 7 |
+| `Tag v1.0.9 already exists` message, job green | Same version re-published | Expected: the release assets are refreshed in place; the tag does not move |
 | `Tag v1.0.9 does not match pubspec version v1.0.9` | Tag pushed by hand | Push the matching tag or delete it |
 | `Legacy release sync skipped` warning | `RELEASE_SYNC_TOKEN` missing/invalid | Add the secret, then re-run (section 7) |
 | Windows job hangs ~10 min before uploading | Waiting for the Android release | Normal; if Android failed, Windows creates the release alone |

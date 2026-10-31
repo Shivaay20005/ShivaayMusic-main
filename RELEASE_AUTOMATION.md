@@ -12,7 +12,9 @@ secret setup in step 1.
    broken commit is visible immediately, but nothing is published.
 2. **Push to the default branch** (`main`) →
    - the version is read from `pubspec.yaml` (currently `1.0.9+14`);
-   - the tag `v1.0.9` is created if it does not exist yet;
+   - the tag `v1.0.9` is created if it does not exist yet; if it already
+     exists, the release for that tag is refreshed in place (assets are
+     replaced, the tag itself is not moved);
    - the GitHub Release `ShivaayMusic 1.0.9` is created/updated with:
      - universal APK,
      - `arm64-v8a`, `armeabi-v7a`, `x86_64` APKs,

@@ -17,6 +17,7 @@ HOW TO UPDATE THIS CHANGELOG
 [CI]
 - **Windows Plugin Patch Is Idempotent**: The `Relocate symlink-unsafe plugin extraction targets` step failed when a cached pub cache already contained a patched `smtc_windows` CMakeLists. It now treats an existing `CMAKE_BINARY_DIR/plugin_native_bin` LibRoot as success and only patches (or errors) when neither form is present.
 - **Windows Re-Publish Refreshes Assets**: Publishing the same version again deletes the old `Setup.exe`, `Portable.zip`, and checksum assets by name before uploading and retries each upload. This replaces `gh release upload --clobber`, which can fail with a stale-asset 404 and leave the previous build attached.
+- **Same-Version Pushes Refresh the Release**: A push to `main` no longer skips publishing when the version tag already exists. The release assets (APKs, AAB, checksums, EXE, ZIP) are replaced in place and the tag is left untouched, so a fix can ship inside 1.0.9 without a version bump.
 
 [Playback]
 - **Spinner Stuck After the Song Started**: The play/pause button could keep showing the loading spinner for the whole track even though audio was playing. Three independent guards now clear it:
