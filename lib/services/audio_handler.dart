@@ -611,9 +611,19 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       cacheEnabled = false;
     }
 
-    if (!GetPlatform.isWeb && (url.contains('/cache') ||
-        (cacheEnabled &&
-            url.contains("http")))) {
+    // A song that is already on disk (an offline download or a file written by
+    // the caching source) must be played directly. `LockCachingAudioSource`
+    // downloads its URI over HTTP, so wrapping a `file://` URL in it made the
+    // cached file unplayable — the cache directory lives under `/cache`, which
+    // is exactly what the check below matches.
+    final parsedUrl = Uri.tryParse(url);
+    final isLocalFile = parsedUrl != null &&
+        (parsedUrl.scheme == 'file' ||
+            (parsedUrl.scheme.isEmpty && parsedUrl.path.startsWith('/')));
+
+    if (!GetPlatform.isWeb &&
+        !isLocalFile &&
+        (url.contains('/cache') || (cacheEnabled && url.contains("http")))) {
       printINFO("Playing Using LockCaching");
       isPlayingUsingLockCachingSource = true;
       // ignore: experimental_member_use
