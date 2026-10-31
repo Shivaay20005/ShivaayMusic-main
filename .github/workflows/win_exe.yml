@@ -371,16 +371,37 @@ jobs:
             sleep 10
           done
 
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
-              windows-release/*
-          else
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
               --title "ShivaayMusic v${VERSION}" \
               --notes "$NOTES" \
-              --latest \
-              windows-release/*
+              --latest
+            sleep 3
           fi
+
+          # Refresh the assets in place. `gh release upload --clobber` can fail
+          # with a 404 when the cached asset ids are stale, so delete the
+          # matching asset by name first (the release URL never changes) and
+          # retry the upload.
+          for file in windows-release/*; do
+            name="$(basename "$file")"
+            asset_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+              --jq ".assets[] | select(.name == \"${name}\") | .id" 2>/dev/null | head -n1 || true)"
+            if [[ -n "${asset_id}" ]]; then
+              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}" >/dev/null
+            fi
+            for attempt in 1 2 3; do
+              if gh release upload "$TAG" "$file" --repo "$GITHUB_REPOSITORY"; then
+                break
+              fi
+              if [[ $attempt -eq 3 ]]; then
+                echo "::error title=Windows release upload failed::Could not upload ${name} to ${GITHUB_REPOSITORY}"
+                exit 1
+              fi
+              echo "Upload of ${name} failed, retrying in 5s (attempt ${attempt}/3)"
+              sleep 5
+            done
+          done
 
       # Windows installs poll the dedicated Windows download repository. Mirror
       # the tag and release there so old installs get the update notification.

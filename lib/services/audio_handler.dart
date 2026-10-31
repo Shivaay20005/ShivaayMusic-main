@@ -81,6 +81,11 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   bool _isRecoveringFromError = false;
   // Last song id that already got an automatic fresh-URL retry.
   String? _recoveredSongId;
+  // Position bookkeeping used to tell a genuinely stalled buffer (position
+  // frozen) from just_audio keeping `processingState == buffering` while the
+  // audio actually keeps playing.
+  Duration _lastObservedPosition = Duration.zero;
+  DateTime? _lastPositionAdvanceAt;
   final _initCompleter = Completer<void>();
 
   // list of shuffled queue songs ids
@@ -178,6 +183,71 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
   }
 
+  /// True when the playback position advanced within the last two seconds.
+  ///
+  /// just_audio can keep `processingState == buffering` while the stream is
+  /// already audible, and only emits a playback event when the state changes.
+  /// AudioService renders `loading`/`buffering` as a spinner, which is what made
+  /// the Android media notification show a loading arc for a song that was
+  /// playing. A moving position is proof that audio is flowing, so those states
+  /// are reported as `ready` while it advances. A real stall freezes the
+  /// position, so the spinner comes back within two seconds.
+  bool get _isPositionProgressing {
+    final lastAdvance = _lastPositionAdvanceAt;
+    return lastAdvance != null &&
+        DateTime.now().difference(lastAdvance) <
+            const Duration(seconds: 2);
+  }
+
+  /// The processing state to publish to AudioService.
+  AudioProcessingState get _audioServiceProcessingState {
+    if (isSongLoading) return AudioProcessingState.loading;
+    final state = _player.processingState;
+    if (_isPositionProgressing &&
+        (state == ProcessingState.loading ||
+            state == ProcessingState.buffering)) {
+      return AudioProcessingState.ready;
+    }
+    return const {
+      ProcessingState.idle: AudioProcessingState.idle,
+      ProcessingState.loading: AudioProcessingState.loading,
+      ProcessingState.buffering: AudioProcessingState.buffering,
+      ProcessingState.ready: AudioProcessingState.ready,
+      ProcessingState.completed: AudioProcessingState.completed,
+    }[state]!;
+  }
+
+  /// Records position progress and clears a stale spinner in the notification.
+  void _trackPlaybackProgress(Duration position) {
+    // Any position change (including a backward seek) proves the player is
+    // running; an unchanged position means it is paused or genuinely stalled.
+    if (position != _lastObservedPosition) {
+      _lastObservedPosition = position;
+      _lastPositionAdvanceAt = DateTime.now();
+      // A moving position while the player reports `playing` proves the track is
+      // audible, so a stuck loading flag must not keep the notification in its
+      // loading state.
+      if (_player.playing) isSongLoading = false;
+    }
+
+    if (!_player.playing || isSongLoading) return;
+    final published = playbackState.value.processingState;
+    if (published != AudioProcessingState.loading &&
+        published != AudioProcessingState.buffering) {
+      return;
+    }
+
+    // The media notification is still showing a spinner even though the song is
+    // audibly playing. Re-publish now instead of waiting for a playback event
+    // that may not arrive until the track ends.
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.ready,
+      playing: true,
+      updatePosition: position,
+      bufferedPosition: _player.bufferedPosition,
+    ));
+  }
+
   /// Publishes the player's *current* processing state.
   ///
   /// The playback event listener is the only place that translates
@@ -188,13 +258,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   void _emitCurrentProcessingState() {
     try {
       playbackState.add(playbackState.value.copyWith(
-        processingState: const {
-          ProcessingState.idle: AudioProcessingState.idle,
-          ProcessingState.loading: AudioProcessingState.loading,
-          ProcessingState.buffering: AudioProcessingState.buffering,
-          ProcessingState.ready: AudioProcessingState.ready,
-          ProcessingState.completed: AudioProcessingState.completed,
-        }[_player.processingState]!,
+        processingState: _audioServiceProcessingState,
         playing: _player.playing,
         updatePosition: _player.position,
         bufferedPosition: _player.bufferedPosition,
@@ -234,15 +298,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           MediaAction.seek,
         },
         androidCompactActionIndices: const [0, 1, 2],
-        processingState: isSongLoading
-            ? AudioProcessingState.loading
-            : const {
-                ProcessingState.idle: AudioProcessingState.idle,
-                ProcessingState.loading: AudioProcessingState.loading,
-                ProcessingState.buffering: AudioProcessingState.buffering,
-                ProcessingState.ready: AudioProcessingState.ready,
-                ProcessingState.completed: AudioProcessingState.completed,
-              }[_player.processingState]!,
+        processingState: _audioServiceProcessingState,
         repeatMode: const {
           LoopMode.off: AudioServiceRepeatMode.none,
           LoopMode.one: AudioServiceRepeatMode.one,
@@ -316,6 +372,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             ? 700
             : 0;
     _player.positionStream.listen((value) async {
+      _trackPlaybackProgress(value);
       if (_player.duration != null && _player.duration?.inSeconds != 0) {
         final duration = _player.duration;
         if (duration != null &&
@@ -765,6 +822,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         // A user-initiated play re-arms the automatic URL recovery.
         if (!isNewUrlReq) _recoveredSongId = null;
         isSongLoading = true;
+        _lastObservedPosition = Duration.zero;
+        _lastPositionAdvanceAt = null;
         playbackState.add(playbackState.value
             .copyWith(processingState: AudioProcessingState.loading));
 
@@ -874,6 +933,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         currentIndex = 0;
         _isAdvancing = false;
         _recoveredSongId = null;
+        _lastObservedPosition = Duration.zero;
+        _lastPositionAdvanceAt = null;
         playbackState.add(playbackState.value
             .copyWith(processingState: AudioProcessingState.loading));
         try {

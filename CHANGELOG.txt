@@ -16,11 +16,16 @@ HOW TO UPDATE THIS CHANGELOG
 
 [CI]
 - **Windows Plugin Patch Is Idempotent**: The `Relocate symlink-unsafe plugin extraction targets` step failed when a cached pub cache already contained a patched `smtc_windows` CMakeLists. It now treats an existing `CMAKE_BINARY_DIR/plugin_native_bin` LibRoot as success and only patches (or errors) when neither form is present.
+- **Windows Re-Publish Refreshes Assets**: Publishing the same version again deletes the old `Setup.exe`, `Portable.zip`, and checksum assets by name before uploading and retries each upload. This replaces `gh release upload --clobber`, which can fail with a stale-asset 404 and leave the previous build attached.
 
 [Playback]
-- **Spinner Stuck After the Song Started**: The play/pause button could keep showing the loading spinner for the whole track even though audio was playing. Two independent guards now clear it:
+- **Spinner Stuck After the Song Started**: The play/pause button could keep showing the loading spinner for the whole track even though audio was playing. Three independent guards now clear it:
   - `MyAudioHandler` gained `_emitCurrentProcessingState()`, called from the `finally` block of `playByIndex` and `setSourceNPlay`. Previously `isSongLoading` was only translated into a processing state inside the playback-event listener; while the player stayed in `buffering` no new event arrived, so the published state remained `loading` forever. The error state published by `_reportPlaybackFailure` is preserved.
   - `PlayerController._listenForChangesInPosition()` now flips `PlayButtonState.loading` to `playing` as soon as the playback position advances. A moving position proves the stream is playing, regardless of the last buffering event.
+  - **Android Media Notification Spinner**: The system notification showed a loading arc while the song was audible because `AudioService` renders `loading`/`buffering` as a spinner and just_audio can stay in `buffering` for a long time without emitting a new playback event. `MyAudioHandler` now tracks the position stream and publishes `ready` whenever the position changes while the notification still shows `loading`/`buffering`; the playback-event listener applies the same rule. A genuinely stalled buffer freezes the position, so the spinner still appears for real buffering.
+
+[Auth]
+- **Intermittent Login Screen After Clearing Recents**: A cold start could show `LoginScreen` even though the user was still signed in, because Firebase briefly reports no `currentUser` before it finishes restoring the persisted session, and the old 1.2 s fallback gave up too early and cleared the cached profile. `AuthService` now stores the last signed-in uid (`lastAuthUid`, with the old `userId` key as a fallback for upgrades), keeps the loading gate up, and confirms a `null` auth event by polling `FirebaseAuth.currentUser` for up to 8 s. Only a confirmed sign-out clears the cached profile; `signOut()` deletes the cached uid before signing out so the login screen appears immediately.
 
 [Theming]
 - **Contrast-Safe Colour Roles**: `ThemeController._withAccessibleComponents()` now derives `onSurface`, `onSurfaceVariant`, `onPrimary`, `onSecondary`, `onError`, and `onBackground` from the luminance of their own background (WCAG 0.179 threshold) instead of trusting `ColorScheme.fromSwatch`. This removes white-on-white controls in the light theme and white-on-light-accent controls in the dynamic theme.

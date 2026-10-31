@@ -22,7 +22,6 @@ class AuthService extends GetxService {
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userStatusSubscription;
   StreamSubscription<User?>? _authSubscription;
   String? _lastHandledUid;
-  bool _authStateResolved = false;
 
   final Rx<User?> _firebaseUser = Rx<User?>(null);
 
@@ -31,6 +30,16 @@ class AuthService extends GetxService {
   
   User? get currentUser => _firebaseUser.value;
   bool get isAuthenticated => _firebaseUser.value != null;
+
+  /// Uid of the last signed-in account cached on this device.
+  ///
+  /// `userId` is the key versions before 1.0.9 wrote, so it is used as a
+  /// fallback to keep upgrades from briefly showing the login screen.
+  String? get _cachedAuthUid {
+    final box = Hive.box('AppPrefs');
+    final uid = box.get('lastAuthUid') ?? box.get('userId');
+    return uid?.toString();
+  }
   
   // Observable user data
   final RxString userName = ''.obs;
@@ -53,20 +62,72 @@ class AuthService extends GetxService {
 
     Get.put(CloudService(), permanent: true);
     _loadUserDataFromHive();
-    _firebaseUser.value = _auth.currentUser;
 
-    _authSubscription = _auth.authStateChanges().listen((user) {
-      _authStateResolved = true;
-      _handleAuthState(user);
-    });
-    if (_auth.currentUser != null) {
-      _handleAuthState(_auth.currentUser);
+    // A cached uid means the user signed in on this device before. It lets the
+    // app keep the loading gate up while Firebase restores the persisted
+    // session instead of flashing the login screen on a cold start. `userId` is
+    // the key older versions wrote, so upgrades keep working.
+    final cachedUid = _cachedAuthUid;
+    final restoredUser = _auth.currentUser;
+    _firebaseUser.value = restoredUser;
+
+    _authSubscription = _auth.authStateChanges().listen(_onAuthStateChanged);
+
+    if (restoredUser != null) {
+      _handleAuthState(restoredUser);
+    } else if (cachedUid == null || cachedUid.isEmpty) {
+      // Fresh install or an explicit sign-out: nothing to restore.
+      isInitializing.value = false;
     } else {
-      // Give Firebase a short window to emit its persisted session before
-      // showing LoginScreen. This avoids a cold-start login flash.
-      Future<void>.delayed(const Duration(milliseconds: 1200), () {
-        if (!_authStateResolved) isInitializing.value = false;
-      });
+      _confirmSessionRestore();
+    }
+  }
+
+  /// Handles every Firebase auth state event.
+  ///
+  /// On a cold start Firebase can emit `null` before it has read the persisted
+  /// session from disk, which used to clear the cached profile and show the
+  /// login screen even though the user was still signed in. A `null` is now
+  /// confirmed against [FirebaseAuth.currentUser] before the app logs out.
+  void _onAuthStateChanged(User? user) {
+    if (user != null) {
+      _handleAuthState(user);
+      return;
+    }
+
+    final cachedUid = _cachedAuthUid;
+    if (cachedUid == null || cachedUid.isEmpty) {
+      _handleAuthState(null);
+      return;
+    }
+    _confirmSessionRestore();
+  }
+
+  bool _confirmingRestore = false;
+
+  /// Waits briefly for Firebase to hand back the persisted session.
+  ///
+  /// Only when [FirebaseAuth.currentUser] stays null for the whole grace period
+  /// is the session considered gone (revoked, password changed, app data
+  /// cleared) and the login screen shown.
+  Future<void> _confirmSessionRestore() async {
+    if (_confirmingRestore) return;
+    _confirmingRestore = true;
+
+    for (var attempt = 0; attempt < 20; attempt++) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      final user = _auth.currentUser;
+      if (user != null) {
+        _confirmingRestore = false;
+        _handleAuthState(user);
+        return;
+      }
+    }
+
+    _confirmingRestore = false;
+    if (_auth.currentUser == null) {
+      Hive.box('AppPrefs').delete('lastAuthUid');
+      _handleAuthState(null);
     }
   }
 
@@ -434,6 +495,10 @@ class AuthService extends GetxService {
         Get.find<PlayerController>().clearQueue();
       }
       
+      // Forget the cached session before Firebase emits its sign-out event so
+      // the listener shows LoginScreen immediately instead of waiting for the
+      // restore-confirmation grace period.
+      Hive.box('AppPrefs').delete('lastAuthUid');
       await _auth.signOut();
       _clearUserDataFromHive();
     } catch (e) {
@@ -477,6 +542,7 @@ class AuthService extends GetxService {
   /// Save user data to Hive for offline access
   void _saveUserDataToHive(User user, {String? name}) {
     final box = Hive.box('AppPrefs');
+    box.put('lastAuthUid', user.uid);
     box.put('userId', user.uid);
     box.put('userEmail', user.email ?? '');
     box.put('userName', name ?? user.displayName ?? '');
@@ -515,6 +581,7 @@ class AuthService extends GetxService {
 
   void _clearUserDataFromHive() {
     final box = Hive.box('AppPrefs');
+    box.delete('lastAuthUid');
     box.delete('userId');
     box.delete('userEmail');
     box.delete('userName');
