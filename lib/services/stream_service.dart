@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shivaaymusic/services/app_logs.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 /// Apple Vision Pro (VISIONOS) Innertube client.
@@ -156,15 +157,22 @@ const _webUserAgent =
 ///
 /// A URL minted without a visitor id (or for a session Google distrusts) is a
 /// **preview**: it serves roughly the first megabyte and then refuses every
-/// later range with a 403. Asking for two megabytes in one range is what
+/// later range with a 403. Asking for more than a megabyte in one range is what
 /// separates such a URL from a real one — the same test OpenTune's probe uses.
-const _probeRangeBytes = 2 * 1024 * 1024;
+///
+/// 256 KB is enough for that test and is 8x less data than the 2 MB range the
+/// probe used to request. The response is cancelled as soon as
+/// [_probeReadBytes] have arrived, so the range only bounds what the CDN starts
+/// sending on a metered connection.
+const _probeRangeBytes = 256 * 1024;
 
 /// How many bytes of the probe response must actually arrive.
 ///
 /// Headers can arrive long before a body that never does — exactly the
-/// throttling that shows up as a song that buffers forever.
-const _probeReadBytes = 16 * 1024;
+/// throttling that shows up as a song that buffers forever. 8 KB is several
+/// audio frames: enough to prove the body is flowing, small enough that a
+/// mobile connection answers in a few hundred milliseconds.
+const _probeReadBytes = 8 * 1024;
 
 /// Thrown when YouTube answers `429` or its "sorry" bot page.
 ///
@@ -363,7 +371,15 @@ class StreamProvider {
   static String? _visitorData;
   static DateTime? _visitorMintedAt;
   static Future<String?>? _visitorInFlight;
+  static DateTime? _visitorFailedAt;
   static final http.Client _visitorHttp = _ExtractionHttpClient();
+
+  /// How long to stop asking for a visitor id after a failed mint.
+  ///
+  /// Without this, a network where `sw.js_data` is blocked (or intercepted by
+  /// a captive portal) paid for the full 4 s timeout *before every song*, for
+  /// ever: the failure was never cached, so each extraction retried it.
+  static const Duration _visitorFailureBackoff = Duration(minutes: 5);
 
   /// How long a minted visitor id is trusted before a fresh one is taken.
   ///
@@ -382,11 +398,20 @@ class StreamProvider {
         DateTime.now().difference(mintedAt) < _visitorLifetime) {
       return Future.value(cached);
     }
+
+    // A recent failure is remembered so the timeout is not paid per song.
+    final failedAt = _visitorFailedAt;
+    if (failedAt != null &&
+        DateTime.now().difference(failedAt) < _visitorFailureBackoff) {
+      return Future.value(null);
+    }
+
     return _visitorInFlight ??=
         _fetchVisitorData().whenComplete(() => _visitorInFlight = null);
   }
 
   static Future<String?> _fetchVisitorData() async {
+    final clock = Stopwatch()..start();
     try {
       final response = await _visitorHttp.get(
         Uri.parse('https://www.youtube.com/sw.js_data'),
@@ -395,19 +420,39 @@ class StreamProvider {
           'Content-Type': 'application/json',
         },
       ).timeout(const Duration(seconds: 4));
-      if (response.statusCode != 200) return null;
+      if (response.statusCode != 200) {
+        _visitorFailedAt = DateTime.now();
+        AppLogs.write('stream',
+            'visitor-id mint failed: HTTP ${response.statusCode} in ${clock.elapsedMilliseconds}ms');
+        return null;
+      }
       final body = response.body;
       // The payload is an anti-hijacking prefix followed by nested arrays; the
       // id is found by its shape rather than by a path that would rot.
       final start = body.indexOf('[');
-      if (start == -1) return null;
+      if (start == -1) {
+        _visitorFailedAt = DateTime.now();
+        AppLogs.write('stream',
+            'visitor-id mint failed: no payload in ${clock.elapsedMilliseconds}ms');
+        return null;
+      }
       final found = _findVisitorData(jsonDecode(body.substring(start)));
       if (found != null) {
         _visitorData = found;
         _visitorMintedAt = DateTime.now();
+        _visitorFailedAt = null;
+        AppLogs.write('stream',
+            'visitor-id minted in ${clock.elapsedMilliseconds}ms (${found.length} chars)');
+      } else {
+        _visitorFailedAt = DateTime.now();
+        AppLogs.write('stream',
+            'visitor-id mint failed: pattern not found in ${clock.elapsedMilliseconds}ms');
       }
       return found;
-    } catch (_) {
+    } catch (e) {
+      _visitorFailedAt = DateTime.now();
+      AppLogs.write('stream',
+          'visitor-id mint error in ${clock.elapsedMilliseconds}ms: $e');
       return null;
     }
   }
@@ -470,7 +515,24 @@ class StreamProvider {
   /// 200 — was handed straight to the player, where it showed up as a song that
   /// buffered forever. This is what OpenTune's probe does: a real ranged GET
   /// with the headers playback will use, requiring audio bytes to arrive.
+  /// Times [probeUrl] and records slow/failed validations.
+  ///
+  /// The probe runs on the critical path (nothing is handed to the player
+  /// before it answers), so its duration is the difference between a song that
+  /// starts instantly and one that appears stuck. Logging only the slow and
+  /// failed cases keeps the file readable on a normal connection.
   static Future<bool> _probe(String url) async {
+    final clock = Stopwatch()..start();
+    final ok = await _probeUrl(url);
+    final ms = clock.elapsedMilliseconds;
+    if (!ok || ms > 800) {
+      final itag = Uri.tryParse(url)?.queryParameters['itag'] ?? '?';
+      AppLogs.write('probe', '${ok ? 'OK' : 'FAIL'} ${ms}ms itag=$itag');
+    }
+    return ok;
+  }
+
+  static Future<bool> _probeUrl(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return false;
     StreamSubscription<List<int>>? subscription;
@@ -566,14 +628,37 @@ class StreamProvider {
     _cooldownUntil = null;
   }
 
+  /// Records that [client] could not serve [videoId].
+  ///
+  /// Only pass a client here when the *identity* is at fault (rate limit,
+  /// timeout, SABR-only answer). A video that is unplayable in every region —
+  /// copyright, age gate, removed — says nothing about the client, and charging
+  /// it to the client is what used to disable the only working identities for
+  /// ten minutes after three such songs in a row.
   static void _refused(String videoId, YoutubeApiClient client) {
     final key = _clientKey(client);
     final tracks = _refusalsByClient.putIfAbsent(key, () => <String>{});
     tracks.add(videoId);
     if (tracks.length >= 3) {
       tracks.clear();
-      _standDownUntil[key] = DateTime.now().add(const Duration(minutes: 10));
+      // Two minutes: long enough to ride out a short block, short enough that a
+      // wrongly accused identity is back before the listener gives up and
+      // reinstalls the app.
+      _standDownUntil[key] = DateTime.now().add(const Duration(minutes: 2));
+      AppLogs.write('stream', 'stand-down $key for 2 minutes');
     }
+  }
+
+  /// True when a library error describes a blocked/rate-limited connection
+  /// rather than a problem with this particular video.
+  static bool _looksBlocked(YoutubeExplodeException e) {
+    final message = e.message.toLowerCase();
+    return message.contains('429') ||
+        message.contains('403') ||
+        message.contains('too many requests') ||
+        message.contains('rate limit') ||
+        message.contains('sign in to confirm') ||
+        message.contains('not a bot');
   }
 
   /// Resolves [videoId] once, even if several callers ask for it at the same
@@ -600,16 +685,24 @@ class StreamProvider {
 
     Object? lastError;
     var sawRateLimit = false;
+    final sessionClock = Stopwatch()..start();
 
     // One visitor id for the whole session, minted before the first request.
     // Without it the clients either refuse outright or hand back URLs that
     // only look playable.
     final visitorData = await _ensureVisitorData();
 
+    AppLogs.write('stream',
+        'resolve video=$videoId candidates=${candidates.length} '
+        'visitor=${visitorData == null ? "none" : "ok"}');
+
     for (var i = 0; i < candidates.length; i++) {
       final client = candidates[i];
+      final key = _clientKey(client);
+      final clock = Stopwatch()..start();
       StreamProvider? provider;
       var refusalRecorded = false;
+      var threw = false;
 
       try {
         final res = await _yt.videos.streamsClient
@@ -625,10 +718,11 @@ class StreamProvider {
               requireWatchPage: false,
             )
             // A hung connection used to leave the player on its loading spinner
-            // forever, because `package:http` has no timeout of its own. Ten
-            // seconds is far longer than a healthy player request and short
-            // enough that the next identity can still be tried.
-            .timeout(const Duration(seconds: 10));
+            // forever, because `package:http` has no timeout of its own. Seven
+            // seconds is longer than a healthy player request and short enough
+            // that the next identity can still be tried; the old chain could
+            // spend ten seconds here, six times over.
+            .timeout(const Duration(seconds: 7));
         provider = _fromManifest(res);
         // A manifest is only a promise. Read the URL that will actually be
         // played before handing it over; a URL that answers headers and then
@@ -637,17 +731,20 @@ class StreamProvider {
           provider = null;
         }
       } on VideoRequiresPurchaseException {
+        AppLogs.write('stream', 'client=$key video=$videoId requires purchase');
         return StreamProvider(
           playable: false,
           statusMSG: "Song requires purchase",
         );
       } on TimeoutException catch (e) {
         lastError = e;
+        threw = true;
         _refused(videoId, client);
         refusalRecorded = true;
       } on _RateLimitedError catch (e) {
         sawRateLimit = true;
         lastError = e;
+        threw = true;
         _refused(videoId, client);
         refusalRecorded = true;
         // Pause pre-fetching for a minute: the block is about the connection,
@@ -656,26 +753,44 @@ class StreamProvider {
       } on SocketException catch (e) {
         // The network itself is down; another identity cannot help.
         lastError = e;
+        threw = true;
         break;
       } on YoutubeExplodeException catch (e) {
         lastError = e;
-        _refused(videoId, client);
-        refusalRecorded = true;
+        threw = true;
+        // `UNPLAYABLE`, `LOGIN_REQUIRED` and regional blocks say something
+        // about this video, not about the identity that answered. Taking a
+        // client out of rotation for those used to disable the only working
+        // identities for ten minutes after three such songs in a row.
+        if (_looksBlocked(e)) {
+          _refused(videoId, client);
+          refusalRecorded = true;
+        }
       } catch (e) {
         lastError = e;
-        _refused(videoId, client);
-        refusalRecorded = true;
+        threw = true;
       }
 
       if (provider != null) {
         _served(client);
         _remember(client);
+        AppLogs.write('stream',
+            'client=$key OK ${clock.elapsedMilliseconds}ms '
+            'itags=${provider.audioFormats?.map((f) => f.itag).join(",")} '
+            'total=${sessionClock.elapsedMilliseconds}ms');
         return provider;
       }
+
+      final reason = lastError?.toString() ?? 'no playable audio';
+      AppLogs.write('stream',
+          'client=$key FAILED ${clock.elapsedMilliseconds}ms: $reason');
+
       // The request succeeded but the client answered without any audio the
-      // player can use (SABR-only formats). Count that as a refusal so the
-      // identity is rotated out instead of being tried first on every song.
-      if (!refusalRecorded) _refused(videoId, client);
+      // player can use (SABR-only formats). That is the only case left where a
+      // client is charged without an error already having done so: a thrown
+      // error above means the identity was either counted or deliberately
+      // spared, never both.
+      if (!refusalRecorded && !threw) _refused(videoId, client);
 
       // A short pause between identities. Firing all three in the same
       // millisecond is what YouTube reads as a burst.
@@ -683,6 +798,9 @@ class StreamProvider {
         await Future<void>.delayed(const Duration(milliseconds: 250));
       }
     }
+
+    AppLogs.write('stream',
+        'resolve FAILED video=$videoId in ${sessionClock.elapsedMilliseconds}ms: $lastError');
 
     if (sawRateLimit) {
       return StreamProvider(

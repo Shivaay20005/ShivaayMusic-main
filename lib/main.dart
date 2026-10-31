@@ -25,6 +25,7 @@ import '/services/room_chat_service.dart';
 import '/services/listening_stats_service.dart';
 import 'utils/app_link_controller.dart';
 import '/services/audio_handler.dart';
+import '/services/app_logs.dart';
 import '/services/music_service.dart';
 import '/services/audio_booster_controller.dart';
 import '/ui/home.dart';
@@ -39,12 +40,17 @@ import 'utils/system_tray.dart';
 import 'ui/widgets/maintenance_overlay.dart';
 import 'utils/update_check_flag_file.dart';
 
-const String _appBuildLabel = 'Version 1.0.9 • Build 14';
+const String _appBuildLabel = 'Version 1.0.10 • Build 15';
 final ValueNotifier<String> _startupStatus =
     ValueNotifier<String>('Preparing your music space…');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // File logging first: everything after this point is allowed to fail, and a
+  // failure that only exists in a release build is invisible without this file
+  // (print* output is compiled out and another app cannot read our logcat).
+  await AppLogs.init().timeout(const Duration(seconds: 5), onTimeout: () {});
 
   // just_audio has no native desktop implementation. Without registering the
   // media_kit backend before any AudioPlayer is created, Windows/Linux playback
@@ -59,9 +65,11 @@ Future<void> main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint('FlutterError: ${details.exceptionAsString()}');
+    AppLogs.error('flutter', details.exceptionAsString(), details.stack);
   };
   PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
     debugPrint('Uncaught error: $error\n$stack');
+    AppLogs.error('uncaught', error, stack);
     return true;
   };
 

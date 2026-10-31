@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '/ui/utils/theme_controller.dart';
 import 'package:shivaaymusic/utils/helper.dart';
 import 'package:shivaaymusic/services/music_service.dart';
+import 'package:shivaaymusic/services/app_logs.dart';
 import '../../../widgets/cust_switch.dart';
 import '../settings_screen_controller.dart';
 import '/ui/player/player_controller.dart';
@@ -346,6 +347,47 @@ class MusicPlaybackSettingsPage extends StatelessWidget {
               ),
             ),
           ],
+
+          // Diagnostics: the only way to see what playback actually did.
+          // Android hides this app's logcat from every other app, and the
+          // print* helpers are compiled out of release builds, so the log file
+          // is what a bug report can be built from.
+          const Divider(),
+          _buildSectionHeader(context, "Diagnostics"),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            title: const Text("Share logs"),
+            subtitle: Text(
+                "Attaches app_logs.txt (playback, extraction and network "
+                "decisions) to any app — Telegram, email, Drive.",
+                style: Theme.of(context).textTheme.bodyMedium),
+            trailing: const Icon(Icons.share_outlined),
+            onTap: () async {
+              final shared = await AppLogs.share();
+              Get.snackbar(
+                "Logs",
+                shared
+                    ? "Log file attached — pick where to send it."
+                    : "No log file yet. Play a song first, then try again.",
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            },
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            title: const Text("Clear logs"),
+            subtitle: Text("Deletes the current log file.",
+                style: Theme.of(context).textTheme.bodyMedium),
+            trailing: const Icon(Icons.delete_outline),
+            onTap: () async {
+              await AppLogs.clear();
+              Get.snackbar(
+                "Logs",
+                "Log file cleared.",
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            },
+          ),
         ],
       ),
     );

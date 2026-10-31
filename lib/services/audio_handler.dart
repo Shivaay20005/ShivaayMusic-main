@@ -24,6 +24,7 @@ import '/services/background_task.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../utils/helper.dart';
 import '/models/media_Item_builder.dart';
+import '/services/app_logs.dart';
 import '/services/utils.dart';
 // import '/services/listening_stats_service.dart';
 import '../ui/screens/Settings/settings_screen_controller.dart';
@@ -467,11 +468,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       // Fall back to the default when preferences are not ready yet.
     }
 
-    final targets = <int>[
-      _queueIndexAtOffset(1),
-      if (smartPrefetch) _queueIndexAtOffset(2),
-      if (smartPrefetch) _queueIndexAtOffset(-1),
-    ];
+    // Warm only the next track.
+    //
+    // This used to warm the track after next and the previous one as well, so a
+    // single tap could start four extractions (each with a ranged probe) on top
+    // of the one being played. On a metered Indian connection that burst is what
+    // got the IP rate limited, which is then what made songs stop playing.
+    if (!smartPrefetch) return;
+    final targets = <int>[_queueIndexAtOffset(1)];
 
     final ids = <String>[];
     for (final index in targets) {
@@ -861,6 +865,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   /// and shows a snackbar with a Retry action. Without the finally/clear in the
   /// callers an exception used to leave [isSongLoading] stuck at true forever.
   void _reportPlaybackFailure(String message) {
+    AppLogs.write('play', 'playback FAILED: $message');
     isSongLoading = false;
     currentSongUrl = null;
     playbackState.add(playbackState.value.copyWith(
@@ -902,6 +907,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final isNewUrlReq = extras['newUrl'] ?? false;
         final bool restoreSession = extras['restoreSession'] ?? false;
         final currentSong = queue.value[songIndex];
+        final playClock = Stopwatch()..start();
+        AppLogs.write('play',
+            'playByIndex index=$songIndex song=${currentSong.id} title=${currentSong.title} newUrl=$isNewUrlReq');
         // A user-initiated play re-arms the automatic URL recovery.
         if (!isNewUrlReq) _recoveredSongId = null;
         isSongLoading = true;
@@ -958,6 +966,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             }
           } else {
             await _player.play();
+            AppLogs.write('play',
+                'play() called ${playClock.elapsedMilliseconds}ms after tap '
+                'itag=${audio.itag} cache=${isPlayingUsingLockCachingSource}');
           }
 
           // Warm the next track's URL while this one is playing.
@@ -1434,6 +1445,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   Future<SMStreamingData> checkNGetUrl(String songId,
       {bool generateNewUrl = false, bool offlineReplacementUrl = false}) async {
     await _initCompleter.future;
+    final clock = Stopwatch()..start();
     printINFO("Requested id : $songId");
 
     final songDownloadsBox = Hive.box("SongDownloads");
@@ -1454,6 +1466,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
     if (hasCachedSong) {
       printINFO("Got Song from cachedbox ($songId)");
+      AppLogs.write('play',
+          'cache-hit(file) $songId ${clock.elapsedMilliseconds}ms');
       // if contains stream Info
       final cacheEntry = songsCacheBox.get(songId);
       final streamInfo =
@@ -1540,6 +1554,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           final cachedUrl = preferred is Map ? preferred['url'] : null;
           if (cachedUrl is String && !isExpired(url: cachedUrl)) {
             printINFO("Got cached Url ($songId)");
+            AppLogs.write('play',
+                'cache-hit(url) $songId ${clock.elapsedMilliseconds}ms');
             try {
               streamInfo = SMStreamingData.fromJson(cached);
             } catch (e) {
@@ -1560,6 +1576,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           final streamInfoJson = await getStreamInfo(songId);
           streamInfo = SMStreamingData.fromJson(streamInfoJson);
           if (streamInfo.playable) songsUrlCacheBox.put(songId, streamInfoJson);
+          AppLogs.write('play',
+              'resolved $songId playable=${streamInfo.playable} '
+              'msg=${streamInfo.statusMSG} ${clock.elapsedMilliseconds}ms');
         } catch (e, st) {
           printERROR("Failed to resolve stream for $songId: $e\n$st");
           return SMStreamingData(
