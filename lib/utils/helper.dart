@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shivaaymusic/services/app_logs.dart';
 import 'package:shivaaymusic/ui/navigator.dart';
 import 'package:shivaaymusic/ui/widgets/sort_widget.dart';
 
@@ -36,17 +37,26 @@ Future<void> launchUrlSafe(String url) async {
   }
 }
 
+// `print*` helpers now persist every line to AppLogs as well.
+//
+// The console output is still debug-only (it costs a jank-free but useless
+// syscall in release), but the file keeps working in release builds. That is
+// what makes "songs do not play" reportable without adb, Shizuku or a bug
+// report: Settings -> Music & Playback -> Diagnostics -> Share logs.
 void printERROR(dynamic text, {String tag = "ShivaayMusic"}) {
+  AppLogs.write('E/$tag', text);
   if (kReleaseMode) return;
   debugPrint("\x1B[31m[$tag]: $text\x1B[0m");
 }
 
 void printWarning(dynamic text, {String tag = 'ShivaayMusic'}) {
+  AppLogs.write('W/$tag', text);
   if (kReleaseMode) return;
   debugPrint("\x1B[33m[$tag]: $text\x1B[34m");
 }
 
 void printINFO(dynamic text, {String tag = 'ShivaayMusic'}) {
+  AppLogs.write('I/$tag', text);
   if (kReleaseMode) return;
   debugPrint("\x1B[32m[$tag]: $text\x1B[34m");
 }

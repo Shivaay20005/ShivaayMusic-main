@@ -9,6 +9,46 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#31 Update - 1.0.10 - 2026-11-01
+-------------------
+[Diagnostics]
+- **In-App Log File (`AppLogs`)**: every `printINFO`/`printERROR` line is now also appended to
+  `Documents/logs/app_logs.txt` (3 MB cap, rotated), and it works in release builds too —
+  previously the helpers returned early when `kReleaseMode`, so a released APK recorded nothing.
+  Path: `lib/services/app_logs.dart`.
+- **Share / Clear Logs**: Settings → Music & Playback → Diagnostics → "Share logs" opens the
+  Android share sheet with the file attached; "Clear logs" resets it. This is how a playback
+  failure can be reported without adb, Shizuku or a system bug report (Android hides this app's
+  logcat from every other app).
+- **Extraction Telemetry**: `StreamProvider._resolve` logs, per attempted client, its identity,
+  the outcome, the elapsed milliseconds, the chosen itags and the total resolve time; the probe
+  logs only slow/failed validations; the visitor-id mint logs success, failure and duration.
+  `checkNGetUrl` logs cache hits and resolve timings, and `playByIndex` logs the time from tap
+  to `play()`.
+- **Uncaught Errors**: `FlutterError.onError` and `PlatformDispatcher.onError` now write to the
+  log file as well.
+
+[Playback]
+- **Stand-down No Longer Punishes Working Clients**: `UNPLAYABLE`, `LOGIN_REQUIRED` and regional
+  blocks are properties of a *video*, not of the identity that answered. They no longer count
+  towards `_refused()`, so three unavailable songs in a row can no longer remove the only working
+  clients from rotation. The stand-down window itself dropped from 10 to 2 minutes.
+- **Visitor-ID Failure Is Cached**: a failed mint (`sw.js_data` blocked, captive portal, timeout)
+  is remembered for 5 minutes instead of being retried — at a 4 s timeout — before *every* song.
+- **Cheaper Validation Probe**: the ranged probe now asks for 256 KB and reads 8 KB (was 2 MB /
+  16 KB). It still rejects preview-only URLs, but costs a fraction of the data and time on a
+  metered connection.
+- **Prefetch Back to One Track**: `_prefetchUpcoming()` warms only the next track. Warming the
+  two-after and the previous one meant up to four extractions (each with a probe) per song, which
+  is what got the connection rate limited. Turning smart pre-fetch off now stops warm-up entirely.
+- **Shorter Extraction Timeout**: 10 s → 7 s per identity, so the six-client chain has a bounded
+  worst case.
+
+[CI]
+- **APK Build Workflow (`.github/workflows/android.yml`)**: builds debug + release APKs on every
+  push and uploads them as artifacts. Release signing uses the keystore already committed in the
+  repository (`key.properties`), so the APK installs as an update over the published build.
+
 #30 Update - 1.0.9 - 2026-10-31
 -------------------
 [Version]
