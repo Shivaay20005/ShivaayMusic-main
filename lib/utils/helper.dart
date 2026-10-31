@@ -191,33 +191,115 @@ void sortArtist(
   }
 }
 
+/// Repositories whose latest published version decides whether an update is
+/// advertised. The first entry is the original download repository that every
+/// installed copy already polls; the second is the build repository so a new
+/// release is still detected if the legacy sync has not run yet.
+List<String> get _versionCheckRepos => [
+      'Shivaay20005/ShivaayMusic',
+      'Shivaay20005/ShivaayMusic-main',
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows)
+        'Shivaay20005/ShivaayMusic-Windows-release',
+    ];
+
+/// Parses `1.0.8`, `v1.0.8`, `V1.0.8+13` (and similar) into comparable parts.
+List<int> _parseVersionParts(String raw) {
+  final withoutPrefix = raw.trim().replaceFirst(RegExp(r'^[vV]'), '');
+  final core = withoutPrefix.split('+').first;
+  return core
+      .split('.')
+      .map((part) => int.tryParse(part.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
+      .toList();
+}
+
+/// Returns true when [available] is a newer version than [current].
+///
+/// This replaces the previous hand-written comparison, which crashed on
+/// short tags (for example `1.0`), treated `1.0.10` as older than `1.0.9`, and
+/// relied on the first tag returned by the API instead of the highest one.
+bool isVersionNewer(String current, String available) {
+  final currentParts = _parseVersionParts(current);
+  final availableParts = _parseVersionParts(available);
+  final length = currentParts.length > availableParts.length
+      ? currentParts.length
+      : availableParts.length;
+
+  for (var i = 0; i < length; i++) {
+    final currentPart = i < currentParts.length ? currentParts[i] : 0;
+    final availablePart = i < availableParts.length ? availableParts[i] : 0;
+    if (availablePart != currentPart) {
+      return availablePart > currentPart;
+    }
+  }
+  return false;
+}
+
+/// Reads the newest published version from one repository.
+///
+/// The releases endpoint is preferred because it is ordered and points at the
+/// build that is actually downloadable. The tags endpoint is a fallback for
+/// repositories that have tags but no releases yet. The tags list is scanned
+/// in full so a re-pushed older tag cannot hide the newest one.
+Future<String?> _latestVersionFromRepo(String repo) async {
+  final dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+    headers: const {
+      'Accept': 'application/vnd.github+json',
+      'User-Agent': 'ShivaayMusic-App',
+    },
+  ));
+
+  try {
+    final response =
+        await dio.get('https://api.github.com/repos/$repo/releases/latest');
+    final data = response.data;
+    if (data is Map && data['tag_name'] is String) {
+      final tag = data['tag_name'] as String;
+      if (RegExp(r'^[vV]?\d').hasMatch(tag)) return tag;
+    }
+  } catch (_) {
+    // No release yet (or rate limited); fall back to the tags endpoint.
+  }
+
+  try {
+    final response =
+        await dio.get('https://api.github.com/repos/$repo/tags?per_page=100');
+    final data = response.data;
+    if (data is List) {
+      String? newest;
+      for (final tag in data) {
+        if (tag is! Map || tag['name'] is! String) continue;
+        final name = tag['name'] as String;
+        if (!RegExp(r'^[vV]?\d').hasMatch(name)) continue;
+        if (newest == null || isVersionNewer(newest, name)) newest = name;
+      }
+      return newest;
+    }
+  } catch (_) {
+    // Network/permission errors are non-fatal: do not advertise an update.
+  }
+
+  return null;
+}
+
 Future<bool> newVersionCheck(String currentVersion) async {
   try {
-    final tags = (await Dio()
-            .get("https://api.github.com/repos/Shivaay20005/ShivaayMusic/tags"))
-        .data;
-    final availableVersion = tags[0]['name'] as String;
-    
-    // Remove "v" or "V" prefix if present
-    String cleanCurrent = currentVersion.replaceAll(RegExp(r'[vV]'), '');
-    String cleanAvailable = availableVersion.replaceAll(RegExp(r'[vV]'), '');
-    
-    List currentVersion_ = cleanCurrent.split(".");
-    List availableVersion_ = cleanAvailable.split(".");
-    
-    if (int.parse(availableVersion_[0]) > int.parse(currentVersion_[0])) {
-      return true;
-    } else if (int.parse(availableVersion_[1]) >
-            int.parse(currentVersion_[1]) &&
-        int.parse(availableVersion_[0]) == int.parse(currentVersion_[0])) {
-      return true;
-    } else if (int.parse(availableVersion_[2]) >
-            int.parse(currentVersion_[2]) &&
-        int.parse(availableVersion_[0]) == int.parse(currentVersion_[0]) &&
-        int.parse(availableVersion_[1]) == int.parse(currentVersion_[1])) {
-      return true;
+    // Query the repositories concurrently so a slow/unreachable host cannot
+    // stack up its timeout on top of the others.
+    final candidates = await Future.wait(
+        _versionCheckRepos.map((repo) => _latestVersionFromRepo(repo)));
+
+    String? newest;
+    for (final candidate in candidates) {
+      if (candidate == null) continue;
+      if (newest == null || isVersionNewer(newest, candidate)) {
+        newest = candidate;
+      }
     }
-    return false;
+
+    if (newest == null) return false;
+    return isVersionNewer(currentVersion, newest);
   } catch (e) {
     return false;
   }

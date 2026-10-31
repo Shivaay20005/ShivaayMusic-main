@@ -9,6 +9,56 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#29 Release - 1.0.8 - 2026-10-31
+-------------------
+[Release]
+- **Version 1.0.8 (Build 13)**: Bumped everywhere the app exposes a version — `pubspec.yaml` (`1.0.8+13`), the startup build label in `lib/main.dart`, the Settings version fallback, `windows/runner/Runner.rc` (`1.0.8.13`), the Inno Setup `AppVersion`, and `LICENSE`.
+- **Automatic Tagging**: A push to the default branch now creates the version tag from `pubspec.yaml` and publishes the GitHub Release without any manual step. A manual workflow run can still publish a selected branch through the `publish_release` checkbox.
+- **All Android Formats**: Each release now ships the universal APK, per-ABI APKs (`arm64-v8a`, `armeabi-v7a`, `x86_64`), an Android App Bundle (AAB), and SHA-256 checksums.
+- **Automatic Update Notification**: The release is mirrored to the legacy download repositories (`Shivaay20005/ShivaayMusic` and `Shivaay20005/ShivaayMusic-Windows-release`) so every already-installed copy receives the in-app “new version available” prompt. Mirroring is skipped with a warning when the `RELEASE_SYNC_TOKEN` secret is missing.
+- **Windows Assets in the Same Release**: The Windows workflow now waits for the Android release job to create the tag, then attaches the installer and portable ZIP to the same release instead of only attaching on a tag push.
+
+[Critical Fixes]
+- **Windows/Linux Audio Backend**: `JustAudioMediaKit.ensureInitialized()` is now called in `main()` before any `AudioPlayer` is created. Without it just_audio kept the default mobile-only platform implementation, so desktop playback never loaded any audio. `media_kit`, `media_kit_libs_linux`, and `media_kit_libs_windows_audio` are now declared directly in `pubspec.yaml` instead of relying on a stale transitive resolve.
+- **Startup Deadlock (Restore Session)**: `MyAudioHandler._init()` no longer calls `restoreSession()`. That method uses `checkNGetUrl()`, which awaits `_initCompleter`, while the completer was only completed after `_init()` returned, so users with a saved session waited for the full 30-second startup timeout. Session restore stays with `PlayerController._restorePrevSession()`.
+- **Session Restore Robustness**: `_restorePrevSession()` is wrapped in a guarded block, skips corrupt saved queue entries instead of aborting, clamps the saved index to the restored queue length, and always closes the Hive box. Session serialization also tolerates media items without `extras`.
+- **403 / Expired Stream Recovery**: Playback errors now recover for `PlayerException` too (previously only the generic branch retried), fetch a fresh media URL once per song, and resume near the previous position. A second failure shows a Retry snackbar instead of leaving the player stuck.
+- **Stuck Loading State**: `playByIndex` and `setSourceNPlay` are wrapped in `try/catch/finally`, so `isSongLoading` is always reset and a failed fetch can no longer leave the player permanently loading.
+- **Missing Cached Song Files**: `checkNGetUrl()` now verifies that `cachedSongs/<id>.mp3` still exists before returning a `file://` URL. Android clearing the temporary cache directory previously produced unplayable cached entries; the stale Hive entry is removed and the song falls back to online streaming.
+- **Null Safety in Stream Data**: `SMStreamingData.fromJson()` rejects playable responses without audio formats, cached-URL expiry checks no longer dereference `lowQualityAudio` blindly, and the quality getters in `StreamProvider` return `null` instead of throwing on empty format lists.
+- **Cache Directory Init Race**: `_createCacheDir()` is now awaited inside `_init()` instead of running detached from the constructor. `_cacheDir` is `late final` and is used by `checkNGetUrl()`/`_createAudioSource()`, so the previous ordering could throw `LateInitializationError` on a fast start.
+- **Downloaded Song Cache Fallback**: The fallback for a missing `SongDownloads` entry is now a typed map (`<String, dynamic>{}`) instead of the inferred `Map<dynamic, dynamic>` from a bare `{}`, and `Audio.fromJson()` tolerates old/incomplete cache entries (missing codec, itag, size, or URL) instead of throwing.
+- **Unplayable Cached Entries**: A cached stream entry whose audio URLs are both empty is now reported as a playback error instead of being handed to just_audio as an empty URL.
+
+[Playback]
+- **End-of-Track Double Skip**: Added an `_isAdvancing` guard around the position-stream trigger. The stream emits several times while the position sits at the end, which previously called `skipToNext()` multiple times and skipped songs.
+- **Faster Song Start**: Smart prefetch is enabled by default and now warms the next track's URL as soon as a song starts and again when the queue is replaced, instead of waiting for the last 30 seconds. The prefetch window was widened to 45s / 75%.
+- **Prefetch Throttling + Shuffle Safety**: Each prefetch attempt is recorded for the current track, so the position stream can no longer re-run a failing extraction several times per second (which hammered YouTube). Prefetching uses a non-mutating `_peekNextSongIndex()` so it no longer consumes the shuffle cursor.
+- **Queue Race**: `pushSongToQueue` tags its watch-playlist request with an incrementing id, and stale responses are ignored. `updateQueue()` now keeps `currentIndex` pointing at the actually playing item when the queue is replaced asynchronously.
+- **Index Guards**: `playByIndex`, `skipToNext`, `skipToPrevious`, and the shuffle helpers validate indices (including `-1`/`null`) instead of crashing or playing the wrong item. “Play next” also clamps its shuffle-list insertion point, and `addQueueItems()` clamps the shuffle cursor before `sublist()`/`replaceRange()`, so an empty or desynced shuffle queue cannot throw a `RangeError`.
+- **Isolate Helper**: `getStreamInfo()` only strips the `MPED` prefix when the id is long enough, avoiding a `RangeError` for short ids.
+
+[Windows]
+- **SMTC Service Hardening**: Windows media controls enable SMTC before publishing status, guard every SMTC call, only set the end time when a duration is known, and cancel all stream subscriptions on close.
+
+[Update Checker]
+- **Correct Version Comparison**: `newVersionCheck()` now compares dotted versions part-by-part, so `1.0.10` is correctly newer than `1.0.9`, short tags such as `1.0` no longer crash, and a `+build` suffix is ignored.
+- **Highest Tag Wins**: Every tag is scanned and the highest semantic version is used instead of trusting `tags[0]`, whose ordering is not guaranteed by the GitHub API.
+- **Releases API First**: The check reads `releases/latest` first (the actually published build) and falls back to the tags list, with GitHub API headers and a 10-second timeout so a slow network cannot block startup.
+- **Build Repository Fallback**: The check now also looks at the build repository, so a new release is detected even if the legacy mirror step has not run yet. Windows builds additionally check the Windows download repository.
+- **Reliable Startup Dialog**: The update dialog now waits for a usable navigator instead of dereferencing a null context, so the notification is actually shown on cold start.
+
+[Reliability]
+- **Global Error Handling**: `FlutterError.onError` and `PlatformDispatcher.instance.onError` now log uncaught framework/async errors instead of dropping them silently.
+- **CI Hardening**: `github.ref_name`, `github.ref_type`, and `github.event_name` are passed through `env:` variables instead of being interpolated into the shell script, closing a script-injection vector.
+- **Windows Checksums**: The Windows checksum list is generated from a file snapshot taken before the checksum file is written, so the checksum file can no longer include a hash of itself.
+
+[Dependencies]
+- **Pinned Extraction Library**: `youtube_explode_dart` is pinned to `3.1.0` (the current latest) because minor releases change extraction behaviour and have broken playback before.
+- **Regenerate Lockfile**: Run `flutter pub get` after pulling these changes so `pubspec.lock` picks up the newly declared media_kit packages.
+
+==================================================================
+
 #28 Release - 1.0.7 - 2026-09-10
 -------------------
 [Release]

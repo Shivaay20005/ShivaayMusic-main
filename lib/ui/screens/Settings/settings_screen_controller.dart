@@ -51,11 +51,11 @@ class SettingsScreenController extends GetxController {
   final restorePlaybackSession = false.obs;
   final showVideoOption = false.obs;
   final cacheHomeScreenData = true.obs;
-  final isSmartPrefetchEnabled = false.obs;
+  final isSmartPrefetchEnabled = true.obs;
   final cacheSize = "0 MB".obs;
   Timer? _cacheTimer;
   // Get version dynamically from package info (from pubspec.yaml)
-  final currentVersion = "V1.0.7".obs;
+  final currentVersion = "V1.0.8".obs;
 
   @override
   void onInit() {
@@ -94,7 +94,7 @@ class SettingsScreenController extends GetxController {
       currentVersion.value = "V${packageInfo.version}";
     } catch (e) {
       // Fallback to default version if package info fails
-      currentVersion.value = "V1.0.7";
+      currentVersion.value = "V1.0.8";
     }
   }
 
@@ -173,7 +173,7 @@ class SettingsScreenController extends GetxController {
     }
     autoDownloadFavoriteSongEnabled.value =
         setBox.get("autoDownloadFavoriteSongEnabled") ?? false;
-    isSmartPrefetchEnabled.value = setBox.get("isSmartPrefetchEnabled") ?? false;
+    isSmartPrefetchEnabled.value = setBox.get("isSmartPrefetchEnabled") ?? true;
     updateCacheSize();
     _startCacheTimer();
   }
@@ -481,7 +481,7 @@ class SettingsScreenController extends GetxController {
     showVideoOption.value = false;
     setBox.put("showVideoOption", false);
     cacheHomeScreenData.value = true;
-    isSmartPrefetchEnabled.value = false;
+    isSmartPrefetchEnabled.value = true;
 
     // 3. Reset Privacy Service State
     if (Get.isRegistered<PrivacyService>()) {

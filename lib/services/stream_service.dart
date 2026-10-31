@@ -147,21 +147,33 @@ class StreamProvider {
     return firstLine.isNotEmpty ? firstLine.trim() : fallback;
   }
 
-  Audio? get highestQualityAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 251 || item.itag == 140,
-          orElse: () => audioFormats!.first);
+  Audio? get highestQualityAudio {
+    final formats = audioFormats;
+    if (formats == null || formats.isEmpty) return null;
+    return formats.lastWhere((item) => item.itag == 251 || item.itag == 140,
+        orElse: () => formats.last);
+  }
 
-  Audio? get highestBitrateMp4aAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 140 || item.itag == 139,
-          orElse: () => audioFormats!.first);
+  Audio? get highestBitrateMp4aAudio {
+    final formats = audioFormats;
+    if (formats == null || formats.isEmpty) return null;
+    return formats.lastWhere((item) => item.itag == 140 || item.itag == 139,
+        orElse: () => formats.last);
+  }
 
-  Audio? get highestBitrateOpusAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 251 || item.itag == 250,
-          orElse: () => audioFormats!.first);
+  Audio? get highestBitrateOpusAudio {
+    final formats = audioFormats;
+    if (formats == null || formats.isEmpty) return null;
+    return formats.lastWhere((item) => item.itag == 251 || item.itag == 250,
+        orElse: () => formats.last);
+  }
 
-  Audio? get lowQualityAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 249 || item.itag == 139,
-          orElse: () => audioFormats!.first);
+  Audio? get lowQualityAudio {
+    final formats = audioFormats;
+    if (formats == null || formats.isEmpty) return null;
+    return formats.lastWhere((item) => item.itag == 249 || item.itag == 139,
+        orElse: () => formats.last);
+  }
 
   VideoFormat? get highestQualityVideo {
     if (videoFormats == null || videoFormats!.isEmpty) return null;
@@ -215,16 +227,19 @@ class Audio {
         "size": size
       };
 
-  factory Audio.fromJson(json) => Audio(
-      audioCodec: (json["audioCodec"] as String).contains("mp4a")
-          ? Codec.mp4a
-          : Codec.opus,
-      itag: json['itag'],
-      duration: json["approxDurationMs"] ?? 0,
-      bitrate: json["bitrate"] ?? 0,
-      loudnessDb: (json['loudnessDb'])?.toDouble() ?? 0.0,
-      url: json['url'],
-      size: json["size"] ?? 0);
+  factory Audio.fromJson(dynamic json) {
+    final map = json is Map ? json : const <String, dynamic>{};
+    final codec = map['audioCodec']?.toString() ?? '';
+    return Audio(
+      audioCodec: codec.contains('mp4a') ? Codec.mp4a : Codec.opus,
+      itag: (map['itag'] as num?)?.toInt() ?? 0,
+      duration: (map['approxDurationMs'] as num?)?.toInt() ?? 0,
+      bitrate: (map['bitrate'] as num?)?.toInt() ?? 0,
+      loudnessDb: (map['loudnessDb'] as num?)?.toDouble() ?? 0.0,
+      url: map['url']?.toString() ?? '',
+      size: (map['size'] as num?)?.toInt() ?? 0,
+    );
+  }
 }
 
 enum Codec { mp4a, opus }

@@ -1,9 +1,12 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:audio_service/audio_service.dart';
 // import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:terminate_restart/terminate_restart.dart';
@@ -36,12 +39,31 @@ import 'utils/system_tray.dart';
 import 'ui/widgets/maintenance_overlay.dart';
 import 'utils/update_check_flag_file.dart';
 
-const String _appBuildLabel = 'Version 1.0.7 • Build 12';
+const String _appBuildLabel = 'Version 1.0.8 • Build 13';
 final ValueNotifier<String> _startupStatus =
     ValueNotifier<String>('Preparing your music space…');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // just_audio has no native desktop implementation. Without registering the
+  // media_kit backend before any AudioPlayer is created, Windows/Linux playback
+  // fails with MissingPluginException and no audio ever loads.
+  if (GetPlatform.isWindows || GetPlatform.isLinux) {
+    JustAudioMediaKit.ensureInitialized();
+    JustAudioMediaKit.title = 'ShivaayMusic';
+    JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
+  }
+
+  // Surface uncaught errors instead of letting them die silently in release.
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exceptionAsString()}');
+  };
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    debugPrint('Uncaught error: $error\n$stack');
+    return true;
+  };
 
   if (GetPlatform.isDesktop) {
     await windowManager.ensureInitialized();

@@ -498,16 +498,29 @@ class HomeScreenController extends GetxController {
   void _checkNewVersion() {
     showVersionDialog.value =
         Hive.box("AppPrefs").get("newVersionVisibility") ?? true;
-    if (showVersionDialog.isTrue) {
-      newVersionCheck(Get.find<SettingsScreenController>().currentVersion.value)
-          .then((value) {
-        if (value) {
-          showDialog(
-              context: Get.context!,
-              builder: (context) => const NewVersionDialog());
-        }
-      });
+    if (!showVersionDialog.isTrue) return;
+
+    newVersionCheck(Get.find<SettingsScreenController>().currentVersion.value)
+        .then((value) {
+      if (!value) return;
+      // The network check usually finishes before the first frame is laid out,
+      // so retry briefly until a navigator exists instead of dropping the
+      // notification (which is the only way old installs learn about a release).
+      _showNewVersionDialogWhenReady();
+    });
+  }
+
+  void _showNewVersionDialogWhenReady([int attempt = 0]) {
+    final context = Get.context;
+    if (context != null && Navigator.maybeOf(context) != null) {
+      showDialog(
+          context: context,
+          builder: (context) => const NewVersionDialog());
+      return;
     }
+    if (attempt >= 20) return;
+    Future.delayed(const Duration(milliseconds: 500),
+        () => _showNewVersionDialogWhenReady(attempt + 1));
   }
 
   void onChangeVersionVisibility(bool val) {

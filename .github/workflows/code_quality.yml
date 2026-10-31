@@ -89,7 +89,7 @@ jobs:
             exit "$analyze_status"
           fi
 
-      - name: Build universal and architecture APKs
+      - name: Build universal APK, per-ABI APKs and app bundle
         shell: bash
         run: |
           set -euo pipefail
@@ -100,6 +100,10 @@ jobs:
           flutter build apk \
             --release \
             --split-per-abi \
+            --build-name="${{ steps.version.outputs.name }}" \
+            --build-number="${{ steps.version.outputs.build }}"
+          flutter build appbundle \
+            --release \
             --build-name="${{ steps.version.outputs.name }}" \
             --build-number="${{ steps.version.outputs.build }}"
 
@@ -113,11 +117,13 @@ jobs:
             cp "$SOURCE_DIR/app-${ABI}-release.apk" \
               "release-apks/ShivaayMusic-v${VERSION}-Android-${ABI}.apk"
           done
+          cp "build/app/outputs/bundle/release/app-release.aab" \
+            "release-apks/ShivaayMusic-v${VERSION}-Android.aab"
 
           test -n "$(find release-apks -maxdepth 1 -type f -name 'ShivaayMusic-v*.apk' -print -quit)"
           (
             cd release-apks
-            sha256sum ShivaayMusic-v*.apk > \
+            sha256sum ShivaayMusic-v*.apk ShivaayMusic-v*.aab > \
               "ShivaayMusic-v${VERSION}-SHA256SUMS-Android.txt"
           )
           echo "Release files:"
@@ -138,6 +144,9 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           PUBLISH_MANUALLY: ${{ inputs.publish_release || false }}
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           SHOULD_PUBLISH=false
@@ -145,21 +154,21 @@ jobs:
           # A matching version-tag push publishes that exact tested commit.
           # Normal branch pushes publish only after landing on the default
           # branch. A manual run can explicitly publish a selected branch.
-          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
-            if [[ "${{ github.ref_name }}" != "$RELEASE_TAG" ]]; then
-              echo "Tag ${{ github.ref_name }} does not match pubspec version $RELEASE_TAG" >&2
+          if [[ "$EVENT_NAME" == "push" && "$REF_TYPE" == "tag" ]]; then
+            if [[ "$REF_NAME" != "$RELEASE_TAG" ]]; then
+              echo "Tag $REF_NAME does not match pubspec version $RELEASE_TAG" >&2
               exit 1
             fi
             SHOULD_PUBLISH=true
-          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref_name }}" == "$DEFAULT_BRANCH" ]]; then
+          elif [[ "$EVENT_NAME" == "push" && "$REF_NAME" == "$DEFAULT_BRANCH" ]]; then
             SHOULD_PUBLISH=true
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "$PUBLISH_MANUALLY" == "true" ]]; then
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" && "$PUBLISH_MANUALLY" == "true" ]]; then
             SHOULD_PUBLISH=true
           fi
 
           # Existing tags are expected for tag-triggered runs. For branch/manual
           # publishing, never move or overwrite an existing version tag.
-          if [[ "$SHOULD_PUBLISH" == "true" && "${{ github.ref_type }}" != "tag" ]] && \
+          if [[ "$SHOULD_PUBLISH" == "true" && "$REF_TYPE" != "tag" ]] && \
              git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Tag $RELEASE_TAG already exists. Bump pubspec.yaml before publishing another release."
             SHOULD_PUBLISH=false
@@ -180,4 +189,42 @@ jobs:
           prerelease: false
           files: |
             release-apks/ShivaayMusic-v*.apk
+            release-apks/ShivaayMusic-v*.aab
             release-apks/ShivaayMusic-v*-SHA256SUMS-Android.txt
+
+      # Every already-installed copy polls the legacy `Shivaay20005/ShivaayMusic`
+      # repository (see lib/utils/helper.dart). Publishing only in this build
+      # repository would leave those users without an update notification, so
+      # the tag and release are mirrored there automatically. The PAT is only
+      # needed for this cross-repository step; everything else uses the
+      # built-in token.
+      - name: Mirror release to the legacy download repository
+        if: steps.release.outputs.publish == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_SYNC_TOKEN }}
+          VERSION: ${{ steps.version.outputs.name }}
+          LEGACY_TAG: ${{ steps.version.outputs.name }}
+          LEGACY_REPO: Shivaay20005/ShivaayMusic
+          SOURCE_REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::warning title=Legacy release sync skipped::RELEASE_SYNC_TOKEN is not configured, so existing installs will not be notified about v${VERSION}. Add a PAT with 'repo' scope as RELEASE_SYNC_TOKEN."
+            exit 0
+          fi
+
+          NOTES="$(printf '## ShivaayMusic v%s\n\nAutomatic release of the tested `%s` build.\n\n- Universal APK plus per-ABI APKs (arm64-v8a, armeabi-v7a, x86_64)\n- Android App Bundle (AAB)\n- SHA-256 checksums for every file\n' "$VERSION" "$SOURCE_REF")"
+
+          echo "::group::Mirroring v${VERSION} to ${LEGACY_REPO}"
+          if gh release view "$LEGACY_TAG" --repo "$LEGACY_REPO" >/dev/null 2>&1; then
+            gh release upload "$LEGACY_TAG" --repo "$LEGACY_REPO" --clobber \
+              release-apks/ShivaayMusic-v*
+          else
+            gh release create "$LEGACY_TAG" --repo "$LEGACY_REPO" \
+              --title "ShivaayMusic v${VERSION}" \
+              --notes "$NOTES" \
+              --latest \
+              release-apks/ShivaayMusic-v*
+          fi
+          echo "::endgroup::"

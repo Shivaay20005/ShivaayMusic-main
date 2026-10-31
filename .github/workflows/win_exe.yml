@@ -283,10 +283,14 @@ jobs:
           }
           Move-Item $generatedInstaller (Join-Path $releaseDir "ShivaayMusic-v$version-Windows-Setup.exe") -Force
 
-          $checksumPath = Join-Path $releaseDir "ShivaayMusic-v$version-SHA256SUMS-Windows.txt"
-          Get-ChildItem $releaseDir -File | ForEach-Object {
-            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
-            "$hash  $($_.Name)" | Out-File $checksumPath -Append -Encoding ascii
+          $checksumName = "ShivaayMusic-v$version-SHA256SUMS-Windows.txt"
+          $checksumPath = Join-Path $releaseDir $checksumName
+          # Snapshot the file list before writing the checksum file, otherwise
+          # the newly created checksum file can be included in its own hash list.
+          $files = @(Get-ChildItem $releaseDir -File | Where-Object { $_.Name -ne $checksumName })
+          foreach ($file in $files) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($file.Name)" | Out-File $checksumPath -Append -Encoding ascii
           }
           Get-ChildItem $releaseDir | Format-Table Name, Length
 
@@ -298,17 +302,66 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Attach Windows files to GitHub Release
-        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: ShivaayMusic ${{ steps.version.outputs.name }}
-          target_commitish: ${{ github.sha }}
-          generate_release_notes: true
-          draft: false
-          prerelease: false
-          files: |
-            windows-release/*.exe
-            windows-release/*.zip
-            windows-release/*SHA256SUMS-Windows.txt
+      - name: Publish Windows files to the GitHub Release
+        if: github.ref_type == 'tag' || (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch) || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.name }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          NOTES="$(printf '## ShivaayMusic v%s (Windows)\n\n- Installer: `ShivaayMusic-v%s-Windows-Setup.exe`\n- Portable: `ShivaayMusic-v%s-Windows-Portable.zip`\n- SHA-256 checksums for every file\n' "$VERSION" "$VERSION" "$VERSION")"
+
+          # The Android workflow owns release creation for a new version. Wait a
+          # little so both platforms land in one release instead of racing to
+          # create the same tag.
+          for _ in $(seq 1 60); do
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 10
+          done
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
+              windows-release/*
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "ShivaayMusic v${VERSION}" \
+              --notes "$NOTES" \
+              --latest \
+              windows-release/*
+          fi
+
+      # Windows installs poll the dedicated Windows download repository. Mirror
+      # the tag and release there so old installs get the update notification.
+      - name: Mirror Windows release to the legacy download repository
+        if: github.ref_type == 'tag' || (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch) || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_SYNC_TOKEN }}
+          VERSION: ${{ steps.version.outputs.name }}
+          LEGACY_TAG: ${{ steps.version.outputs.name }}
+          LEGACY_REPO: Shivaay20005/ShivaayMusic-Windows-release
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::warning title=Legacy Windows release sync skipped::RELEASE_SYNC_TOKEN is not configured, so existing Windows installs will not be notified about v${VERSION}."
+            exit 0
+          fi
+
+          NOTES="$(printf '## ShivaayMusic v%s (Windows)\n\n- Installer: `ShivaayMusic-v%s-Windows-Setup.exe`\n- Portable: `ShivaayMusic-v%s-Windows-Portable.zip`\n- SHA-256 checksums for every file\n' "$VERSION" "$VERSION" "$VERSION")"
+
+          echo "::group::Mirroring Windows v${VERSION} to ${LEGACY_REPO}"
+          if gh release view "$LEGACY_TAG" --repo "$LEGACY_REPO" >/dev/null 2>&1; then
+            gh release upload "$LEGACY_TAG" --repo "$LEGACY_REPO" --clobber \
+              windows-release/*
+          else
+            gh release create "$LEGACY_TAG" --repo "$LEGACY_REPO" \
+              --title "ShivaayMusic v${VERSION}" \
+              --notes "$NOTES" \
+              --latest \
+              windows-release/*
+          fi
+          echo "::endgroup::"

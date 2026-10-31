@@ -158,6 +158,10 @@ class PlayerController extends GetxController
   var _newSongFlag = true;
   final isCurrentSongBuffered = false.obs;
 
+  /// Incremented on every "play this song" request so a slow watch-playlist
+  /// response cannot replace the queue of a newer request.
+  int _queueRequestId = 0;
+
   late StreamSubscription<bool> keyboardSubscription;
 
   @override
@@ -467,20 +471,40 @@ class PlayerController extends GetxController
   }
 
   Future<void> _restorePrevSession() async {
-    final prefs = Hive.box("AppPrefs");
-    final restorePrevSessionEnabled = prefs.get(
-      "restorePlaybackSession",
-      defaultValue: prefs.get("restrorePlaybackSession") ?? false,
-    );
-    if (restorePrevSessionEnabled == true) {
+    try {
+      final prefs = Hive.box("AppPrefs");
+      final restorePrevSessionEnabled = prefs.get(
+        "restorePlaybackSession",
+        defaultValue: prefs.get("restrorePlaybackSession") ?? false,
+      );
+      if (restorePrevSessionEnabled != true) return;
+
       final prevSessionData = await Hive.openBox("prevSessionData");
-      if (prevSessionData.keys.isNotEmpty) {
-        final songList = (prevSessionData.get("queue") as List)
-            .map((e) => MediaItemBuilder.fromJson(e))
-            .toList();
-        final int currentIndex = prevSessionData.get("index");
-        final int position = prevSessionData.get("position");
-        prevSessionData.close();
+      try {
+        final rawQueue = prevSessionData.get("queue");
+        if (rawQueue is! List || rawQueue.isEmpty) return;
+
+        // Drop individual corrupt entries instead of aborting the whole
+        // restore (an old session written by another build can be malformed).
+        final songList = <MediaItem>[];
+        for (final entry in rawQueue) {
+          try {
+            songList.add(MediaItemBuilder.fromJson(entry));
+          } catch (e) {
+            printERROR("Skipping invalid saved queue item: $e");
+          }
+        }
+        if (songList.isEmpty) return;
+
+        // Older saved sessions may miss these keys, and the saved index can be
+        // out of range if the queue was trimmed; clamp it to a playable item.
+        final savedIndex =
+            (prevSessionData.get("index") as num?)?.toInt() ?? 0;
+        final currentIndex =
+            savedIndex.clamp(0, songList.length - 1).toInt();
+        final position =
+            (prevSessionData.get("position") as num?)?.toInt() ?? 0;
+
         await _audioHandler.addQueueItems(songList);
         _playerPanelCheck(restoreSession: true);
         await _audioHandler.customAction("playByIndex", {
@@ -488,7 +512,11 @@ class PlayerController extends GetxController
           "position": position,
           "restoreSession": true
         });
+      } finally {
+        await prevSessionData.close();
       }
+    } catch (e) {
+      printERROR("Session restore failed: $e");
     }
   }
 
@@ -512,11 +540,14 @@ class PlayerController extends GetxController
     /// set global radio mode flag
     isRadioModeOn = radio;
 
+    final requestId = ++_queueRequestId;
+
     Future.delayed(
       Duration.zero,
       () async {
         final content = await _musicServices.getWatchPlaylist(
             videoId: mediaItem?.id ?? "", radio: radio, playlistId: playlistid);
+        if (requestId != _queueRequestId) return;
         radioContinuationParam = content['additionalParamsForNext'];
         await _audioHandler
             .updateQueue(List<MediaItem>.from(content['tracks']));
@@ -532,6 +563,7 @@ class PlayerController extends GetxController
         }
       },
     ).then((value) async {
+      if (requestId != _queueRequestId) return;
       if (playlistid != null) {
         _playerPanelCheck();
         await _audioHandler.customAction("playByIndex", {"index": 0});
@@ -573,6 +605,8 @@ class PlayerController extends GetxController
   Future<void> playPlayListSong(List<MediaItem> mediaItems, int index,
       {PlaylingFrom? playfrom}) async {
     isRadioModeOn = false;
+    // Invalidate any pending watch-playlist request from a previous tap.
+    _queueRequestId++;
     //open player pane,set current song and push first song into playing list,
 
     /// update playing from value
@@ -1079,9 +1113,19 @@ class PlayerController extends GetxController
   /// Called from audio handler in case audio is not playable
   /// or returned streamInfo null due to network error
   void notifyPlayError(String message) {
-    ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-        Get.context!, message == "networkError" ? message.tr : message,
-        size: SanckBarSize.MEDIUM));
+    final context = Get.context;
+    if (context == null) return;
+    final text = message == "networkError" ? "networkError".tr : message;
+    ScaffoldMessenger.of(context).showSnackBar(snackbar(
+        context, text,
+        size: SanckBarSize.MEDIUM,
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: "retry".tr,
+          onPressed: () {
+            _audioHandler.customAction("retryCurrentSong");
+          },
+        )));
   }
 
   @override

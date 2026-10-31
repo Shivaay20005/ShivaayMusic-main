@@ -8,7 +8,8 @@ enum SanckBarSize { BIG, MEDIUM, SMALL }
 SnackBar snackbar(BuildContext context, String text,
     {SanckBarSize size = SanckBarSize.MEDIUM,
     Duration duration = const Duration(seconds: 1),
-    bool top = false}) {
+    bool top = false,
+    SnackBarAction? action}) {
   final scrWidth = MediaQuery.of(context).size.width;
   final hrMargin = size == SanckBarSize.BIG
       ? (scrWidth - 300) / 2
@@ -32,6 +33,7 @@ SnackBar snackbar(BuildContext context, String text,
         right: hrMargin),
     behavior: SnackBarBehavior.floating,
     duration: duration,
+    action: action,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
   );
 }

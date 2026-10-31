@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.7+12
+version: 1.0.8+13
 
 environment:
   sdk: ">=3.1.5 <4.0.0"
@@ -65,6 +65,11 @@ dependencies:
   # NOTE: personal git fork was deleted; using the official pub.dev release
   # (app only uses the JustAudioMediaKit.title / protocolWhitelist statics).
   just_audio_media_kit: ^2.0.0
+  # just_audio_media_kit does not pull the native libmpv bundles itself, so
+  # these must be declared directly or Windows/Linux audio silently fails.
+  media_kit: ^1.2.6
+  media_kit_libs_linux: ^1.2.1
+  media_kit_libs_windows_audio: ^1.0.9
   local_auth: ^2.3.0
   palette_generator: ^0.3.3+4
   path: ^1.8.3
@@ -91,8 +96,9 @@ dependencies:
   # NOTE: The previous git fork (Shivaay20005/youtube_explode_dart) no longer
   # exists (404), which broke fresh `flutter pub get` runs. YouTube has also
   # blocked the old extraction clients bundled with v2.3.7, so the app must
-  # use the actively-maintained upstream release.
-  youtube_explode_dart: ^3.1.0
+  # use the actively-maintained upstream release. Pinned exactly on purpose:
+  # this package ships breaking extraction changes in minor releases.
+  youtube_explode_dart: 3.1.0
   # fl_chart: ^1.1.0
   intl: ^0.20.2
   # vector_math: ^2.1.4
