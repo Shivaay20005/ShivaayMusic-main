@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 /// Apple Vision Pro (VISIONOS) Innertube client.
@@ -34,25 +35,135 @@ const _visionOsClient = YoutubeApiClient({
   },
 }, 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false');
 
+/// Android Music app. OpenTune's first choice: it still answers with plain
+/// `url` fields and is not subject to the po_token enforcement that turns the
+/// other clients away on some networks.
+const _androidMusicClient = YoutubeApiClient({
+  'context': {
+    'client': {
+      'clientName': 'ANDROID_MUSIC',
+      'clientVersion': '8.39.42',
+      'userAgent':
+          'com.google.android.apps.youtube.music/8.39.42 (Linux; U; Android 15; en_US; Pixel 9 Pro; Build/AP4A.250205.002) gzip',
+      'osName': 'Android',
+      'osVersion': '15',
+      'deviceMake': 'Google',
+      'deviceModel': 'Pixel 9 Pro',
+      'androidSdkVersion': 35,
+      'hl': 'en',
+      'timeZone': 'UTC',
+      'utcOffsetMinutes': 0,
+    },
+  },
+  'contentCheckOk': true,
+  'racyCheckOk': true,
+}, 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false');
+
+/// Samsung TV (Cobalt) app. OpenTune calls this the most reliable identity on
+/// a flagged IP: no po_token and no login. It is refused on some addresses
+/// (including the one this build was tested from), which is why it is one of
+/// several and not the only one.
+const _tvHtml5Client = YoutubeApiClient({
+  'context': {
+    'client': {
+      'clientName': 'TVHTML5',
+      'clientVersion': '7.20260707.07.00',
+      'userAgent':
+          'Mozilla/5.0(SMART-TV; Linux; Tizen 4.0.0.2) AppleWebkit/605.1.15 (KHTML, like Gecko) SamsungBrowser/9.2 TV Safari/605.1.15',
+      'hl': 'en',
+      'timeZone': 'UTC',
+      'utcOffsetMinutes': 0,
+    },
+  },
+  'contentCheckOk': true,
+  'racyCheckOk': true,
+}, 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false');
+
+/// Quest app, current build. Versions above 1.65 answer with SABR-only
+/// formats (no playable URL), so this version is pinned.
+const _androidVrClient = YoutubeApiClient({
+  'context': {
+    'client': {
+      'clientName': 'ANDROID_VR',
+      'clientVersion': '1.65.10',
+      'userAgent':
+          'com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
+      'osName': 'Android',
+      'osVersion': '12L',
+      'deviceMake': 'Oculus',
+      'deviceModel': 'Quest 3',
+      'androidSdkVersion': '32',
+      'hl': 'en',
+      'timeZone': 'UTC',
+      'utcOffsetMinutes': 0,
+    },
+  },
+  'contentCheckOk': true,
+  'racyCheckOk': true,
+}, 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false');
+
+/// An older build of the same app; YouTube refuses the identities on
+/// different schedules, so this one is answered when the current build is not.
+const _androidVrLegacyClient = YoutubeApiClient({
+  'context': {
+    'client': {
+      'clientName': 'ANDROID_VR',
+      'clientVersion': '1.43.32',
+      'userAgent':
+          'com.google.android.apps.youtube.vr.oculus/1.43.32 (Linux; U; Android 12; en_US; Quest 3; Build/SQ3A.220605.009.A1; Cronet/107.0.5284.2)',
+      'osName': 'Android',
+      'osVersion': '12',
+      'deviceMake': 'Oculus',
+      'deviceModel': 'Quest 3',
+      'androidSdkVersion': '32',
+      'hl': 'en',
+      'timeZone': 'UTC',
+      'utcOffsetMinutes': 0,
+    },
+  },
+  'contentCheckOk': true,
+  'racyCheckOk': true,
+}, 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false');
+
 /// Clients are tried in this order, one per request.
 ///
-/// All three answer with plain `url` fields (no `signatureCipher`, no SABR),
-/// which is the only kind this app can hand to just_audio without a JS
-/// signature solver. Verified against the live endpoint: IOS and WEB now
-/// return SABR-only formats, so they are deliberately not in this list.
+/// Every entry answers with plain `url` fields (no `signatureCipher`, no
+/// SABR), which is the only kind this app can hand to just_audio without a JS
+/// signature solver. IOS and WEB are deliberately absent: both now return
+/// formats without a `url`, and reaching them would cost a player-JavaScript
+/// download for nothing.
+///
+/// The order is only a starting guess; [StreamProvider] remembers which
+/// identity actually served the last track and tries it first from then on
+/// (the same trick OpenTune uses), so the extra fallbacks do not slow down the
+/// normal case.
 const _clients = <YoutubeApiClient>[
   _visionOsClient,
-  YoutubeApiClient.androidVr,
+  _androidVrClient,
+  _androidVrLegacyClient,
   YoutubeApiClient.androidSdkless,
+  _androidMusicClient,
+  _tvHtml5Client,
 ];
 
 /// User agent of each client, keyed by the `c=` value YouTube bakes into the
-/// media URL. Used when re-checking a URL that a specific client minted.
-final Map<String, String> _clientUserAgents = {
-  for (final client in _clients)
-    (client.payload['context']['client']['clientName'] as String):
-        (client.payload['context']['client']['userAgent'] as String?) ?? '',
-};
+/// media URL.
+///
+/// Several entries share a client name (the two ANDROID_VR builds), so the
+/// first one wins: that is the current build, and its user agent is the one a
+/// fresh URL carries.
+final Map<String, String> _mediaUserAgents = () {
+  final map = <String, String>{};
+  for (final client in _clients) {
+    final context = client.payload['context'] as Map;
+    final info = context['client'] as Map;
+    final name = info['clientName'] as String?;
+    final userAgent = info['userAgent'] as String?;
+    if (name == null || userAgent == null || userAgent.isEmpty) continue;
+    map.putIfAbsent(name, () => userAgent);
+  }
+  return map;
+}();
 
 /// Thrown when YouTube answers `429` or its "sorry" bot page.
 ///
@@ -93,11 +204,10 @@ class _ExtractionHttpClient extends YoutubeHttpClient {
 
   @override
   Future<http.Response> head(Uri url, {Map<String, String>? headers}) {
-    final userAgent = _clientUserAgents[url.queryParameters['c']];
+    final userAgent = StreamProvider.userAgentForUrl(url.toString());
     return super.head(url, headers: {
       ...?headers,
-      if (userAgent != null && userAgent.isNotEmpty)
-        'User-Agent': userAgent,
+      if (userAgent != null) 'User-Agent': userAgent,
     });
   }
 }
@@ -142,6 +252,70 @@ class StreamProvider {
   static bool get isCoolingDown =>
       _cooldownUntil != null && DateTime.now().isBefore(_cooldownUntil!);
 
+  /// The identity that last served a stream, persisted across launches.
+  ///
+  /// OpenTune does the same: instead of always starting at the top of the
+  /// client list, it remembers which identity worked and asks that one first.
+  /// That is what keeps the *normal* case at one request even though the
+  /// fallback chain is long.
+  static String? _preferredClientKey;
+
+  static const String _preferredClientPrefKey = 'preferredStreamClient';
+
+  static String? _readPreferredClient() {
+    if (_preferredClientKey != null) return _preferredClientKey;
+    try {
+      if (Hive.isBoxOpen('AppPrefs')) {
+        final saved = Hive.box('AppPrefs').get(_preferredClientPrefKey);
+        if (saved is String && saved.isNotEmpty) _preferredClientKey = saved;
+      }
+    } catch (_) {
+      // Hive is not available (background isolate); the in-memory value is
+      // still used for this run.
+    }
+    return _preferredClientKey;
+  }
+
+  static void _remember(YoutubeApiClient client) {
+    final key = _clientKey(client);
+    if (_preferredClientKey == key) return;
+    _preferredClientKey = key;
+    try {
+      if (Hive.isBoxOpen('AppPrefs')) {
+        Hive.box('AppPrefs').put(_preferredClientPrefKey, key);
+      }
+    } catch (_) {}
+  }
+
+  /// [_clients] with the remembered identity moved to the front.
+  static List<YoutubeApiClient> _orderedClients() {
+    final preferred = _readPreferredClient();
+    if (preferred == null) return List<YoutubeApiClient>.of(_clients);
+    final ordered = <YoutubeApiClient>[];
+    for (final client in _clients) {
+      if (_clientKey(client) == preferred) ordered.add(client);
+    }
+    for (final client in _clients) {
+      if (_clientKey(client) != preferred) ordered.add(client);
+    }
+    return ordered;
+  }
+
+  /// User agent a media URL must be fetched with, or null when the client that
+  /// minted it is unknown.
+  ///
+  /// The media fetch is a separate request from the one that produced the URL,
+  /// and googlevideo refuses (403) a mismatch between the `c=` client baked
+  /// into the URL and the headers that follow it. Passing the minting client's
+  /// user agent on playback is what stops those mid-song 403s.
+  static String? userAgentForUrl(String url) {
+    final c = Uri.tryParse(url)?.queryParameters['c'];
+    if (c == null || c.isEmpty) return null;
+    final userAgent = _mediaUserAgents[c];
+    if (userAgent == null || userAgent.isEmpty) return null;
+    return userAgent;
+  }
+
   static String _clientKey(YoutubeApiClient client) {
     final c = client.payload['context']['client'];
     return '${c['clientName']}@${c['clientVersion']}';
@@ -185,12 +359,12 @@ class StreamProvider {
 
   static Future<StreamProvider> _resolve(String videoId) async {
     final candidates =
-        _clients.where((client) => !_isStoodDown(client)).toList();
+        _orderedClients().where((client) => !_isStoodDown(client)).toList();
     if (candidates.isEmpty) {
       // Everything is stood down. Probe only the most reliable identity so a
       // listener who waited out the block can play again without restarting,
       // without re-forming the storm.
-      candidates.add(_clients.first);
+      candidates.add(_orderedClients().first);
     }
 
     Object? lastError;
@@ -253,6 +427,7 @@ class StreamProvider {
 
       if (provider != null) {
         _served(client);
+        _remember(client);
         return provider;
       }
       // The request succeeded but the client answered without any audio the

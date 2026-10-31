@@ -621,6 +621,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         (parsedUrl.scheme == 'file' ||
             (parsedUrl.scheme.isEmpty && parsedUrl.path.startsWith('/')));
 
+    // googlevideo ties a media URL to the client identity (`c=`) that minted
+    // it and refuses a follow-up request whose user agent disagrees. Sending
+    // the minting client's user agent on playback is what prevents the 403
+    // that used to cut a song off a few seconds in.
+    final mediaUserAgent =
+        isLocalFile ? null : StreamProvider.userAgentForUrl(url);
+    final mediaHeaders =
+        mediaUserAgent == null ? null : {'User-Agent': mediaUserAgent};
+
     if (!GetPlatform.isWeb &&
         !isLocalFile &&
         (url.contains('/cache') || (cacheEnabled && url.contains("http")))) {
@@ -630,6 +639,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       return LockCachingAudioSource(
         Uri.parse(url),
         cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
+        headers: mediaHeaders,
         tag: mediaItem,
       );
     }
@@ -638,6 +648,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     isPlayingUsingLockCachingSource = false;
     return AudioSource.uri(
       Uri.tryParse(url)!,
+      headers: mediaHeaders,
       tag: mediaItem,
     );
   }
