@@ -12,7 +12,7 @@ Quick start / one-time token setup: [`RELEASE_AUTOMATION.md`](RELEASE_AUTOMATION
 
 | You do | CI does | Result |
 | --- | --- | --- |
-| `git push origin version1.0.6` | Android + Windows workflows build and publish | Tag `v1.0.8`, release with APKs/AAB/EXE/ZIP, mirrored tag `1.0.8` in the legacy repos |
+| `git push origin main` | Android + Windows workflows build and publish | Tag `v1.0.8`, release with APKs/AAB/EXE/ZIP, mirrored tag `1.0.8` in the legacy repos |
 | Push any other branch | Same builds, **nothing is published** | Only Actions artifacts (30 days) |
 | `git push origin v1.0.8` (new tag) | Same builds, publishes that exact commit | Tag must match `pubspec.yaml` or the job fails |
 | Actions → *Run workflow* + `publish_release` | Publishes the selected branch | Used for re-publishing |
@@ -47,7 +47,7 @@ Everything else is kept in sync manually when bumping:
 ## 3. The flow, step by step
 
 ```
-git push origin version1.0.6
+git push origin main
 │
 ├─► [A] "Build Android APK & Release"   .github/workflows/code_quality.yml
 │    1. checkout (fetch-depth 0)  +  JDK 17  +  Flutter stable
@@ -139,6 +139,13 @@ The legacy repos only need a tag + release with assets; the workflow creates
 them with `gh release create/upload`. That is why the PAT is required:
 `GITHUB_TOKEN` can only write to the repo that runs the workflow.
 
+### Branch model
+
+| Branch | Role |
+| --- | --- |
+| `main` | **Default branch.** Latest code. A push here publishes a release. |
+| `version1.0.6` | Previous working branch, kept for history. Pushing here does not publish, because the workflow compares against the repository's default branch. |
+
 ---
 
 ## 6. How an installed app learns about 1.0.8
@@ -181,7 +188,7 @@ and compare it with `V1.0.7`. They do **not** know about
 # 3. commit and push to the default branch
 git add -A
 git commit -m "release: 1.0.9 (build 14)"
-git push origin version1.0.6
+git push origin main
 ```
 
 Do **not** create tags or releases by hand — CI does both. Pushing a tag that
@@ -263,8 +270,8 @@ Without it the build still succeeds; the mirror steps print
 - [x] Auto tag `v1.0.8` + release on default-branch push
 - [x] Windows workflow attaches installer + portable ZIP
 - [x] Legacy mirror steps for both download repos
-- [ ] `RELEASE_SYNC_TOKEN` secret added (required for old-version notification)
-- [ ] First successful run of both workflows on `version1.0.6`
+- [x] `RELEASE_SYNC_TOKEN` secret added (required for old-version notification)
+- [ ] First successful run of both workflows on `main`
 
 ---
 

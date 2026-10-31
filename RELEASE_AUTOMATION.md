@@ -10,7 +10,7 @@ secret setup in step 1.
 
 1. **Push to any branch** → both workflows run `flutter analyze`/build so a
    broken commit is visible immediately, but nothing is published.
-2. **Push to the default branch** (`version1.0.6`) →
+2. **Push to the default branch** (`main`) →
    - the version is read from `pubspec.yaml` (currently `1.0.8+13`);
    - the tag `v1.0.8` is created if it does not exist yet;
    - the GitHub Release `ShivaayMusic 1.0.8` is created/updated with:
