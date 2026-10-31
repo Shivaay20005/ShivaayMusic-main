@@ -221,24 +221,28 @@ class _StartupApp extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const SizedBox(
-                      height: 28,
-                      width: 28,
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFB98AFF),
-                        strokeWidth: 3,
+                    SizedBox(
+                      width: 120,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: const LinearProgressIndicator(
+                          minHeight: 3,
+                          color: Color(0xFFB98AFF),
+                          backgroundColor: Color(0x33FFFFFF),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     Text(
                       message,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: Colors.white54,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     const Text(
                       _appBuildLabel,
                       style: TextStyle(color: Colors.white38, fontSize: 11),
