@@ -82,20 +82,22 @@ Future<void> main() async {
     // it can take several seconds on a poor connection, and the app only needs
     // it just before AuthService is registered.
     _startupStatus.value = 'Connecting securely…';
-    final firebaseReady = Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ).timeout(const Duration(seconds: 8)).then<FirebaseApp?>(
-      (app) => app,
-      onError: (Object e) {
+    final firebaseReady = () async {
+      try {
+        return await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        ).timeout(const Duration(seconds: 8));
+      } catch (e) {
         debugPrint('Firebase initialization error: $e');
         // Firebase/network issues must never prevent offline app startup.
         return null;
-      },
-    );
+      }
+    }();
 
     _startupStatus.value = 'Loading your library…';
     await initHive().timeout(const Duration(seconds: 15));
     _setAppInitPrefs();
+    await _invalidateLegacyStreamUrls();
 
     // Audio restoration may need persisted playback settings, but this
     // controller itself does not depend on AudioHandler during construction.
@@ -557,6 +559,21 @@ void _setAppInitPrefs() {
       "cacheHomeScreenData": true
     });
   }
+}
+
+/// Clears stream URLs cached by builds that did not send a visitor id.
+///
+/// Those are YouTube *preview* URLs: they look valid and play the first
+/// megabyte, then stall. Clearing the cache once per format bump stops an
+/// upgrade from reusing them and looking like the fix did nothing.
+Future<void> _invalidateLegacyStreamUrls() async {
+  const streamUrlCacheVersion = 2;
+  final appPrefs = Hive.box("AppPrefs");
+  if ((appPrefs.get('streamUrlCacheVersion') ?? 0) == streamUrlCacheVersion) {
+    return;
+  }
+  await Hive.box('SongsUrlCache').clear();
+  await appPrefs.put('streamUrlCacheVersion', streamUrlCacheVersion);
 }
 
 class LifecycleHandler extends WidgetsBindingObserver {

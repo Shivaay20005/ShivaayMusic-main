@@ -205,25 +205,13 @@ class _ExtractionHttpClient extends YoutubeHttpClient {
 
   @override
   Future<http.Response> head(Uri url, {Map<String, String>? headers}) async {
-    // googlevideo now answers a HEAD on a media URL with 403 even when the URL
-    // plays perfectly: it expects a ranged GET. youtube_explode uses this HEAD
-    // only to sanity-check the first URL, and treats a 403 as "this client is
-    // broken", so every good client used to be rejected here. A one-byte range
-    // request answers the same question without that false negative.
-    final request = http.Request('GET', url)
-      ..headers.addAll({
-        ...?headers,
-        ...StreamProvider.mediaHeadersForUrl(url.toString()),
-        'Range': 'bytes=0-0',
-      });
-    final streamed = await send(request);
-    final body = await streamed.stream.toBytes();
-    return http.Response.bytes(
-      body,
-      streamed.statusCode,
-      headers: streamed.headers,
-      request: request,
-    );
+    // youtube_explode calls this exactly once, only to reject a manifest when
+    // the first stream URL answers 403. googlevideo now answers HEAD with 403
+    // even for a perfectly playable URL, and on Android clients an extra fetch
+    // of a *different* stream can invalidate the URL playback will use. The
+    // real validation happens in [StreamProvider._probe], on the exact URL
+    // that will be played, so this check is skipped entirely.
+    return http.Response('', 200, request: http.Request('HEAD', url));
   }
 }
 
