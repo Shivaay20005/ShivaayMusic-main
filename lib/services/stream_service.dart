@@ -66,7 +66,7 @@ class _RateLimitedError extends Error {
   _RateLimitedError(this.request);
 
   @override
-  String toString() => 'YouTube rate limited $_request';
+  String toString() => 'YouTube rate limited $request';
 }
 
 /// HTTP client shared by every extraction.
