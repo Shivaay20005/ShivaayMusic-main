@@ -31,7 +31,7 @@ jobs:
   mirror:
     name: Mirror release assets
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     env:
       GH_TOKEN: ${{ secrets.RELEASE_SYNC_TOKEN }}
@@ -85,70 +85,109 @@ jobs:
 
       - name: Mirror Android files
         shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+          TARGET_REPO: Shivaay20005/ShivaayMusic
+          PLATFORM: Android
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.name }}"
           shopt -s nullglob
-          FILES=(assets/*Android* assets/*SHA256SUMS-Android.txt)
+
+          FILES=(assets/*"$PLATFORM"*)
           if [[ ${#FILES[@]} -eq 0 ]]; then
             echo "::warning title=Android mirror skipped::No Android assets found in v$VERSION"
             exit 0
           fi
+
           NOTES="$(printf '## ShivaayMusic v%s\n\n- Universal APK + per-ABI APKs\n- Android App Bundle (AAB)\n- SHA-256 checksums for every file\n' "$VERSION")"
-          if gh release view "$VERSION" --repo "$ANDROID_REPO" >/dev/null 2>&1; then
-            # `--clobber` can 404 on a stale asset id, so fall back to
-            # recreating the release (the tag is kept, so the download URL and
-            # the in-app update check keep working).
-            if ! gh release upload "$VERSION" --repo "$ANDROID_REPO" --clobber "${FILES[@]}"; then
-              echo "::warning title=Android mirror update failed::Recreating the release so the new files are available."
-              gh release delete "$VERSION" --repo "$ANDROID_REPO" --yes
-              gh release create "$VERSION" --repo "$ANDROID_REPO" \
-                --title "ShivaayMusic v$VERSION" \
-                --notes "$NOTES" \
-                "${FILES[@]}"
-            fi
-          else
-            gh release create "$VERSION" --repo "$ANDROID_REPO" \
+
+          # Create the release once, then refresh assets in place. Deleting the
+          # release would break the download link used by installed copies if an
+          # upload failed halfway through.
+          if ! gh release view "$VERSION" --repo "$TARGET_REPO" >/dev/null 2>&1; then
+            gh release create "$VERSION" --repo "$TARGET_REPO" \
               --title "ShivaayMusic v$VERSION" \
-              --notes "$NOTES" \
-              "${FILES[@]}"
+              --notes "$NOTES"
+            sleep 3
           fi
-          gh release edit "$VERSION" --repo "$ANDROID_REPO" --latest
+
+          for file in "${FILES[@]}"; do
+            name="$(basename "$file")"
+            # `--clobber` deletes by asset id and 404s when that id is stale;
+            # deleting by name through the API is stable on every re-publish.
+            asset_id="$(gh api "repos/${TARGET_REPO}/releases/tags/${VERSION}" \
+              --jq ".assets[] | select(.name == \"${name}\") | .id" 2>/dev/null | head -n1 || true)"
+            if [[ -n "${asset_id}" ]]; then
+              gh api -X DELETE "repos/${TARGET_REPO}/releases/assets/${asset_id}" >/dev/null
+            fi
+            for attempt in 1 2 3; do
+              if gh release upload "$VERSION" "$file" --repo "$TARGET_REPO"; then
+                break
+              fi
+              if [[ $attempt -eq 3 ]]; then
+                echo "::error title=Android mirror upload failed::Could not upload ${name} to ${TARGET_REPO}"
+                exit 1
+              fi
+              echo "Upload of ${name} failed, retrying in 5s (attempt ${attempt}/3)"
+              sleep 5
+            done
+          done
+
+          gh release edit "$VERSION" --repo "$TARGET_REPO" --latest
 
       - name: Mirror Windows files
         shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+          TARGET_REPO: Shivaay20005/ShivaayMusic-Windows-release
+          PLATFORM: Windows
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.name }}"
           shopt -s nullglob
-          FILES=(assets/*Windows* assets/*SHA256SUMS-Windows.txt)
+
+          FILES=(assets/*"$PLATFORM"*)
           if [[ ${#FILES[@]} -eq 0 ]]; then
             echo "::warning title=Windows mirror skipped::No Windows assets found in v$VERSION (the Windows build probably failed)"
             exit 0
           fi
+
           NOTES="$(printf '## ShivaayMusic v%s (Windows)\n\n- Installer: `ShivaayMusic-v%s-Windows-Setup.exe`\n- Portable: `ShivaayMusic-v%s-Windows-Portable.zip`\n- SHA-256 checksums for every file\n' "$VERSION" "$VERSION" "$VERSION")"
-          if gh release view "$VERSION" --repo "$WINDOWS_REPO" >/dev/null 2>&1; then
-            if ! gh release upload "$VERSION" --repo "$WINDOWS_REPO" --clobber "${FILES[@]}"; then
-              echo "::warning title=Windows mirror update failed::Recreating the release so the new files are available."
-              gh release delete "$VERSION" --repo "$WINDOWS_REPO" --yes
-              gh release create "$VERSION" --repo "$WINDOWS_REPO" \
-                --title "ShivaayMusic v$VERSION" \
-                --notes "$NOTES" \
-                "${FILES[@]}"
-            fi
-          else
-            gh release create "$VERSION" --repo "$WINDOWS_REPO" \
+
+          if ! gh release view "$VERSION" --repo "$TARGET_REPO" >/dev/null 2>&1; then
+            gh release create "$VERSION" --repo "$TARGET_REPO" \
               --title "ShivaayMusic v$VERSION" \
-              --notes "$NOTES" \
-              "${FILES[@]}"
+              --notes "$NOTES"
+            sleep 3
           fi
-          gh release edit "$VERSION" --repo "$WINDOWS_REPO" --latest
+
+          for file in "${FILES[@]}"; do
+            name="$(basename "$file")"
+            asset_id="$(gh api "repos/${TARGET_REPO}/releases/tags/${VERSION}" \
+              --jq ".assets[] | select(.name == \"${name}\") | .id" 2>/dev/null | head -n1 || true)"
+            if [[ -n "${asset_id}" ]]; then
+              gh api -X DELETE "repos/${TARGET_REPO}/releases/assets/${asset_id}" >/dev/null
+            fi
+            for attempt in 1 2 3; do
+              if gh release upload "$VERSION" "$file" --repo "$TARGET_REPO"; then
+                break
+              fi
+              if [[ $attempt -eq 3 ]]; then
+                echo "::error title=Windows mirror upload failed::Could not upload ${name} to ${TARGET_REPO}"
+                exit 1
+              fi
+              echo "Upload of ${name} failed, retrying in 5s (attempt ${attempt}/3)"
+              sleep 5
+            done
+          done
+
+          gh release edit "$VERSION" --repo "$TARGET_REPO" --latest
 
       - name: Summary
+        if: always()
         shell: bash
         run: |
           {
-            echo "### Mirrored v${{ steps.version.outputs.name }}"
+            echo "### Mirror v${{ steps.version.outputs.name }}"
             echo
             echo "| Repository | Release |"
             echo "| --- | --- |"
