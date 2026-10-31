@@ -1,0 +1,140 @@
+name: Mirror release to download repositories
+
+# Re-publishes an already-built release into the two download-only
+# repositories that installed copies of the app poll for updates:
+#
+#   Shivaay20005/ShivaayMusic                 (Android, tag `1.0.8`)
+#   Shivaay20005/ShivaayMusic-Windows-release (Windows, tag `1.0.8`)
+#
+# The normal build workflows mirror automatically. This workflow exists so the
+# mirror can be repaired without rebuilding anything — for example when the
+# Windows build failed after the Android release was already published, or when
+# `RELEASE_SYNC_TOKEN` was missing during the first run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to mirror, e.g. 1.0.8 (empty = read pubspec.yaml)'
+        required: false
+        type: string
+      source_repo:
+        description: 'Repository that holds the built release'
+        required: false
+        default: Shivaay20005/ShivaayMusic-main
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    name: Mirror release assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_SYNC_TOKEN }}
+      SOURCE_REPO: ${{ inputs.source_repo }}
+      ANDROID_REPO: Shivaay20005/ShivaayMusic
+      WINDOWS_REPO: Shivaay20005/ShivaayMusic-Windows-release
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          if [[ -z "$VERSION" ]]; then
+            VERSION="$(sed -n 's/^version:[[:space:]]*\([0-9][^+ ]*\).*/\1/p' pubspec.yaml | head -n1)"
+          fi
+          if [[ -z "$VERSION" ]]; then
+            echo "::error title=Version not found::Pass a version input or set version: in pubspec.yaml"
+            exit 1
+          fi
+          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Mirroring v$VERSION from $SOURCE_REPO"
+
+      - name: Check the sync token
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error title=RELEASE_SYNC_TOKEN missing::Add a PAT with write access to both download repositories, then re-run this workflow."
+            exit 1
+          fi
+
+      - name: Download release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          if ! gh release view "v${{ steps.version.outputs.name }}" --repo "$SOURCE_REPO" >/dev/null 2>&1; then
+            echo "::error title=Release not found::v${{ steps.version.outputs.name }} does not exist in $SOURCE_REPO"
+            exit 1
+          fi
+          gh release download "v${{ steps.version.outputs.name }}" \
+            --repo "$SOURCE_REPO" \
+            --dir assets \
+            --clobber
+          ls -lh assets
+
+      - name: Mirror Android files
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.name }}"
+          shopt -s nullglob
+          FILES=(assets/*Android* assets/*SHA256SUMS-Android.txt)
+          if [[ ${#FILES[@]} -eq 0 ]]; then
+            echo "::warning title=Android mirror skipped::No Android assets found in v$VERSION"
+            exit 0
+          fi
+          NOTES="$(printf '## ShivaayMusic v%s\n\n- Universal APK + per-ABI APKs\n- Android App Bundle (AAB)\n- SHA-256 checksums for every file\n' "$VERSION")"
+          if gh release view "$VERSION" --repo "$ANDROID_REPO" >/dev/null 2>&1; then
+            gh release upload "$VERSION" --repo "$ANDROID_REPO" --clobber "${FILES[@]}"
+          else
+            gh release create "$VERSION" --repo "$ANDROID_REPO" \
+              --title "ShivaayMusic v$VERSION" \
+              --notes "$NOTES" \
+              "${FILES[@]}"
+          fi
+          gh release edit "$VERSION" --repo "$ANDROID_REPO" --latest
+
+      - name: Mirror Windows files
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.name }}"
+          shopt -s nullglob
+          FILES=(assets/*Windows* assets/*SHA256SUMS-Windows.txt)
+          if [[ ${#FILES[@]} -eq 0 ]]; then
+            echo "::warning title=Windows mirror skipped::No Windows assets found in v$VERSION (the Windows build probably failed)"
+            exit 0
+          fi
+          NOTES="$(printf '## ShivaayMusic v%s (Windows)\n\n- Installer: `ShivaayMusic-v%s-Windows-Setup.exe`\n- Portable: `ShivaayMusic-v%s-Windows-Portable.zip`\n- SHA-256 checksums for every file\n' "$VERSION" "$VERSION" "$VERSION")"
+          if gh release view "$VERSION" --repo "$WINDOWS_REPO" >/dev/null 2>&1; then
+            gh release upload "$VERSION" --repo "$WINDOWS_REPO" --clobber "${FILES[@]}"
+          else
+            gh release create "$VERSION" --repo "$WINDOWS_REPO" \
+              --title "ShivaayMusic v$VERSION" \
+              --notes "$NOTES" \
+              "${FILES[@]}"
+          fi
+          gh release edit "$VERSION" --repo "$WINDOWS_REPO" --latest
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "### Mirrored v${{ steps.version.outputs.name }}"
+            echo
+            echo "| Repository | Release |"
+            echo "| --- | --- |"
+            echo "| \`$ANDROID_REPO\` | https://github.com/$ANDROID_REPO/releases/tag/${{ steps.version.outputs.name }} |"
+            echo "| \`$WINDOWS_REPO\` | https://github.com/$WINDOWS_REPO/releases/tag/${{ steps.version.outputs.name }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

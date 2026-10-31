@@ -217,8 +217,34 @@ git push origin v1.0.8
 ### Forcing only the legacy mirror
 
 The mirror step runs only when `publish == true`. To refresh the legacy repos
-without rebuilding, either re-run the release flow above, or create the release
-there directly:
+without rebuilding, run the **Mirror release to download repositories**
+workflow (`.github/workflows/mirror_release.yml`). It copies the assets of an
+existing release into both download repos, splits them by platform, and marks
+the mirrored release as *Latest* — no APK/EXE rebuild, takes about a minute.
+
+```bash
+# Actions → Mirror release to download repositories → Run workflow
+#   version     = 1.0.8            (empty = read pubspec.yaml)
+#   source_repo = Shivaay20005/ShivaayMusic-main
+
+# Same thing from the CLI:
+gh workflow run mirror_release.yml \
+  --repo Shivaay20005/ShivaayMusic-main \
+  -f version=1.0.8
+```
+
+Use it when:
+
+- the Windows build failed after Android already published,
+- `RELEASE_SYNC_TOKEN` was missing on the first run,
+- a mirrored release/tag was deleted by accident,
+- you need the *Latest* badge to move to the new version.
+
+The workflow only mirrors what exists: if the release has no `*Windows*` assets
+it prints a warning and leaves the Windows download repo untouched, so you never
+end up with an empty Windows release.
+
+If you prefer doing it by hand:
 
 ```bash
 VERSION=1.0.8
@@ -281,6 +307,7 @@ Without it the build still succeeds; the mirror steps print
 | --- | --- |
 | `.github/workflows/code_quality.yml` | Android analyze/build/tag/release/mirror |
 | `.github/workflows/win_exe.yml` | Windows build/installer/release/mirror |
+| `.github/workflows/mirror_release.yml` | Re-mirror an existing release into the download repos (no rebuild) |
 | `pubspec.yaml` | Version source of truth + dependencies |
 | `lib/utils/helper.dart` | `newVersionCheck()`, `isVersionNewer()`, release URLs |
 | `lib/ui/screens/Home/home_screen_controller.dart` | Startup update dialog |
