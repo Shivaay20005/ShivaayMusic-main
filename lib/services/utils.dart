@@ -71,9 +71,17 @@ Map<String, dynamic>? getFixedColumnItem(Map<String, dynamic> item, int index) {
 ///Check if Steam Url or given epoch is expired
 bool isExpired({String? url, int? epoch}) {
   if (url != null) {
-    RegExpMatch? match = RegExp(".expire=([0-9]+)?&").firstMatch(url);
-    if (match != null) {
-      epoch = int.parse(match[1]!);
+    // `expire` is a query parameter, so it can be followed by `&` or be the
+    // last parameter of the URL. The old pattern required the trailing `&`,
+    // so such a URL was treated as already expired and a perfectly good cached
+    // stream was re-fetched (or deleted) on every check.
+    final match = RegExp(r'[?&]expire=(\d+)').firstMatch(url);
+    final expiresAt = match == null ? null : int.tryParse(match[1]!);
+    if (expiresAt != null) {
+      epoch = expiresAt;
+    } else if (!url.contains('googlevideo.com')) {
+      // Local files and any other URL without a signed expiry never expire.
+      return false;
     }
   }
 

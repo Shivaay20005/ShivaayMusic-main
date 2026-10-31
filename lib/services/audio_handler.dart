@@ -353,7 +353,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       try {
         await customAction("playByIndex", {'index': index, 'newUrl': true});
         if (curPos > const Duration(seconds: 2) && index == currentIndex) {
-          await _player.seek(curPos);
+          // The recovery can fail (for example while YouTube is rate limiting
+          // us), in which case there is no loaded source to seek in.
+          try {
+            await _player.seek(curPos);
+          } catch (_) {
+            // Nothing to resume; the failure snackbar is already shown.
+          }
         }
       } finally {
         _isRecoveringFromError = false;
@@ -484,6 +490,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     _lastPrefetchedIndex = startIndex;
     unawaited(() async {
       for (final id in ids) {
+        // A `429` in the middle of the warm-up pauses the rest of it.
+        if (StreamProvider.isCoolingDown) break;
         try {
           // `checkNGetUrl` returns from the Hive cache when a still-valid URL
           // exists, so re-warming the previous track costs nothing.
@@ -891,8 +899,12 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
               await checkNGetUrl(currentSong.id, generateNewUrl: isNewUrlReq);
 
           // A cached URL can expire between two songs (403). Retry once with a
-          // freshly generated URL before surfacing an error.
-          if (!streamInfo.playable && !isNewUrlReq) {
+          // freshly generated URL before surfacing an error. Never retry while
+          // YouTube is rate limiting us: a second round of requests is exactly
+          // what turns a short block into a long one.
+          if (!streamInfo.playable &&
+              !isNewUrlReq &&
+              !StreamProvider.isCoolingDown) {
             streamInfo =
                 await checkNGetUrl(currentSong.id, generateNewUrl: true);
           }
@@ -997,7 +1009,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           queue.add([currMed]);
 
           var streamInfo = await checkNGetUrl(currMed.id);
-          if (!streamInfo.playable) {
+          // Skip the extra round-trip while YouTube is rate limiting us.
+          if (!streamInfo.playable && !StreamProvider.isCoolingDown) {
             streamInfo =
                 await checkNGetUrl(currMed.id, generateNewUrl: true);
           }
@@ -1498,8 +1511,12 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         if (cached is Map) {
           final low = cached['lowQualityAudio'];
           final high = cached['highQualityAudio'];
-          final cachedUrl = (low is Map ? low['url'] : null) ??
-              (high is Map ? high['url'] : null);
+          // Validate the URL that will actually be played, not whichever one
+          // happens to be stored first: a fresh low-quality URL used to hide an
+          // expired high-quality one (or the reverse), and the dead URL was
+          // then handed to the player, which failed with a 403.
+          final preferred = (qualityIndex as num).toInt() == 0 ? low : high;
+          final cachedUrl = preferred is Map ? preferred['url'] : null;
           if (cachedUrl is String && !isExpired(url: cachedUrl)) {
             printINFO("Got cached Url ($songId)");
             try {

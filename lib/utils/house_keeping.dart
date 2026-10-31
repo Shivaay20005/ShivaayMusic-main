@@ -19,10 +19,21 @@ Future<void> removeExpiredSongsUrlFromDb() async {
         songsUrlCacheBox.keys.whereType<String>().toList();
     for (var i = 0; i < songsUrlCacheKeysList.length; i++) {
       final songUrlKey = songsUrlCacheKeysList[i];
-      final streamData = songsUrlCacheBox.get(songUrlKey)[1];
-      if (streamData == null ||
-          streamData.runtimeType == String ||
-          (streamData != null && isExpired(url: streamData['url'] as String))) {
+      final entry = songsUrlCacheBox.get(songUrlKey);
+      // `checkNGetUrl` stores the map returned by `smStreamingData`, so the
+      // audio lives under `highQualityAudio` / `lowQualityAudio`. The old code
+      // read `entry[1]`, which is always null for a map, so every cached URL
+      // was deleted on the first visit to the library screen — the cache was
+      // empty at every cold start and each song paid for a fresh extraction.
+      dynamic audio;
+      if (entry is Map) {
+        audio = entry['highQualityAudio'] ?? entry['lowQualityAudio'];
+      } else if (entry is List && entry.length > 1) {
+        // Older builds stored a list whose second element was the audio map.
+        audio = entry[1];
+      }
+      final url = audio is Map ? audio['url'] : null;
+      if (url is! String || isExpired(url: url)) {
         await songsUrlCacheBox.delete(songUrlKey);
       }
     }

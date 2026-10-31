@@ -199,29 +199,41 @@ class StreamProvider {
     for (var i = 0; i < candidates.length; i++) {
       final client = candidates[i];
       StreamProvider? provider;
+      var refusalRecorded = false;
 
       try {
-        final res = await _yt.videos.streamsClient.getManifest(
-          videoId,
-          ytClients: [client],
-          // The library only needs the watch page to run its JS challenge
-          // solver, and this app never installs one. Fetching it anyway meant
-          // every song waited for a full watch page (hundreds of KB) before the
-          // small `youtubei/v1/player` request was even sent. Skipping it
-          // removes that round-trip; the player response already contains the
-          // stream URLs.
-          requireWatchPage: false,
-        );
+        final res = await _yt.videos.streamsClient
+            .getManifest(
+              videoId,
+              ytClients: [client],
+              // The library only needs the watch page to run its JS challenge
+              // solver, and this app never installs one. Fetching it anyway meant
+              // every song waited for a full watch page (hundreds of KB) before the
+              // small `youtubei/v1/player` request was even sent. Skipping it
+              // removes that round-trip; the player response already contains the
+              // stream URLs.
+              requireWatchPage: false,
+            )
+            // A hung connection used to leave the player on its loading spinner
+            // forever, because `package:http` has no timeout of its own. Fifteen
+            // seconds is far longer than a healthy player request and short
+            // enough that the next identity can still be tried.
+            .timeout(const Duration(seconds: 15));
         provider = _fromManifest(res);
       } on VideoRequiresPurchaseException {
         return StreamProvider(
           playable: false,
           statusMSG: "Song requires purchase",
         );
+      } on TimeoutException catch (e) {
+        lastError = e;
+        _refused(videoId, client);
+        refusalRecorded = true;
       } on _RateLimitedError catch (e) {
         sawRateLimit = true;
         lastError = e;
         _refused(videoId, client);
+        refusalRecorded = true;
         // Pause pre-fetching for a minute: the block is about the connection,
         // so extra requests only make it last longer.
         _cooldownUntil = DateTime.now().add(const Duration(seconds: 60));
@@ -232,15 +244,21 @@ class StreamProvider {
       } on YoutubeExplodeException catch (e) {
         lastError = e;
         _refused(videoId, client);
+        refusalRecorded = true;
       } catch (e) {
         lastError = e;
         _refused(videoId, client);
+        refusalRecorded = true;
       }
 
       if (provider != null) {
         _served(client);
         return provider;
       }
+      // The request succeeded but the client answered without any audio the
+      // player can use (SABR-only formats). Count that as a refusal so the
+      // identity is rotated out instead of being tried first on every song.
+      if (!refusalRecorded) _refused(videoId, client);
 
       // A short pause between identities. Firing all three in the same
       // millisecond is what YouTube reads as a burst.
@@ -254,6 +272,13 @@ class StreamProvider {
         playable: false,
         statusMSG:
             "YouTube is rate limiting this connection. Please wait a minute and try again.",
+      );
+    }
+    if (lastError is SocketException || lastError is TimeoutException) {
+      return StreamProvider(
+        playable: false,
+        statusMSG:
+            "Could not reach YouTube. Check your connection and try again.",
       );
     }
     if (lastError is YoutubeExplodeException) {
