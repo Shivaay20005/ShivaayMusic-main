@@ -14,6 +14,9 @@ HOW TO UPDATE THIS CHANGELOG
 [Version]
 - **Version 1.0.9 (Build 14)**: Bumped in `pubspec.yaml` (`1.0.9+14`), the startup build label in `lib/main.dart`, the Settings version fallback, `windows/runner/Runner.rc` (`1.0.9.14`), the Inno Setup `AppVersion`, and `LICENSE`.
 
+[CI]
+- **Windows Plugin Patch Is Idempotent**: The `Relocate symlink-unsafe plugin extraction targets` step failed when a cached pub cache already contained a patched `smtc_windows` CMakeLists. It now treats an existing `CMAKE_BINARY_DIR/plugin_native_bin` LibRoot as success and only patches (or errors) when neither form is present.
+
 [Playback]
 - **Spinner Stuck After the Song Started**: The play/pause button could keep showing the loading spinner for the whole track even though audio was playing. Two independent guards now clear it:
   - `MyAudioHandler` gained `_emitCurrentProcessingState()`, called from the `finally` block of `playByIndex` and `setSourceNPlay`. Previously `isSongLoading` was only translated into a processing state inside the playback-event listener; while the player stayed in `buffering` no new event arrived, so the published state remained `loading` forever. The error state published by `_reportPlaybackFailure` is preserved.

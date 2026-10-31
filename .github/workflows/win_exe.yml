@@ -234,13 +234,17 @@ jobs:
           $original = Get-Content $cmakeLists -Raw
           $needle = 'set(LibRoot "${CMAKE_CURRENT_SOURCE_DIR}/${LibraryVersion}")'
           $replacement = 'set(LibRoot "${CMAKE_BINARY_DIR}/plugin_native_bin/${LibraryVersion}")'
-          if (-not $original.Contains($needle)) {
+          if ($original.Contains($replacement)) {
+            # The pub cache can be restored from a previous run that already
+            # patched this package, so a missing needle is not an error.
+            Write-Host "Already patched $cmakeLists"
+          } elseif (-not $original.Contains($needle)) {
             throw "Could not find the smtc_windows LibRoot definition in $cmakeLists"
+          } else {
+            $patched = $original.Replace($needle, $replacement)
+            Set-Content -Path $cmakeLists -Value $patched -NoNewline
+            Write-Host "Patched $cmakeLists"
           }
-
-          $patched = $original.Replace($needle, $replacement)
-          Set-Content -Path $cmakeLists -Value $patched -NoNewline
-          Write-Host "Patched $cmakeLists"
           Write-Host "  LibRoot -> `${CMAKE_BINARY_DIR}/plugin_native_bin/`${LibraryVersion}"
 
       - name: Enable update checks in release build
