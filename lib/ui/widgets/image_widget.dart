@@ -101,7 +101,10 @@ class ImageWidget extends StatelessWidget {
                           artist != null ? BoxShape.circle : BoxShape.rectangle,
                       borderRadius:
                           artist != null ? null : BorderRadius.circular(10),
-                      color: Colors.white54,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.12),
                     ),
                   ))),
             ),

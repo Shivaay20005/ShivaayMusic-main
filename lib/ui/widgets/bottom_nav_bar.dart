@@ -163,7 +163,7 @@ class BottomNavBar extends StatelessWidget {
                   Icon(
                     isSelected ? selectedIcon : icon,
                     size: 24,
-                    color: isSelected ? scheme.secondary : theme.iconTheme.color?.withValues(alpha: 0.62),
+                    color: isSelected ? scheme.secondary : theme.iconTheme.color?.withValues(alpha: 0.72),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -172,7 +172,7 @@ class BottomNavBar extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.labelSmall?.copyWith(
                       fontSize: 11,
-                      color: isSelected ? scheme.secondary : theme.iconTheme.color?.withValues(alpha: 0.62),
+                      color: isSelected ? scheme.secondary : theme.iconTheme.color?.withValues(alpha: 0.72),
                       fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
                       letterSpacing: 0.1,
                     ),

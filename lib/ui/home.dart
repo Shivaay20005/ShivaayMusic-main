@@ -136,15 +136,32 @@ class Home extends StatelessWidget {
                                                   color: playerController
                                                           .isQueueLoopModeEnabled
                                                           .isFalse
-                                                      ? Colors.white24
-                                                      : Colors.white
-                                                          .withValues(alpha: 0.8),
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface
+                                                          .withValues(
+                                                              alpha: 0.12)
+                                                      : Theme.of(context)
+                                                          .colorScheme
+                                                          .secondary,
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
                                                 child: Center(
-                                                    child:
-                                                        Text("queueLoop".tr)),
+                                                    child: Text(
+                                                  "queueLoop".tr,
+                                                  style: TextStyle(
+                                                    color: playerController
+                                                            .isQueueLoopModeEnabled
+                                                            .isFalse
+                                                        ? Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurface
+                                                        : Theme.of(context)
+                                                            .colorScheme
+                                                            .onSecondary,
+                                                  ),
+                                                )),
                                               ),
                                             ),
                                           ),

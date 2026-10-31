@@ -120,19 +120,20 @@ class PlayerControlWidget extends StatelessWidget {
                   icon: Obx(() => Icon(
                         Ionicons.shuffle,
                         color: playerController.isShuffleModeEnabled.value
-                            ? Theme.of(context).textTheme.titleLarge!.color
+                            ? Theme.of(context).colorScheme.onSurface
                             : Theme.of(context)
-                                .textTheme
-                                .titleLarge!
-                                .color!
-                                .withValues(alpha: 0.2)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.45)
                       ))),
               _previousButton(playerController, context),
               CircleAvatar(
                   radius: 35,
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   foregroundColor: Theme.of(context).colorScheme.onSecondary,
-                  child: const AnimatedPlayButton(key: Key("playButton"),)),
+                  child: AnimatedPlayButton(
+                      key: const Key("playButton"),
+                      color: Theme.of(context).colorScheme.onSecondary)),
               _nextButton(playerController, context),
               Obx(() {
                 return IconButton(
@@ -140,12 +141,11 @@ class PlayerControlWidget extends StatelessWidget {
                     icon: Icon(
                       Icons.all_inclusive,
                       color: playerController.isLoopModeEnabled.value
-                          ? Theme.of(context).textTheme.titleLarge!.color
+                          ? Theme.of(context).colorScheme.onSurface
                           : Theme.of(context)
-                              .textTheme
-                              .titleLarge!
-                              .color!
-                              .withValues(alpha: 0.2)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.45)
                     ));
               }),
             ],
@@ -178,8 +178,11 @@ Widget _nextButton(PlayerController playerController, BuildContext context) {
         icon: Icon(
           Icons.skip_next,
           color: isLastSong
-              ? Theme.of(context).textTheme.titleLarge!.color!.withValues(alpha: 0.2)
-              : Theme.of(context).textTheme.titleMedium!.color,
+              ? Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.45)
+              : Theme.of(context).colorScheme.onSurface,
         ),
         iconSize: 30,
         onPressed: isLastSong ? null : playerController.next);

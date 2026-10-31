@@ -147,6 +147,10 @@ class PlayerController extends GetxController
 
   final buttonState = PlayButtonState.paused.obs;
 
+  /// Last position seen by the position listener. Used to detect that audio is
+  /// actually advancing while [buttonState] still says "loading".
+  Duration? _lastObservedPosition;
+
   // track whether wakelock is currently enabled to avoid repeated calls
   bool _wakelockActive = false;
 
@@ -320,6 +324,18 @@ class PlayerController extends GetxController
 
   void _listenForChangesInPosition() {
     AudioService.position.listen((position) {
+      // Safety net for a stale "loading" button: just_audio can stay in
+      // `buffering` while the stream is playing, and the playback-state
+      // listener only runs when an event arrives. If the position is moving,
+      // the song is playing no matter what the last event said.
+      final lastPosition = _lastObservedPosition;
+      if (lastPosition != null &&
+          position > lastPosition &&
+          buttonState.value == PlayButtonState.loading) {
+        buttonState.value = PlayButtonState.playing;
+      }
+      _lastObservedPosition = position;
+
       _trackListeningPosition(position);
       final oldState = progressBarStatus.value;
       if (isSleepEndOfSongActive.isTrue) {

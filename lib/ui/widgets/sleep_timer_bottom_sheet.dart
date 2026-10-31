@@ -49,7 +49,11 @@ class SleepTimerBottomSheet extends StatelessWidget {
                         style: Theme.of(context)
                             .textTheme
                             .titleLarge!
-                            .copyWith(fontSize: 35),
+                            .copyWith(
+                                fontSize: 35,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondary),
                       );
                     }),
                   ),
@@ -220,7 +224,10 @@ class SleepTimerBottomSheet extends StatelessWidget {
                    }
                 }
               },
-              child: Text("Start", style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+              child: Text("Start",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary)),
             ),
           ],
         );

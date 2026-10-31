@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shivaaymusic/ui/utils/theme_controller.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 import '../player_controller.dart';
@@ -11,6 +10,9 @@ class LyricsSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PlayerController playerController = Get.find<PlayerController>();
+    final scheme = Theme.of(context).colorScheme;
+    final inactiveBackground =
+        Color.alphaBlend(scheme.onSurface.withValues(alpha: 0.12), scheme.surface);
     return Obx(
       () => playerController.showLyricsflag.value
           ? Padding(
@@ -19,12 +21,12 @@ class LyricsSwitch extends StatelessWidget {
                 minWidth: 90.0,
                 cornerRadius: 20.0,
                 activeBgColors: [
-                  [Theme.of(context).primaryColor.withLightness(0.4)],
-                  [Theme.of(context).primaryColor.withLightness(0.4)]
+                  [scheme.primary],
+                  [scheme.primary]
                 ],
-                activeFgColor: Colors.white,
-                inactiveBgColor: Theme.of(context).colorScheme.secondary,
-                inactiveFgColor: Colors.white,
+                activeFgColor: scheme.onPrimary,
+                inactiveBgColor: inactiveBackground,
+                inactiveFgColor: scheme.onSurface,
                 initialLabelIndex: playerController.lyricsMode.value,
                 totalSwitches: 2,
                 labels: ['synced'.tr, 'plain'.tr],

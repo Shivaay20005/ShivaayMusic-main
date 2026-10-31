@@ -9,6 +9,27 @@ HOW TO UPDATE THIS CHANGELOG
 
 ===================================================================
 
+#30 Update - 1.0.9 - 2026-10-31
+-------------------
+[Version]
+- **Version 1.0.9 (Build 14)**: Bumped in `pubspec.yaml` (`1.0.9+14`), the startup build label in `lib/main.dart`, the Settings version fallback, `windows/runner/Runner.rc` (`1.0.9.14`), the Inno Setup `AppVersion`, and `LICENSE`.
+
+[Playback]
+- **Spinner Stuck After the Song Started**: The play/pause button could keep showing the loading spinner for the whole track even though audio was playing. Two independent guards now clear it:
+  - `MyAudioHandler` gained `_emitCurrentProcessingState()`, called from the `finally` block of `playByIndex` and `setSourceNPlay`. Previously `isSongLoading` was only translated into a processing state inside the playback-event listener; while the player stayed in `buffering` no new event arrived, so the published state remained `loading` forever. The error state published by `_reportPlaybackFailure` is preserved.
+  - `PlayerController._listenForChangesInPosition()` now flips `PlayButtonState.loading` to `playing` as soon as the playback position advances. A moving position proves the stream is playing, regardless of the last buffering event.
+
+[Theming]
+- **Contrast-Safe Colour Roles**: `ThemeController._withAccessibleComponents()` now derives `onSurface`, `onSurfaceVariant`, `onPrimary`, `onSecondary`, `onError`, and `onBackground` from the luminance of their own background (WCAG 0.179 threshold) instead of trusting `ColorScheme.fromSwatch`. This removes white-on-white controls in the light theme and white-on-light-accent controls in the dynamic theme.
+- **Player Always Uses a Dark Theme**: The player screen now wraps its `Scaffold` in `Theme(data: ThemeController.playerTheme)`. The light theme used to render a white player with white text/icons; the dynamic theme could pair a light accent with white controls. The player now stays dark with a contrast-safe accent in every app theme, and the cached theme is invalidated whenever the theme mode or album-art palette changes.
+- **Dynamic/Dark/Light Scheme Normalisation**: Dynamic theme now exposes `primary`/`secondary` = `primarySwatch[200]` with computed `on*` colours; the dark theme uses white accents with black `on*`; the light theme uses a black `secondary` with white `onSecondary`.
+- **Progress Bars**: Buffered progress is now visible in every theme (dynamic/dark `white54`, light `black45`, player `white54`) instead of black-on-black or accent-on-accent.
+- **Controls and Chips**: Play button icon/spinner takes an explicit `color` (`onSecondary` inside the accent circle, `onSurface` elsewhere); shuffle/loop/next disabled states use 45% `onSurface` instead of a 20% title colour; queue-loop chips in the player and home end-drawer use theme roles with readable label colours.
+- **Switches and Toggles**: `CustSwitch` uses `ColorScheme` roles instead of guessing light mode from `primaryColor == Colors.white`; lyrics/video `ToggleSwitch`es use `primary`/`onPrimary` and a `onSurface`-blended inactive track instead of a light accent with hardcoded white labels.
+- **Navigation**: Bottom navigation unselected icons are brighter (72% `onSurface`); the desktop sidebar uses `primary`/`onPrimary` so the selected pill and icon always contrast.
+- **Snackbars and Dialogs**: Snackbar text follows `onSecondary`; the sleep-timer "Start" action, chat send buttons, profile avatar initial, up-next playing indicator, about-page icon, and listening-stats hero card no longer use hardcoded black/white that disappeared in one of the themes.
+- **Shimmer Placeholders**: Loading placeholders use `onSurface` at 12% instead of white, so they are visible in the light theme too.
+
 #29 Release - 1.0.8 - 2026-10-31
 -------------------
 [Release]

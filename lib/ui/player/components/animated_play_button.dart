@@ -11,7 +11,13 @@ class AnimatedPlayButton extends StatefulWidget {
   /// size of the icon.
   final double iconSize;
 
-  const AnimatedPlayButton({super.key, this.iconSize = 40.0});
+  /// Colour of the icon and the loading spinner.
+  ///
+  /// Defaults to [ColorScheme.onSurface]. Pass [ColorScheme.onSecondary] when
+  /// the button sits on a [ColorScheme.secondary] circle.
+  final Color? color;
+
+  const AnimatedPlayButton({super.key, this.iconSize = 40.0, this.color});
 
   @override
   State<AnimatedPlayButton> createState() => _AnimatedPlayButtonState();
@@ -49,8 +55,12 @@ class _AnimatedPlayButtonState extends State<AnimatedPlayButton>
         _controller.reverse();
       }
 
+      final color =
+          widget.color ?? Theme.of(context).colorScheme.onSurface;
+
       return IconButton(
         iconSize: widget.iconSize,
+        color: color,
         onPressed: () {
           isPlaying ? controller.pause() : controller.play();
         },

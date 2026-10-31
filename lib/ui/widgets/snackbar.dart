@@ -16,13 +16,13 @@ SnackBar snackbar(BuildContext context, String text,
       : size == SanckBarSize.MEDIUM
           ? (scrWidth - 200) / 2
           : (scrWidth - 100) / 2;
+  final scheme = Theme.of(context).colorScheme;
   return SnackBar(
-    backgroundColor: Theme.of(context).colorScheme.secondary,
+    backgroundColor: scheme.secondary,
     content: Center(
       child: Text(
         text,
-        style: const TextStyle(
-            color: Colors.white),
+        style: TextStyle(color: scheme.onSecondary),
       ),
     ),
     //width: width,

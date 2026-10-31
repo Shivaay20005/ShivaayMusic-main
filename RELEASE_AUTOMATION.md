@@ -11,9 +11,9 @@ secret setup in step 1.
 1. **Push to any branch** → both workflows run `flutter analyze`/build so a
    broken commit is visible immediately, but nothing is published.
 2. **Push to the default branch** (`main`) →
-   - the version is read from `pubspec.yaml` (currently `1.0.8+13`);
-   - the tag `v1.0.8` is created if it does not exist yet;
-   - the GitHub Release `ShivaayMusic 1.0.8` is created/updated with:
+   - the version is read from `pubspec.yaml` (currently `1.0.9+14`);
+   - the tag `v1.0.9` is created if it does not exist yet;
+   - the GitHub Release `ShivaayMusic 1.0.9` is created/updated with:
      - universal APK,
      - `arm64-v8a`, `armeabi-v7a`, `x86_64` APKs,
      - Android App Bundle (`.aab`),
@@ -23,7 +23,7 @@ secret setup in step 1.
    - the Windows workflow attaches the installer and portable ZIP to the same
      release and mirrors them to
      `Shivaay20005/ShivaayMusic-Windows-release`.
-3. **Pushing a `v1.0.8` tag** publishes that exact commit (the workflow verifies
+3. **Pushing a `v1.0.9` tag** publishes that exact commit (the workflow verifies
    the tag matches `pubspec.yaml`).
 4. **Manual run** (`workflow_dispatch`) with `publish_release` checked publishes
    the selected branch.
@@ -61,12 +61,12 @@ warning (`Legacy release sync skipped`) and old installs are not notified.
 
 | File | Value |
 | --- | --- |
-| `pubspec.yaml` | `version: 1.0.8+13` |
-| `lib/main.dart` | `_appBuildLabel = 'Version 1.0.8 • Build 13'` |
-| `lib/ui/screens/Settings/settings_screen_controller.dart` | `V1.0.8` fallback |
-| `windows/runner/Runner.rc` | `1,0,8,13` / `"1.0.8.13"` |
-| `windows/packaging/exe/inno_setup.iss` | `AppVersion=1.0.8` |
-| `LICENSE` | `VERSION 1.0.8` |
+| `pubspec.yaml` | `version: 1.0.9+14` |
+| `lib/main.dart` | `_appBuildLabel = 'Version 1.0.9 • Build 14'` |
+| `lib/ui/screens/Settings/settings_screen_controller.dart` | `V1.0.9` fallback |
+| `windows/runner/Runner.rc` | `1,0,9,14` / `"1.0.9.14"` |
+| `windows/packaging/exe/inno_setup.iss` | `AppVersion=1.0.9` |
+| `LICENSE` | `VERSION 1.0.9` |
 
 `android/app/build.gradle` reads `versionName`/`versionCode` from `pubspec.yaml`,
 so no Android-specific edit is required.

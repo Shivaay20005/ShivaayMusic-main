@@ -62,15 +62,14 @@ class SideNavBar extends StatelessWidget {
               child: CustomSideBarAnimated(
                 onTap: homeScreenController.onSideBarTabSelected,
                 sideBarColor: Theme.of(context).cardColor,
-                animatedContainerColor: Theme.of(context).brightness == Brightness.dark
-                    ? Theme.of(context).colorScheme.secondary
-                    : Colors.black,
+                animatedContainerColor:
+                    Theme.of(context).colorScheme.primary,
                 hoverColor: Theme.of(context).hoverColor,
                 splashColor: Theme.of(context).splashColor,
                 highlightColor: Theme.of(context).highlightColor,
                 unSelectedTextColor: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                 unselectedIconColor: Theme.of(context).iconTheme.color ?? Colors.grey,
-                selectedIconColor: Colors.white,
+                selectedIconColor: Theme.of(context).colorScheme.onPrimary,
                 widthSwitch: 800,
                 mainLogoImage: 'assets/icons/icon.png',
                 mainLogoSize: const Size(60, 60),

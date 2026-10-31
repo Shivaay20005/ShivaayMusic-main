@@ -178,6 +178,32 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
   }
 
+  /// Publishes the player's *current* processing state.
+  ///
+  /// The playback event listener is the only place that translates
+  /// `isSongLoading` into a processing state, so when loading finished while the
+  /// player was buffering (no new playback event is emitted until the buffer
+  /// fills or the track ends) the published state stayed `loading` and the
+  /// spinner stayed on screen for the whole song.
+  void _emitCurrentProcessingState() {
+    try {
+      playbackState.add(playbackState.value.copyWith(
+        processingState: const {
+          ProcessingState.idle: AudioProcessingState.idle,
+          ProcessingState.loading: AudioProcessingState.loading,
+          ProcessingState.buffering: AudioProcessingState.buffering,
+          ProcessingState.ready: AudioProcessingState.ready,
+          ProcessingState.completed: AudioProcessingState.completed,
+        }[_player.processingState]!,
+        playing: _player.playing,
+        updatePosition: _player.position,
+        bufferedPosition: _player.bufferedPosition,
+      ));
+    } catch (e) {
+      printERROR("Failed to publish playback state: $e");
+    }
+  }
+
   void _addEmptyList() {
     try {
       _player.setAudioSource(_playList);
@@ -795,6 +821,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           _reportPlaybackFailure("Unable to play this song");
         } finally {
           isSongLoading = false;
+          // Publish the real state now: while the player is buffering no new
+          // playback event is emitted, so the spinner used to stay on screen
+          // for the whole song. Keep an error state published by
+          // _reportPlaybackFailure intact.
+          if (playbackState.value.processingState !=
+              AudioProcessingState.error) {
+            _emitCurrentProcessingState();
+          }
         }
         break;
 
@@ -874,6 +908,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           _reportPlaybackFailure("Unable to play this song");
         } finally {
           isSongLoading = false;
+          // Publish the real state now: while the player is buffering no new
+          // playback event is emitted, so the spinner used to stay on screen
+          // for the whole song. Keep an error state published by
+          // _reportPlaybackFailure intact.
+          if (playbackState.value.processingState !=
+              AudioProcessingState.error) {
+            _emitCurrentProcessingState();
+          }
         }
         break;
 

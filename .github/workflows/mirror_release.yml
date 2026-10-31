@@ -3,8 +3,8 @@ name: Mirror release to download repositories
 # Re-publishes an already-built release into the two download-only
 # repositories that installed copies of the app poll for updates:
 #
-#   Shivaay20005/ShivaayMusic                 (Android, tag `1.0.8`)
-#   Shivaay20005/ShivaayMusic-Windows-release (Windows, tag `1.0.8`)
+#   Shivaay20005/ShivaayMusic                 (Android, tag `1.0.9`)
+#   Shivaay20005/ShivaayMusic-Windows-release (Windows, tag `1.0.9`)
 #
 # The normal build workflows mirror automatically. This workflow exists so the
 # mirror can be repaired without rebuilding anything — for example when the
@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to mirror, e.g. 1.0.8 (empty = read pubspec.yaml)'
+        description: 'Version to mirror, e.g. 1.0.9 (empty = read pubspec.yaml)'
         required: false
         type: string
       source_repo:

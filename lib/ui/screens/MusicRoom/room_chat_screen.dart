@@ -91,7 +91,9 @@ class RoomChatScreen extends StatelessWidget {
               CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 child: IconButton(
-                  icon: const Icon(Ionicons.send, color: Colors.white, size: 20),
+                  icon: Icon(Ionicons.send,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 20),
                   onPressed: controller.sendMessage,
                 ),
               ),

@@ -1,4 +1,4 @@
-# ShivaayMusic v1.0.8 implementation notes
+# ShivaayMusic v1.0.9 implementation notes
 
 > Release automation, tagging, and update-notification setup are documented in
 > [`RELEASE_AUTOMATION.md`](RELEASE_AUTOMATION.md). The complete build →

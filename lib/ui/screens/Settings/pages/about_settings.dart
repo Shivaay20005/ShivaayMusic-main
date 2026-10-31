@@ -85,7 +85,8 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
             title: const Text("GitHub"),
             subtitle: Text("View source code & contribute",
                 style: Theme.of(context).textTheme.bodyMedium),
-            trailing: const Icon(Icons.code, color: Colors.black),
+            trailing: Icon(Icons.code,
+                color: Theme.of(context).colorScheme.onSurface),
             onTap: () => launchUrlSafe('https://github.com/Shivaay20005/ShivaayMusic'),
           ),
           ListTile(

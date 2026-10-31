@@ -154,9 +154,11 @@ class UpNextQueue extends StatelessWidget {
                                 Icons.drag_handle,
                               ),
                             playerController.currentSongIndex.value == index
-                                ? const Icon(
+                                ? Icon(
                                     Icons.equalizer,
-                                    color: Colors.white,
+                                    color: Theme.of(homeScaffoldContext)
+                                        .colorScheme
+                                        .primary,
                                   )
                                 : Text(
                                     playerController.currentQueue[index]

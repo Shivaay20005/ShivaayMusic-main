@@ -77,6 +77,7 @@ class ThemeController extends GetxController {
 
   void changeThemeModeType(dynamic value, {bool sysCall = false}) {
     _timer?.cancel(); // Cancel any existing timer to avoid duplicates
+    _playerTheme = null;
 
     if (value == ThemeType.system) {
       themedata.value = _createThemeData(
@@ -118,6 +119,7 @@ class ThemeController extends GetxController {
       textColor.value = Colors.white.withValues(alpha: 0.9); // Increased contrast (white90 equivalent)
     }
     final primarySwatch = _createMaterialColor(primaryColor.value!);
+    _playerTheme = null;
     themedata.value = _createThemeData(primarySwatch, ThemeType.dynamic,
         textColor: textColor.value,
         titleColorSwatch: _createMaterialColor(textColor.value));
@@ -158,6 +160,10 @@ class ThemeController extends GetxController {
               primarySwatch: primarySwatch).copyWith(
                 surface: safeSurface,
                 onSurface: Colors.white,
+                primary: primarySwatch[200],
+                onPrimary: _onColorFor(primarySwatch[200]!),
+                secondary: primarySwatch[200],
+                onSecondary: _onColorFor(primarySwatch[200]!),
               ),
           //accentColor: primarySwatch[200],
           dialogTheme: DialogThemeData(
@@ -219,7 +225,7 @@ class ThemeController extends GetxController {
           sliderTheme: SliderThemeData(
             inactiveTrackColor: primarySwatch[300],
             activeTrackColor: textColor,
-            valueIndicatorColor: primarySwatch[400],
+            valueIndicatorColor: primarySwatch[600],
             thumbColor: Colors.white,
           ),
           textSelectionTheme: TextSelectionThemeData(
@@ -287,7 +293,18 @@ class ThemeController extends GetxController {
           primaryColorLight: Colors.grey[850],
           iconTheme: const IconThemeData(color: Colors.white),
           colorScheme: ColorScheme.fromSwatch(
-              accentColor: Colors.grey[700], brightness: Brightness.dark),
+                  accentColor: Colors.white,
+                  brightness: Brightness.dark,
+                  backgroundColor: Colors.black,
+                  cardColor: Colors.grey[900])
+              .copyWith(
+            primary: Colors.white,
+            onPrimary: Colors.black,
+            secondary: Colors.white,
+            onSecondary: Colors.black,
+            surface: Colors.black,
+            onSurface: Colors.white,
+          ),
           progressIndicatorTheme: ProgressIndicatorThemeData(
               color: Colors.grey[700], linearTrackColor: Colors.white),
           textTheme: const TextTheme(
@@ -339,10 +356,10 @@ class ThemeController extends GetxController {
           sliderTheme: const SliderThemeData(
             //base bar color
             inactiveTrackColor: Colors.white30,
-            //buffered progress
-            activeTrackColor: Colors.white,
             //progress bar color
-            valueIndicatorColor: Colors.black38,
+            activeTrackColor: Colors.white,
+            //buffered progress
+            valueIndicatorColor: Colors.white54,
             thumbColor: Colors.white,
           ),
           textSelectionTheme: TextSelectionThemeData(
@@ -384,8 +401,8 @@ class ThemeController extends GetxController {
               brightness: Brightness.light).copyWith(
                 surface: Colors.white,
                 onSurface: Colors.black,
-                secondary: Colors.grey[200], 
-                onSecondary: Colors.black,   
+                secondary: Colors.black87,
+                onSecondary: Colors.white,
                 primary: Colors.black,
                 onPrimary: Colors.white,
               ),
@@ -477,7 +494,8 @@ class ThemeController extends GetxController {
           sliderTheme: const SliderThemeData(
             inactiveTrackColor: Colors.black12,
             activeTrackColor: Colors.black,
-            valueIndicatorColor: Colors.black,
+            //buffered progress
+            valueIndicatorColor: Colors.black45,
             thumbColor: Colors.black,
           ),
           inputDecorationTheme: const InputDecorationTheme(
@@ -500,9 +518,28 @@ class ThemeController extends GetxController {
   /// light, system, and automatic themes. This prevents controls from becoming
   /// transparent or blending into their surface after a theme transition.
   ThemeData _withAccessibleComponents(ThemeData theme) {
-    final scheme = theme.colorScheme;
-    final disabled = scheme.onSurface.withValues(alpha: 0.48);
-    final subtle = scheme.onSurface.withValues(alpha: 0.14);
+    final baseScheme = theme.colorScheme;
+
+    // Derive every "on" colour from its own background. `ColorScheme.fromSwatch`
+    // pairs a dark brightness with white `on*` colours, which produced white
+    // icons on light accent fills (invisible play button) and light-grey accents
+    // on light surfaces (invisible selected icons in the light theme).
+    final onSurface = _onColorFor(baseScheme.surface);
+    final scheme = baseScheme.copyWith(
+      onSurface: onSurface,
+      onSurfaceVariant: Color.alphaBlend(
+        onSurface.withValues(alpha: 0.75),
+        baseScheme.surface,
+      ),
+      onPrimary: _onColorFor(baseScheme.primary),
+      onSecondary: _onColorFor(baseScheme.secondary),
+      onError: _onColorFor(baseScheme.error),
+      onBackground: onSurface,
+    );
+
+    final disabled = onSurface.withValues(alpha: 0.42);
+    final subtle = onSurface.withValues(alpha: 0.14);
+    final outline = onSurface.withValues(alpha: 0.38);
 
     Color? controlFill(Set<WidgetState> states) {
       if (states.contains(WidgetState.disabled)) return disabled;
@@ -517,8 +554,9 @@ class ThemeController extends GetxController {
     }
 
     return theme.copyWith(
+      colorScheme: scheme,
       disabledColor: disabled,
-      dividerColor: scheme.onSurface.withValues(alpha: 0.18),
+      dividerColor: outline,
       cardColor: scheme.surface,
       iconTheme: theme.iconTheme.copyWith(color: scheme.onSurface),
       listTileTheme: theme.listTileTheme.copyWith(
@@ -633,6 +671,99 @@ class ThemeController extends GetxController {
         textStyle: TextStyle(color: scheme.onInverseSurface),
       ),
     );
+  }
+
+  /// Black or white — whichever is readable on [background].
+  ///
+  /// 0.179 is the luminance where black and white have the same WCAG contrast
+  /// ratio (~4.58), so picking above it always yields the higher-contrast text.
+  static Color _onColorFor(Color background) =>
+      background.computeLuminance() > 0.179 ? Colors.black : Colors.white;
+
+  ThemeData? _playerTheme;
+
+  /// Dark theme used by the player screen, which always sits on a blurred
+  /// album-art backdrop.
+  ///
+  /// The player used to inherit the app theme, so the light theme produced a
+  /// white player with white text/icons and the dynamic theme paired a light
+  /// accent with white controls. Keeping the player dark (with a contrast-safe
+  /// accent) fixes both.
+  ThemeData get playerTheme {
+    final cached = _playerTheme;
+    if (cached != null) return cached;
+
+    final accent = primaryColor.value ?? Colors.deepPurple;
+    final swatch = _createMaterialColor(accent);
+    final background = Color.alphaBlend(
+      Colors.black.withValues(alpha: 0.45),
+      swatch[900] ?? Colors.black,
+    );
+    final surface = Color.alphaBlend(
+      Colors.white.withValues(alpha: 0.07),
+      background,
+    );
+    final accentColor = swatch[200] ?? Colors.white;
+
+    final scheme = ColorScheme.fromSwatch(
+      primarySwatch: swatch,
+      brightness: Brightness.dark,
+      accentColor: accentColor,
+      backgroundColor: background,
+      cardColor: surface,
+    ).copyWith(
+      primary: accentColor,
+      onPrimary: _onColorFor(accentColor),
+      secondary: accentColor,
+      onSecondary: _onColorFor(accentColor),
+      surface: surface,
+      onSurface: Colors.white,
+    );
+
+    final base = ThemeData(
+      useMaterial3: false,
+      brightness: Brightness.dark,
+      primaryColor: background,
+      scaffoldBackgroundColor: background,
+      canvasColor: background,
+      colorScheme: scheme,
+      iconTheme: const IconThemeData(color: Colors.white),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Colors.white,
+        linearTrackColor: Colors.white24,
+      ),
+      sliderTheme: SliderThemeData(
+        inactiveTrackColor: Colors.white30,
+        activeTrackColor: Colors.white,
+        //buffered progress
+        valueIndicatorColor: Colors.white54,
+        thumbColor: Colors.white,
+      ),
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(
+            fontSize: 23, fontWeight: FontWeight.w900, color: Colors.white),
+        titleMedium:
+            TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
+        titleSmall:
+            TextStyle(fontWeight: FontWeight.normal, color: Colors.white70),
+        bodyMedium: TextStyle(color: Colors.white70),
+        labelMedium: TextStyle(
+            fontWeight: FontWeight.normal, fontSize: 23, color: Colors.white),
+        labelSmall: TextStyle(
+            fontSize: 15,
+            color: Colors.white70,
+            letterSpacing: 0,
+            fontWeight: FontWeight.normal),
+      ),
+      dialogTheme: DialogThemeData(backgroundColor: background),
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: background),
+    );
+
+    final theme = _withAccessibleComponents(base.copyWith(
+      textTheme: base.textTheme.apply(fontFamily: 'Nunito'),
+    ));
+    _playerTheme = theme;
+    return theme;
   }
 
   MaterialColor _createMaterialColor(Color color) {

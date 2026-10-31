@@ -39,7 +39,7 @@ import 'utils/system_tray.dart';
 import 'ui/widgets/maintenance_overlay.dart';
 import 'utils/update_check_flag_file.dart';
 
-const String _appBuildLabel = 'Version 1.0.8 • Build 13';
+const String _appBuildLabel = 'Version 1.0.9 • Build 14';
 final ValueNotifier<String> _startupStatus =
     ValueNotifier<String>('Preparing your music space…');
 

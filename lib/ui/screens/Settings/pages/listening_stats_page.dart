@@ -155,10 +155,15 @@ class _ListeningStatsPageState extends State<ListeningStatsPage> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            scheme.primary,
+            // Keep the hero card dark in every theme: the text on it is white,
+            // and the dynamic/light themes expose a light accent as `primary`.
             Color.alphaBlend(
-              scheme.secondary.withValues(alpha: 0.82),
+              Colors.black.withValues(alpha: 0.55),
               scheme.primary,
+            ),
+            Color.alphaBlend(
+              Colors.black.withValues(alpha: 0.25),
+              scheme.secondary,
             ),
           ],
           begin: Alignment.topLeft,

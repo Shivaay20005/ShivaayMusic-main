@@ -65,7 +65,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 ).whenComplete(() => Get.delete<AddToPlaylistController>());
               },
               backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
               icon: Icons.playlist_add,
               //label: 'Add to playlist',
             ),
@@ -75,7 +75,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                   removeSongFromPlaylist(song, playlist!);
                 },
                 backgroundColor: Theme.of(context).colorScheme.secondary,
-                foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+                foregroundColor: Theme.of(context).colorScheme.onSecondary,
                 icon: Icons.delete,
                 //label: 'delete',
               ),
@@ -91,7 +91,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                 });
               },
               backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
               icon: Icons.merge,
               //label: 'Enqueue',
             ),
@@ -103,7 +103,7 @@ class SongListTile extends StatelessWidget with RemoveSongFromPlaylistMixin {
                     size: SanckBarSize.BIG));
               },
               backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).textTheme.titleMedium!.color,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
               icon: Icons.next_plan_outlined,
               //label: 'Play Next',
             ),

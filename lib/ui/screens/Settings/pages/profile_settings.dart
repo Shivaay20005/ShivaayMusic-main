@@ -56,10 +56,12 @@ class ProfileSettingsPage extends StatelessWidget {
                                   authService.userName.value.isNotEmpty
                                       ? authService.userName.value
                                       : 'User',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary,
                                   ),
                                 ),
                               ),

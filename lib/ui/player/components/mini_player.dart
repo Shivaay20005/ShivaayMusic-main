@@ -74,10 +74,9 @@ class MiniPlayer extends StatelessWidget {
                               margin: const EdgeInsets.symmetric(horizontal: 18),
                               decoration: BoxDecoration(
                                 color: Theme.of(context)
-                                    .sliderTheme
-                                    .inactiveTrackColor
-                                    ?.withValues(alpha: 0.28) ??
-                                    Colors.grey.withValues(alpha: 0.28),
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(99),
                               ),
                               child: ClipRRect(
@@ -136,7 +135,8 @@ class MiniPlayer extends StatelessWidget {
                                   return const SizedBox(
                                     height: 50,
                                     width: 50,
-                                    child: Center(child: CircularProgressIndicator()),
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
                                   );
                                 }
                                 
@@ -402,12 +402,18 @@ class MiniPlayer extends StatelessWidget {
                                       child: Center(
                                           child: AnimatedPlayButton(
                                         iconSize: isWideScreen ? 43 : 35,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSecondary,
                                       )))
                                   : SizedBox.square(
                                       dimension: 50,
                                       child: Center(
                                           child: AnimatedPlayButton(
                                         iconSize: isWideScreen ? 43 : 35,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ))),
                               SizedBox(
                                   width: 40,
