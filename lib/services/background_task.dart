@@ -27,11 +27,16 @@ import 'package:shivaaymusic/services/stream_service.dart';
 //   }
 // }
 
-Future<Map<String, dynamic>> getStreamInfo(String songId, dynamic token) async {
+Future<Map<String, dynamic>> getStreamInfo(String songId, [dynamic token]) async {
   if (songId.length > 4 && songId.substring(0, 4) == "MPED") {
     songId = songId.substring(4);
   }
-  BackgroundIsolateBinaryMessenger.ensureInitialized(token);
+  // Only needed when this runs inside a background isolate; the main isolate
+  // already has its binary messenger set up, and initializing it again costs a
+  // platform-channel round-trip on every song.
+  if (token != null) {
+    BackgroundIsolateBinaryMessenger.ensureInitialized(token);
+  }
   final playerResponse = (await StreamProvider.fetch(songId));
   return playerResponse.smStreamingData;
 }

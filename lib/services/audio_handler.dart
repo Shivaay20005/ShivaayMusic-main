@@ -1,10 +1,6 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:math';
 import 'dart:async';
-
-import 'package:flutter/services.dart';
-
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:get/get.dart';
@@ -407,6 +403,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   Future<void> _prefetchNextSong() async {
     if (_isPrefetching || currentIndex == null) return;
+    // A rate-limited connection does not need more requests.
+    if (StreamProvider.isCoolingDown) return;
 
     final nextIndex = _peekNextSongIndex();
     if (nextIndex == currentIndex ||
@@ -441,28 +439,59 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     }
   }
 
-  /// Fire-and-forget warm-up of the next track's stream URL right when a song
-  /// starts playing. This moves the YouTube round-trip off the critical path
-  /// for the following song.
+  /// Fire-and-forget warm-up of the surrounding tracks' stream URLs right when
+  /// a song starts playing. This moves the YouTube round-trip off the critical
+  /// path for the following song and makes a skip (or "previous") instant.
+  ///
+  /// The next track is always warmed; the one after it and the previous track
+  /// are warmed only when smart pre-fetch is enabled, so a user who turned it
+  /// off does not pay for extra network traffic.
   void _prefetchUpcoming() {
     final startIndex = currentIndex;
-    if (startIndex == null) return;
-    final nextIndex = _peekNextSongIndex();
-    if (nextIndex == startIndex ||
-        nextIndex < 0 ||
-        nextIndex >= queue.value.length) {
-      return;
+    if (startIndex is! int) return;
+    // While YouTube is rate limiting this connection, extra warm-up requests
+    // only extend the block. Resume automatically once the cooldown expires.
+    if (StreamProvider.isCoolingDown) return;
+
+    var smartPrefetch = true;
+    try {
+      smartPrefetch =
+          Hive.box("AppPrefs").get("isSmartPrefetchEnabled") ?? true;
+    } catch (_) {
+      // Fall back to the default when preferences are not ready yet.
     }
-    final nextId = queue.value[nextIndex].id;
+
+    final targets = <int>[
+      _queueIndexAtOffset(1),
+      if (smartPrefetch) _queueIndexAtOffset(2),
+      if (smartPrefetch) _queueIndexAtOffset(-1),
+    ];
+
+    final ids = <String>[];
+    for (final index in targets) {
+      if (index < 0 ||
+          index >= queue.value.length ||
+          index == startIndex) {
+        continue;
+      }
+      final id = queue.value[index].id;
+      if (!ids.contains(id)) ids.add(id);
+    }
+    if (ids.isEmpty) return;
+
     // Mark the attempt immediately so a position tick cannot start a duplicate
     // fetch for the same next track while this one is in flight.
-    _lastPrefetchedIndex = startIndex is int ? startIndex : null;
+    _lastPrefetchedIndex = startIndex;
     unawaited(() async {
-      try {
-        await checkNGetUrl(nextId);
-      } catch (e) {
-        // The real playback path retries when the track actually starts.
-        printERROR("Pre-fetch warm-up error: $e");
+      for (final id in ids) {
+        try {
+          // `checkNGetUrl` returns from the Hive cache when a still-valid URL
+          // exists, so re-warming the previous track costs nothing.
+          await checkNGetUrl(id);
+        } catch (e) {
+          // The real playback path retries when the track actually starts.
+          printERROR("Pre-fetch warm-up error: $e");
+        }
       }
     }());
   }
@@ -704,6 +733,31 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     } else {
       return -1;
     }
+  }
+
+  /// Queue index [offset] tracks away from the current one, without touching
+  /// any playback or shuffle cursor. Used by the prefetcher to warm the two
+  /// tracks ahead and the previous one.
+  int _queueIndexAtOffset(int offset) {
+    final current = currentIndex;
+    if (current is! int) return -1;
+    if (queue.value.isEmpty) return -1;
+
+    if (shuffleModeEnabled) {
+      if (shuffledQueue.isEmpty) return -1;
+      // Dart's `%` is always non-negative for a positive divisor, so a
+      // negative offset wraps to the end of the shuffled queue.
+      final target = (currentShuffleIndex + offset) % shuffledQueue.length;
+      return queue.value
+          .indexWhere((item) => item.id == shuffledQueue[target]);
+    }
+
+    final target = current + offset;
+    if (queueLoopModeEnabled) {
+      return target % queue.value.length;
+    }
+    if (target < 0 || target >= queue.value.length) return -1;
+    return target;
   }
 
   int _getPrevSongIndex() {
@@ -1459,9 +1513,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
       if (streamInfo == null) {
         try {
-          final token = RootIsolateToken.instance;
-          final streamInfoJson =
-              await Isolate.run(() => getStreamInfo(songId, token));
+          // Resolve on the main isolate. `Isolate.run` used to spawn a fresh
+          // isolate (and re-initialise the binary messenger through a platform
+          // channel) for every song, and a fresh isolate can never share the
+          // extraction client's connection pool, so each track paid for a new
+          // TLS handshake. The extraction itself is network-bound; the JSON it
+          // parses is small, so doing it here is safe and much faster.
+          final streamInfoJson = await getStreamInfo(songId);
           streamInfo = SMStreamingData.fromJson(streamInfoJson);
           if (streamInfo.playable) songsUrlCacheBox.put(songId, streamInfoJson);
         } catch (e, st) {

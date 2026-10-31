@@ -71,6 +71,10 @@ dependencies:
   media_kit_libs_linux: ^1.2.1
   media_kit_libs_windows_audio: ^1.0.9
   local_auth: ^2.3.0
+  # `http` is used by the extraction client in `stream_service.dart` to stop
+  # youtube_explode's retry loop on a rate limit. It is already a transitive
+  # dependency of youtube_explode_dart, so this only makes the import explicit.
+  http: ^1.0.0
   palette_generator: ^0.3.3+4
   path: ^1.8.3
   path_provider: ^2.1.1
